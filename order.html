@@ -1,0 +1,2097 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <!-- STRICT NO-INDEX SHIELD: Protects Buyer Privacy & Brand Titles from Search Bots -->
+  <meta name="robots" content="noindex, nofollow, noarchive" />
+  <meta name="googlebot" content="noindex, nofollow, noarchive" />
+
+  <title id="order-page-title">Official B2B Wholesale Proforma Invoice & Checkout | Paradise Wholesale Clothing Istanbul</title>
+  <meta
+    name="description"
+    content="Official B2B Wholesale Proforma Invoice and Direct WhatsApp Order Desk — Paradise Wholesale Clothing (Istanbul, Turkey)."
+  />
+  <meta name="theme-color" content="#0f172a" />
+
+  <!-- Fonts & Main Luxury B2B Stylesheet -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Dedicated Proforma Invoice, Checkout & A4 Print Styles -->
+  <style>
+    .order-hero-bar {
+      background: radial-gradient(circle at 85% 20%, rgba(212, 175, 55, 0.18) 0%, transparent 50%),
+                  linear-gradient(135deg, #090d16 0%, var(--charcoal) 100%);
+      color: #ffffff;
+      padding-block: 28px 34px;
+      border-bottom: 1px solid var(--gold-border);
+    }
+    .order-hero-flex {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      justify-content: space-between;
+    }
+    @media (min-width: 992px) {
+      .order-hero-flex {
+        flex-direction: row;
+        align-items: center;
+      }
+    }
+    /* Quick Order Lookup Box */
+    .order-lookup-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--gold-border);
+      padding: 6px 8px 6px 14px;
+      border-radius: var(--radius-full);
+      max-width: 420px;
+      width: 100%;
+    }
+    .order-lookup-input {
+      flex: 1;
+      color: #ffffff;
+      font-size: 0.84rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .order-lookup-input::placeholder {
+      color: #94a3b8;
+      text-transform: none;
+      letter-spacing: normal;
+    }
+    .order-lookup-btn {
+      padding: 8px 16px;
+      border-radius: var(--radius-full);
+      background: var(--gold);
+      color: var(--charcoal);
+      font-size: 0.78rem;
+      font-weight: 800;
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+    .order-lookup-btn:hover {
+      background: var(--gold-light);
+      transform: translateY(-1px);
+    }
+
+    /* Invoice Container & Luxury Card */
+    .invoice-shell {
+      background: var(--bg-surface);
+      border: 1px solid var(--gold-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      margin-bottom: 36px;
+    }
+    .invoice-action-bar {
+      background: var(--bg-subtle);
+      border-bottom: 1px solid var(--border-color);
+      padding: 14px 22px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .invoice-action-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-tool {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 15px;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-weight: 700;
+      background: #ffffff;
+      color: var(--charcoal);
+      border: 1px solid var(--border-color);
+      transition: all 0.2s ease;
+    }
+    .btn-tool:hover {
+      border-color: var(--gold);
+      box-shadow: var(--shadow-xs);
+    }
+    .btn-whatsapp-pulse {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 11px 20px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #ffffff;
+      font-size: 0.86rem;
+      font-weight: 800;
+      box-shadow: 0 8px 22px -4px var(--emerald-glow);
+      animation: subtle-emerald-pulse 2.2s infinite;
+    }
+    @keyframes subtle-emerald-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.55); }
+      50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+    }
+
+    /* Official Proforma Header */
+    .proforma-header {
+      padding: 28px 26px;
+      background: linear-gradient(135deg, #090d16 0%, var(--charcoal) 100%);
+      color: #ffffff;
+      border-bottom: 2px solid var(--gold);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      justify-content: space-between;
+    }
+    @media (min-width: 768px) {
+      .proforma-header {
+        flex-direction: row;
+        align-items: flex-start;
+      }
+    }
+    .proforma-doc-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      background: rgba(212, 175, 55, 0.18);
+      border: 1px solid var(--gold-border);
+      color: var(--gold-light);
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .proforma-code-box {
+      text-align: left;
+    }
+    @media (min-width: 768px) {
+      .proforma-code-box {
+        text-align: right;
+      }
+    }
+    .proforma-order-id {
+      font-family: var(--font-display);
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: var(--gold-light);
+      letter-spacing: 0.03em;
+    }
+
+    /* Status Badges */
+    .order-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 6px;
+    }
+    .status-pending {
+      background: rgba(245, 158, 11, 0.18);
+      color: #fde68a;
+      border: 1px solid rgba(245, 158, 11, 0.45);
+    }
+    .status-preparing {
+      background: rgba(59, 130, 246, 0.18);
+      color: #bfdbfe;
+      border: 1px solid rgba(59, 130, 246, 0.45);
+    }
+    .status-shipped {
+      background: rgba(212, 175, 55, 0.22);
+      color: var(--gold-light);
+      border: 1px solid var(--gold);
+    }
+    .status-completed {
+      background: rgba(16, 185, 129, 0.22);
+      color: #a7f3d0;
+      border: 1px solid var(--emerald);
+    }
+
+    /* Parties Info Grid (Supplier vs Buyer) */
+    .proforma-parties-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+      padding: 24px 26px;
+      background: var(--bg-pearl);
+      border-bottom: 1px solid var(--border-color);
+    }
+    @media (min-width: 768px) {
+      .proforma-parties-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    .party-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+    }
+    .party-card-label {
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--gold-dark);
+      margin-bottom: 6px;
+      display: block;
+    }
+    .party-card-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--charcoal);
+      margin-bottom: 6px;
+    }
+    .party-meta-list {
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    /* Itemized Wholesale Table */
+    .invoice-table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+    .invoice-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 680px;
+    }
+    .invoice-table th {
+      background: var(--bg-subtle);
+      color: var(--charcoal);
+      font-size: 0.73rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 13px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .invoice-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+      font-size: 0.86rem;
+    }
+    .invoice-table tbody tr:hover {
+      background: rgba(248, 250, 252, 0.7);
+    }
+    .inv-item-cell {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .inv-thumb-btn {
+      position: relative;
+      width: 58px;
+      height: 76px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      flex-shrink: 0;
+      background: var(--bg-subtle);
+    }
+    .inv-thumb-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .inv-public-title {
+      font-weight: 700;
+      color: var(--charcoal);
+      font-size: 0.9rem;
+      line-height: 1.35;
+    }
+    .inv-brand-ref {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: var(--gold-soft);
+      border: 1px solid var(--gold-border);
+      color: var(--charcoal);
+      font-size: 0.74rem;
+      font-weight: 700;
+    }
+    .inv-math-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 9px;
+      border-radius: 6px;
+      background: var(--bg-pearl);
+      border: 1px solid var(--border-color);
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--charcoal-light);
+    }
+
+    /* Financial Summary & MOQ Tier Box */
+    .proforma-summary-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      padding: 24px 26px;
+      background: var(--bg-surface);
+    }
+    @media (min-width: 900px) {
+      .proforma-summary-grid {
+        grid-template-columns: 1.2fr 0.8fr;
+      }
+    }
+    .moq-status-banner {
+      padding: 16px 18px;
+      border-radius: var(--radius-md);
+      margin-bottom: 14px;
+      font-size: 0.85rem;
+      line-height: 1.55;
+    }
+    .moq-status-banner.unlocked {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(212, 175, 55, 0.16));
+      border: 1px solid var(--emerald);
+      color: var(--charcoal);
+    }
+    .moq-status-banner.standard {
+      background: var(--gold-soft);
+      border: 1px solid var(--gold-border);
+      color: var(--charcoal);
+    }
+    .shipping-cargo-note {
+      padding: 16px 18px;
+      border-radius: var(--radius-md);
+      background: var(--bg-pearl);
+      border: 1px solid var(--border-color);
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+    .totals-card {
+      background: var(--bg-pearl);
+      border: 1px solid var(--gold-border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .totals-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+    }
+    .totals-row.grand-total {
+      padding-top: 12px;
+      border-top: 2px solid var(--border-color);
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--charcoal);
+    }
+
+    /* Mode B: Checkout Layout & Buyer Form */
+    .checkout-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media (min-width: 1024px) {
+      .checkout-grid {
+        grid-template-columns: 1.35fr 0.65fr;
+      }
+    }
+    .checkout-form-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--gold-border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-md);
+    }
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .form-field label {
+      font-size: 0.76rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--charcoal-light);
+    }
+    .form-input,
+    .form-select,
+    .form-textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: var(--bg-pearl);
+      font-size: 0.88rem;
+      color: var(--charcoal);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      border-color: var(--gold);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px var(--gold-soft);
+    }
+
+    /* Toast Notification */
+    .paradise-toast {
+      position: fixed;
+      bottom: 88px;
+      right: 20px;
+      z-index: 3000;
+      background: var(--charcoal);
+      color: var(--gold-light);
+      border: 1px solid var(--gold);
+      padding: 12px 20px;
+      border-radius: var(--radius-full);
+      font-size: 0.84rem;
+      font-weight: 700;
+      box-shadow: var(--shadow-lg);
+      opacity: 0;
+      transform: translateY(16px);
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .paradise-toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ========================================================================
+       DEDICATED A4 PRINT / PDF STYLESHEET (@media print)
+       ======================================================================== */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 12mm;
+      }
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-size: 11pt;
+      }
+      .top-bar,
+      .site-header,
+      .order-hero-bar,
+      .invoice-action-bar,
+      .site-footer,
+      .whatsapp-float,
+      .cart-overlay,
+      .cart-drawer,
+      .lightbox-overlay,
+      .no-print,
+      #checkout-mode-section {
+        display: none !important;
+      }
+      #invoice-mode-section {
+        display: block !important;
+      }
+      .container {
+        max-width: 100% !important;
+        padding: 0 !important;
+      }
+      .invoice-shell {
+        border: 1.5px solid #0f172a !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+      }
+      .proforma-header {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        border-bottom: 2px solid #d4af37 !important;
+        padding: 16px !important;
+      }
+      .proforma-order-id {
+        color: #0f172a !important;
+      }
+      .proforma-doc-badge,
+      .order-status-badge {
+        border: 1px solid #0f172a !important;
+        color: #0f172a !important;
+        background: #f8fafc !important;
+      }
+      .invoice-table th {
+        background: #f1f5f9 !important;
+        color: #000000 !important;
+      }
+      .inv-thumb-btn {
+        width: 42px !important;
+        height: 54px !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================================================
+       1. TOP ANNOUNCEMENT BAR
+       ======================================================================== -->
+  <div class="top-bar" role="region" aria-label="Wholesale Announcement">
+    <div class="container top-bar-inner">
+      <div class="top-bar-message">
+        <span class="top-bar-badge" data-i18n="topBarBadge">ISTANBUL FACTORY DIRECT</span>
+        <span data-i18n="topBarMessage">Flexible MOQ from 1 Pack • Best Wholesale Tier Rate for 25+ pcs • Express DHL/UPS Worldwide</span>
+      </div>
+      <div class="top-bar-highlights">
+        <span>🌍 <strong>DHL / UPS Express:</strong> 3–5 Days</span>
+        <span>📦 <strong>MOQ:</strong> 1 Pack / <strong>VIP:</strong> 25+ pcs</span>
+        <a href="#whatsapp" id="order-topbar-wa" style="color: var(--gold-light); font-weight: 700;">
+          WhatsApp: <span data-config-whatsapp-display>+90 545 909 93 95</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       2. STICKY GLASSMORPHISM HEADER
+       ======================================================================== -->
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a href="index.html" class="brand-logo" aria-label="Paradise Wholesale Clothing Home">
+        <span class="brand-logo-main">
+          PARADISE <span class="brand-logo-dot"></span>
+        </span>
+        <span class="brand-logo-sub">Turkey Wholesale • Istanbul</span>
+      </a>
+
+      <nav class="main-nav" aria-label="Main Wholesale Navigation">
+        <a href="index.html" data-ord-i18n="navHome">Home</a>
+        <a href="category.html" data-ord-i18n="navCatalog">Full Catalog</a>
+        <a href="category.html?dept=men" data-ord-i18n="navMen">Men</a>
+        <a href="category.html?dept=women" data-ord-i18n="navWomen">Women</a>
+        <a href="order.html" class="active" data-ord-i18n="navOrderDesk">B2B Order Desk</a>
+        <a href="blog.html" data-ord-i18n="navBlog">B2B Blog</a>
+      </nav>
+
+      <!-- Smart Live Catalog Search Bar -->
+      <div class="search-wrapper" role="search">
+        <div class="search-input-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input
+            type="search"
+            id="live-search-input"
+            class="search-input"
+            autocomplete="off"
+            data-i18n-placeholder="searchPlaceholder"
+            placeholder="Search catalog by SKU, style, fabric or brand tag..."
+            aria-label="Search wholesale catalog"
+          />
+          <button type="button" class="search-clear-btn" aria-label="Clear search">✕</button>
+        </div>
+        <div class="live-search-results" id="live-search-dropdown" role="listbox" aria-label="Search Results"></div>
+      </div>
+
+      <div class="header-actions">
+        <div class="lang-switcher" role="group" aria-label="Language Switcher">
+          <button type="button" class="lang-btn active" data-lang-switch="en" aria-current="true">EN</button>
+          <button type="button" class="lang-btn" data-lang-switch="it" aria-current="false">IT</button>
+          <button type="button" class="lang-btn" data-lang-switch="es" aria-current="false">ES</button>
+        </div>
+
+        <button type="button" class="cart-trigger" data-open-cart aria-label="Open Wholesale Order Bag">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+          <span class="cart-count" data-cart-count>0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ======================================================================
+         3. HERO BAR & QUICK ORDER LOOKUP (ORD-XXXX)
+         ====================================================================== -->
+    <section class="order-hero-bar">
+      <div class="container order-hero-flex">
+        <div>
+          <span class="hero-eyebrow" style="margin-bottom:8px;" data-ord-i18n="heroBadge">
+            ★ CLOUD B2B PROFORMA INVOICE & WHOLESALE CHECKOUT
+          </span>
+          <h1 class="section-title" id="order-hero-heading" style="color:#ffffff; font-size:clamp(1.6rem, 3.2vw, 2.35rem);" data-ord-i18n="heroTitle">
+            Official Wholesale Order & Proforma Desk
+          </h1>
+          <p style="color:#cbd5e1; font-size:0.9rem; max-width:640px; margin-top:4px;" data-ord-i18n="heroSub">
+            Review your itemized serie packs, generate an official cloud proforma invoice, or look up an existing order code (`ORD-XXXX`).
+          </p>
+        </div>
+
+        <!-- Quick Order Lookup Form -->
+        <form class="order-lookup-bar" id="quick-order-lookup-form" aria-label="Quick Order Lookup">
+          <input
+            type="text"
+            id="order-lookup-input"
+            class="order-lookup-input"
+            data-ord-i18n-placeholder="lookupPlaceholder"
+            placeholder="Enter Order ID (e.g. ORD-8492)"
+            aria-label="Order ID"
+          />
+          <button type="submit" class="order-lookup-btn" data-ord-i18n="lookupBtn">
+            Load Invoice
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         4. MODE A: OFFICIAL CLOUD B2B PROFORMA INVOICE VIEW (?id=ORD-XXXX)
+         ====================================================================== -->
+    <section class="section-block" id="invoice-mode-section" style="padding-top: 32px; display: none;">
+      <div class="container">
+        <div class="invoice-shell reveal-on-scroll">
+
+          <!-- Top Operational Action Bar (Hidden in Print) -->
+          <div class="invoice-action-bar no-print">
+            <div class="invoice-action-group">
+              <button type="button" class="btn-whatsapp-pulse" id="btn-invoice-wa-top">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824z"/>
+                </svg>
+                <span data-ord-i18n="btnConfirmWhatsApp">Confirm & Finalize Order on WhatsApp</span>
+              </button>
+            </div>
+
+            <div class="invoice-action-group">
+              <button type="button" class="btn-tool" id="btn-print-invoice">
+                🖨 <span data-ord-i18n="btnPrintPdf">Print / Save as PDF</span>
+              </button>
+              <button type="button" class="btn-tool" id="btn-copy-invoice-link">
+                🔗 <span data-ord-i18n="btnCopyLink">Copy Invoice Link</span>
+              </button>
+              <button type="button" class="btn-tool" id="btn-load-into-cart">
+                ✏️ <span data-ord-i18n="btnEditInCart">Load Items into Cart to Edit</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Official B2B Proforma Header -->
+          <div class="proforma-header">
+            <div>
+              <span class="proforma-doc-badge" data-ord-i18n="proformaDocTitle">
+                OFFICIAL B2B WHOLESALE PROFORMA INVOICE
+              </span>
+              <div class="brand-logo-main" style="font-size:1.55rem; color:inherit;">
+                PARADISE WHOLESALE CLOTHING <span class="brand-logo-dot"></span>
+              </div>
+              <div style="font-size:0.78rem; color:var(--gold-light); letter-spacing:0.15em; text-transform:uppercase; font-weight:700; margin-top:2px;">
+                Paradise Turkey Wholesale • Direct Istanbul Exporter
+              </div>
+            </div>
+
+            <div class="proforma-code-box">
+              <div class="proforma-order-id" id="inv-display-code">ORD-0000</div>
+              <div style="font-size:0.8rem; opacity:0.85; margin-top:2px;" id="inv-display-date">Date: —</div>
+              <div id="inv-status-badge-wrap">
+                <span class="order-status-badge status-pending" id="inv-status-badge">
+                  ● Pending WhatsApp Confirmation
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Supplier & Buyer Information Cards -->
+          <div class="proforma-parties-grid">
+            <!-- Supplier Info (Istanbul Hub) -->
+            <div class="party-card">
+              <span class="party-card-label" data-ord-i18n="supplierBoxLabel">SUPPLIER / EXPORTER (ISTANBUL HUB)</span>
+              <div class="party-card-title">Paradise Wholesale Clothing (Paradise Turkey Wholesale)</div>
+              <div class="party-meta-list">
+                <div>📍 Merter & Güngören Textile Wholesale District, Istanbul, Türkiye</div>
+                <div>📧 Email: <strong>Paradise.men2019@gmail.com</strong></div>
+                <div>📱 Official WhatsApp Desk: <strong data-config-whatsapp-display>+90 545 909 93 95</strong></div>
+                <div>🌐 Web: <strong>https://paradisewholesaler.com</strong></div>
+              </div>
+            </div>
+
+            <!-- Buyer Info -->
+            <div class="party-card">
+              <span class="party-card-label" data-ord-i18n="buyerBoxLabel">B2B BUYER / DESTINATION DETAILS</span>
+              <div class="party-card-title" id="inv-buyer-name">VIP Wholesale Buyer</div>
+              <div class="party-meta-list">
+                <div>🌍 <span data-ord-i18n="labelCountry">Destination:</span> <strong id="inv-buyer-country">—</strong></div>
+                <div>📱 <span data-ord-i18n="labelPhone">WhatsApp / Phone:</span> <strong id="inv-buyer-phone">—</strong></div>
+                <div>📝 <span data-ord-i18n="labelNotes">Order Notes:</span> <span id="inv-buyer-notes">—</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Itemized Wholesale Pack Table -->
+          <div class="invoice-table-wrap">
+            <table class="invoice-table" aria-label="Itemized Wholesale Order Table">
+              <thead>
+                <tr>
+                  <th style="width:46%;" data-ord-i18n="thProduct">Product & Brand Reference</th>
+                  <th data-ord-i18n="thSku">SKU & Dept</th>
+                  <th data-ord-i18n="thPackMath">Pack Calculation (Packs × Pcs)</th>
+                  <th data-ord-i18n="thUnitPrice">Unit Price</th>
+                  <th style="text-align:right;" data-ord-i18n="thRowTotal">Row Total</th>
+                </tr>
+              </thead>
+              <tbody id="invoice-items-tbody"></tbody>
+            </table>
+          </div>
+
+          <!-- Financial Summary, MOQ Tier Indicator & Express Cargo Note -->
+          <div class="proforma-summary-grid">
+            <div>
+              <!-- Dynamic MOQ Tier Indicator -->
+              <div class="moq-status-banner unlocked" id="inv-moq-banner"></div>
+
+              <!-- Express Shipping & Cargo Explanation -->
+              <div class="shipping-cargo-note">
+                <strong style="color:var(--charcoal); display:block; margin-bottom:4px;" data-ord-i18n="shippingNoteTitle">
+                  ✈ Express International Air Cargo & Customs Notice (Istanbul Dispatch)
+                </strong>
+                <span data-ord-i18n="shippingNoteBody">
+                  Exact express shipping / air cargo costs from our Istanbul warehouse are calculated on WhatsApp based on total parcel weight (kg) and destination country (Italy, Spain, UK, USA, Europe & worldwide via DHL Express, UPS, FedEx, or customs-cleared cargo lines).
+                </span>
+              </div>
+            </div>
+
+            <!-- Financial Totals Box -->
+            <div class="totals-card">
+              <div class="totals-row">
+                <span data-ord-i18n="summaryTotalPacks">Total Serie Packs</span>
+                <strong id="inv-total-packs" style="color:var(--charcoal);">0 Packs</strong>
+              </div>
+              <div class="totals-row">
+                <span data-ord-i18n="summaryTotalPieces">Total Units (Pieces)</span>
+                <strong id="inv-total-pieces" style="color:var(--charcoal);">0 pcs</strong>
+              </div>
+              <div class="totals-row">
+                <span data-ord-i18n="summaryShipping">Express Cargo (Istanbul → Destination)</span>
+                <span style="font-size:0.78rem; font-weight:700; color:var(--emerald-dark);" data-ord-i18n="summaryShippingCalc">
+                  Calculated on WhatsApp
+                </span>
+              </div>
+              <div class="totals-row grand-total">
+                <span data-ord-i18n="summarySubtotal">Subtotal Wholesale Amount</span>
+                <span id="inv-subtotal-amount" style="color:var(--gold-dark);">€0.00</span>
+              </div>
+
+              <!-- Bottom Confirm on WhatsApp CTA -->
+              <button type="button" class="btn-whatsapp-pulse no-print" id="btn-invoice-wa-bottom" style="width:100%; justify-content:center; margin-top:6px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824z"/>
+                </svg>
+                <span data-ord-i18n="btnConfirmWhatsApp">Confirm & Finalize Order on WhatsApp</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         5. MODE B: DIRECT WHOLESALE CHECKOUT & PROFORMA GENERATOR (NO ?id=)
+         ====================================================================== -->
+    <section class="section-block" id="checkout-mode-section" style="padding-top: 32px; display: none;">
+      <div class="container">
+
+        <!-- 25+ Pieces Graphic Progress Banner -->
+        <div
+          class="invoice-shell"
+          style="padding: 20px 24px; margin-bottom: 24px; background: linear-gradient(90deg, rgba(212,175,55,0.14), rgba(16,185,129,0.12));">
+          <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
+            <strong id="checkout-tier-headline" style="font-size:0.95rem; color:var(--charcoal);">
+              Flexible MOQ from 1 Pack • Unlock Best Factory Rate at 25+ Pieces
+            </strong>
+            <span class="top-bar-badge" id="checkout-tier-pill">0 / 25 PCS</span>
+          </div>
+          <div class="tier-progress-track" style="height:10px; background:#ffffff; border:1px solid var(--border-color);">
+            <div class="tier-progress-fill" id="checkout-tier-bar" style="width:0%;"></div>
+          </div>
+        </div>
+
+        <div class="checkout-grid">
+          <!-- Left Column: Interactive Wholesale Bag Table -->
+          <div class="invoice-shell" style="margin-bottom:0;">
+            <div style="padding:18px 22px; background:var(--charcoal); color:#ffffff; display:flex; align-items:center; justify-content:space-between;">
+              <h2 style="font-family:var(--font-display); font-size:1.18rem;" data-ord-i18n="checkoutBagHeading">
+                1. Review & Adjust Wholesale Serie Packs
+              </h2>
+              <a href="category.html" style="font-size:0.8rem; color:var(--gold-light); font-weight:700;" data-ord-i18n="addMoreItemsLink">
+                + Add More Packs from Catalog
+              </a>
+            </div>
+
+            <div class="invoice-table-wrap" id="checkout-table-container"></div>
+          </div>
+
+          <!-- Right Column: B2B Buyer Details & Cloud Proforma Generator Form -->
+          <div class="checkout-form-card">
+            <h2 style="font-family:var(--font-display); font-size:1.25rem; color:var(--charcoal); margin-bottom:6px;" data-ord-i18n="checkoutFormHeading">
+              2. B2B Buyer & Destination Details
+            </h2>
+            <p style="font-size:0.82rem; color:var(--text-secondary); margin-bottom:18px;" data-ord-i18n="checkoutFormSub">
+              Generates your official cloud invoice (`ORD-XXXX`) and opens our Istanbul WhatsApp desk to confirm express shipping.
+            </p>
+
+            <form id="b2b-checkout-form">
+              <div class="form-field">
+                <label for="chk-buyer-name" data-ord-i18n="formLabelName">Full Name / Boutique Name *</label>
+                <input
+                  type="text"
+                  id="chk-buyer-name"
+                  class="form-input"
+                  required
+                  data-ord-i18n-placeholder="formPlaceholderName"
+                  placeholder="e.g. Marco Rossi — Boutique Milano"
+                />
+              </div>
+
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div class="form-field">
+                  <label for="chk-buyer-country" data-ord-i18n="formLabelCountry">Destination Country *</label>
+                  <select id="chk-buyer-country" class="form-select" required>
+                    <option value="Italy">🇮🇹 Italy</option>
+                    <option value="Spain">🇪🇸 Spain</option>
+                    <option value="United Kingdom">🇬🇧 United Kingdom</option>
+                    <option value="United States">🇺🇸 United States</option>
+                    <option value="Germany">🇩🇪 Germany</option>
+                    <option value="France">🇫🇷 France</option>
+                    <option value="Netherlands">🇳🇱 Netherlands</option>
+                    <option value="Other">🌍 Other Country</option>
+                  </select>
+                </div>
+
+                <div class="form-field">
+                  <label for="chk-buyer-city" data-ord-i18n="formLabelCity">City / Region *</label>
+                  <input
+                    type="text"
+                    id="chk-buyer-city"
+                    class="form-input"
+                    required
+                    data-ord-i18n-placeholder="formPlaceholderCity"
+                    placeholder="e.g. Milan / Madrid"
+                  />
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label for="chk-buyer-phone" data-ord-i18n="formLabelPhone">WhatsApp Number (with Country Code) *</label>
+                <input
+                  type="tel"
+                  id="chk-buyer-phone"
+                  class="form-input"
+                  required
+                  data-ord-i18n-placeholder="formPlaceholderPhone"
+                  placeholder="e.g. +39 340 000 0000"
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="chk-buyer-notes" data-ord-i18n="formLabelNotes">Order Notes / Preferred Cargo (Optional)</label>
+                <textarea
+                  id="chk-buyer-notes"
+                  class="form-textarea"
+                  rows="2"
+                  data-ord-i18n-placeholder="formPlaceholderNotes"
+                  placeholder="e.g. Prefer DHL Express delivery, please send live video before dispatch."></textarea>
+              </div>
+
+              <!-- Live Totals Preview inside Form -->
+              <div class="totals-card" style="margin-block: 14px 18px; padding:14px 16px;">
+                <div class="totals-row">
+                  <span data-ord-i18n="summaryTotalPacks">Total Serie Packs</span>
+                  <strong id="chk-summary-packs">0</strong>
+                </div>
+                <div class="totals-row">
+                  <span data-ord-i18n="summaryTotalPieces">Total Units (Pieces)</span>
+                  <strong id="chk-summary-pieces">0 pcs</strong>
+                </div>
+                <div class="totals-row grand-total" style="font-size:1.08rem;">
+                  <span data-ord-i18n="summarySubtotal">Subtotal Wholesale Amount</span>
+                  <span id="chk-summary-amount" style="color:var(--gold-dark);">€0.00</span>
+                </div>
+              </div>
+
+              <button type="submit" class="btn-whatsapp-pulse" id="btn-generate-invoice" style="width:100%; justify-content:center; padding:14px 18px; font-size:0.92rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824z"/>
+                </svg>
+                <span data-ord-i18n="btnGenerateAndSend">Generate Official Invoice & Send on WhatsApp</span>
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast Notification Element -->
+  <div class="paradise-toast" id="paradise-toast" role="status" aria-live="polite"></div>
+
+  <!-- ========================================================================
+       6. SLIDE-OVER WHOLESALE B2B CART DRAWER
+       ======================================================================== -->
+  <div class="cart-overlay" aria-hidden="true"></div>
+  <aside class="cart-drawer" role="dialog" aria-modal="true" aria-labelledby="cart-drawer-heading">
+    <div class="cart-header">
+      <h2 class="cart-header-title" id="cart-drawer-heading">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.2">
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <path d="M16 10a4 4 0 0 1-8 0"></path>
+        </svg>
+        <span data-i18n="cartTitle">Wholesale Order Bag</span>
+      </h2>
+      <button type="button" class="cart-close-btn" aria-label="Close Wholesale Bag">✕</button>
+    </div>
+
+    <div class="b2b-tier-banner">
+      <div data-tier-message>Add 25 more pcs to unlock Best Wholesale Bulk Priority (25+ pcs)!</div>
+      <div class="tier-progress-track">
+        <div class="tier-progress-fill" style="width: 0%;"></div>
+      </div>
+    </div>
+
+    <div class="cart-items-list"></div>
+
+    <div class="cart-footer">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:4px;">
+        <input
+          type="text"
+          id="cart-buyer-name"
+          data-i18n-placeholder="buyerNamePlaceholder"
+          placeholder="Your Name / Boutique Name"
+          style="padding:8px 10px; border:1px solid var(--border-color); border-radius:6px; background:#fff; font-size:0.78rem;"
+        />
+        <input
+          type="text"
+          id="cart-buyer-country"
+          data-i18n-placeholder="buyerCountryPlaceholder"
+          placeholder="City & Country (e.g. Milan, IT)"
+          style="padding:8px 10px; border:1px solid var(--border-color); border-radius:6px; background:#fff; font-size:0.78rem;"
+        />
+      </div>
+      <input
+        type="tel"
+        id="cart-buyer-phone"
+        data-i18n-placeholder="buyerPhonePlaceholder"
+        placeholder="WhatsApp Number (with country code)"
+        style="padding:8px 10px; border:1px solid var(--border-color); border-radius:6px; background:#fff; font-size:0.78rem; margin-bottom:6px;"
+      />
+
+      <div class="cart-summary-row">
+        <span data-i18n="totalPacks">Total Serie Packs</span>
+        <strong data-cart-total-packs>0</strong>
+      </div>
+      <div class="cart-summary-row">
+        <span data-i18n="totalPieces">Total Pieces (Units)</span>
+        <strong data-cart-total-pieces>0 pcs</strong>
+      </div>
+      <div class="cart-summary-row total">
+        <span data-i18n="estimatedSubtotal">Estimated Wholesale Total</span>
+        <span data-cart-subtotal style="color: var(--gold-dark);">€0.00</span>
+      </div>
+
+      <button type="button" class="checkout-whatsapp-btn" data-submit-whatsapp-order>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824z"/>
+        </svg>
+        <span data-i18n="sendOrderWhatsApp">Send Order on WhatsApp</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ========================================================================
+       7. HD IMAGE ZOOM LIGHTBOX MODAL
+       ======================================================================== -->
+  <div class="lightbox-overlay" role="dialog" aria-modal="true" aria-label="HD Product Image Inspection">
+    <div class="lightbox-content">
+      <button type="button" class="lightbox-close" aria-label="Close Zoom">✕</button>
+      <div class="lightbox-img-wrap">
+        <img id="lightbox-main-img" src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=700&q=80" alt="HD Wholesale Garment Preview" />
+      </div>
+      <div class="lightbox-caption">
+        <div>
+          <strong id="lightbox-title" style="display:block; font-size:0.95rem;">Premium Turkish Garment</strong>
+          <span id="lightbox-meta" style="font-size:0.78rem; color:#cbd5e1;">SKU: PRD-TR</span>
+        </div>
+        <button type="button" id="lightbox-wa-btn" class="btn btn-whatsapp" style="padding:8px 14px; font-size:0.8rem;">
+          WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       8. LUXURY B2B FOOTER
+       ======================================================================== -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a href="index.html" class="brand-logo" style="margin-bottom: 14px;">
+            <span class="brand-logo-main" style="color: #ffffff;">
+              PARADISE <span class="brand-logo-dot"></span>
+            </span>
+            <span class="brand-logo-sub" style="color: var(--gold-light);">Turkey Wholesale • Istanbul</span>
+          </a>
+          <p style="font-size: 0.86rem; line-height: 1.7; color: #94a3b8; margin-bottom: 18px;">
+            Direct Istanbul B2B wholesale clothing, footwear, bags & accessories exporter. Serving boutiques across Italy, Spain, UK, USA, Germany, and 60+ countries.
+          </p>
+          <div style="font-size: 0.84rem; color: #e2e8f0;">
+            <div>📍 Merter & Güngören Textile Hub, Istanbul, Türkiye</div>
+            <div style="margin-top:4px;">
+              📱 WhatsApp Desk: <a href="#whatsapp" id="order-footer-wa" style="color: var(--gold-light); font-weight:700;" data-config-whatsapp-display>+90 545 909 93 95</a>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="footer-col-title">Wholesale Departments</h3>
+          <ul class="footer-links">
+            <li><a href="category.html?dept=men">Men's Wholesale Clothing</a></li>
+            <li><a href="category.html?dept=women">Women's Boutique Fashion</a></li>
+            <li><a href="category.html?dept=kids-baby">Kids & Baby Apparel Sets</a></li>
+            <li><a href="category.html?dept=shoes">Men's & Women's Wholesale Shoes</a></li>
+            <li><a href="category.html?dept=bags-accessories">Luxury Bags & Accessories</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="footer-col-title">B2B Buyer Center</h3>
+          <ul class="footer-links">
+            <li><a href="category.html">Full Filterable Catalog</a></li>
+            <li><a href="order.html">B2B Proforma & Checkout Desk</a></li>
+            <li><a href="blog.html">Wholesale Import & Customs Blog</a></li>
+            <li><a href="index.html#faq-seo">MOQ (1 Pack / 25+ Pcs) FAQ</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="footer-col-title">VIP Showroom Channels</h3>
+          <p style="font-size: 0.84rem; color: #94a3b8; margin-bottom: 14px;">
+            Join our daily wholesale stock broadcasts on Telegram, Instagram & WhatsApp.
+          </p>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+            <a href="https://instagram.com/paradisewholesaler" data-config-instagram target="_blank" rel="noopener" class="btn btn-outline-light" style="padding:7px 14px; font-size:0.76rem;">Instagram</a>
+            <a href="https://t.me/paradisewholesaler" data-config-telegram target="_blank" rel="noopener" class="btn btn-outline-light" style="padding:7px 14px; font-size:0.76rem;">Telegram VIP</a>
+            <a href="https://tiktok.com/@paradisewholesaler" data-config-tiktok target="_blank" rel="noopener" class="btn btn-outline-light" style="padding:7px 14px; font-size:0.76rem;">TikTok</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>
+          © <span id="current-year">2026</span> <strong>Paradise Wholesale Clothing</strong> (Paradise Turkey Wholesale — <code>paradisewholesaler.com</code>). All Rights Reserved.
+        </div>
+        <div style="display:flex; gap:16px;">
+          <a href="order.html?lang=en">English</a>
+          <a href="order.html?lang=it">Italiano</a>
+          <a href="order.html?lang=es">Español</a>
+          <a href="admin.html" style="opacity:0.45;">Admin</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================================================
+       9. FLOATING PULSING WHATSAPP CTA
+       ======================================================================== -->
+  <button
+    type="button"
+    id="order-floating-wa"
+    class="whatsapp-float"
+    aria-label="Contact Paradise Wholesale Istanbul on WhatsApp">
+    <span class="whatsapp-online-dot"></span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824z"/>
+    </svg>
+    <span data-i18n="floatingWhatsAppText">Wholesale Desk Online</span>
+  </button>
+
+  <!-- ========================================================================
+       10. DUAL-MODE CLOUD PROFORMA INVOICE & CHECKOUT ENGINE SCRIPT
+       ======================================================================== -->
+  <script type="module">
+    import {
+      db,
+      SITE_DOMAIN,
+      state,
+      t,
+      getLocalizedField,
+      formatPrice,
+      escapeHtml,
+      saveCart,
+      getCartTotals,
+      updateCartPackQty,
+      observeNewElements,
+      openLightbox,
+      setLanguage
+    } from "./core.js";
+    import {
+      doc,
+      getDoc,
+      setDoc,
+      addDoc,
+      collection,
+      getDocs,
+      query,
+      where,
+      limit,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+
+    const LOCAL_ORDERS_CACHE_KEY = "paradise_local_orders_cache_v1";
+
+    /* ------------------------------------------------------------------------
+       A. 3-LANGUAGE DICTIONARY FOR PROFORMA INVOICE & CHECKOUT (EN, IT, ES)
+       ------------------------------------------------------------------------ */
+    const ORDER_I18N = {
+      en: {
+        navHome: "Home",
+        navCatalog: "Full Catalog",
+        navMen: "Men",
+        navWomen: "Women",
+        navOrderDesk: "B2B Order Desk",
+        navBlog: "B2B Blog",
+        heroBadge: "★ CLOUD B2B PROFORMA INVOICE & WHOLESALE CHECKOUT",
+        heroTitle: "Official Wholesale Order & Proforma Desk",
+        heroSub: "Review your itemized serie packs, generate an official cloud proforma invoice, or look up an existing order code (ORD-XXXX).",
+        lookupPlaceholder: "Enter Order ID (e.g. ORD-8492)",
+        lookupBtn: "Load Invoice",
+        btnConfirmWhatsApp: "Confirm & Finalize Order on WhatsApp",
+        btnPrintPdf: "Print / Save as PDF",
+        btnCopyLink: "Copy Invoice Link",
+        btnEditInCart: "Load Items into Cart to Edit",
+        proformaDocTitle: "OFFICIAL B2B WHOLESALE PROFORMA INVOICE",
+        supplierBoxLabel: "SUPPLIER / EXPORTER (ISTANBUL HUB)",
+        buyerBoxLabel: "B2B BUYER / DESTINATION DETAILS",
+        labelCountry: "Destination:",
+        labelPhone: "WhatsApp / Phone:",
+        labelNotes: "Order Notes:",
+        thProduct: "Product & Brand Reference",
+        thSku: "SKU & Size Run",
+        thPackMath: "Pack Math (Packs × Pcs)",
+        thUnitPrice: "Unit Price",
+        thRowTotal: "Row Total",
+        statusPending: "Pending WhatsApp Confirmation",
+        statusPreparing: "Preparing in Istanbul Warehouse",
+        statusShipped: "Shipped via Express Cargo",
+        statusCompleted: "Completed",
+        moqUnlockedTitle: "★ Best Factory Wholesale Rate Applied (25+ Pcs Tier)",
+        moqUnlockedDesc: "Your order meets the 25+ total units threshold! Priority Istanbul warehouse handling and maximum B2B boutique discount tier are active.",
+        moqStandardTitle: "✓ Flexible Boutique Order (1+ Pack Accepted)",
+        moqStandardDesc: "Add {remaining} more pieces across any models to unlock our Best 25+ Factory Wholesale Rate.",
+        shippingNoteTitle: "✈ Express International Air Cargo & Customs Notice (Istanbul Dispatch)",
+        shippingNoteBody: "Exact express shipping / air cargo costs from our Istanbul warehouse are calculated on WhatsApp based on total parcel weight (kg) and destination country (Italy, Spain, UK, USA, Europe & worldwide via DHL Express, UPS, FedEx, or customs-cleared cargo lines).",
+        summaryTotalPacks: "Total Serie Packs",
+        summaryTotalPieces: "Total Units (Pieces)",
+        summaryShipping: "Express Cargo (Istanbul → Destination)",
+        summaryShippingCalc: "Calculated on WhatsApp",
+        summarySubtotal: "Subtotal Wholesale Amount",
+        checkoutBagHeading: "1. Review & Adjust Wholesale Serie Packs",
+        addMoreItemsLink: "+ Add More Packs from Catalog",
+        checkoutFormHeading: "2. B2B Buyer & Destination Details",
+        checkoutFormSub: "Generates your official cloud invoice (ORD-XXXX) and opens our Istanbul WhatsApp desk to confirm express shipping.",
+        formLabelName: "Full Name / Boutique Name *",
+        formPlaceholderName: "e.g. Marco Rossi — Boutique Milano",
+        formLabelCountry: "Destination Country *",
+        formLabelCity: "City / Region *",
+        formPlaceholderCity: "e.g. Milan / Madrid",
+        formLabelPhone: "WhatsApp Number (with Country Code) *",
+        formPlaceholderPhone: "e.g. +39 340 000 0000",
+        formLabelNotes: "Order Notes / Preferred Cargo (Optional)",
+        formPlaceholderNotes: "e.g. Prefer DHL Express delivery, please send live video before dispatch.",
+        btnGenerateAndSend: "Generate Official Invoice & Send on WhatsApp",
+        emptyCartCheckoutTitle: "Your Wholesale Bag is Currently Empty",
+        emptyCartCheckoutSub: "Add serie packs from our catalog or enter an existing Order ID (ORD-XXXX) in the lookup bar above.",
+        emptyCartBtnCatalog: "Browse Wholesale Catalog →",
+        toastLinkCopied: "✓ Official Invoice Link Copied to Clipboard!",
+        toastLoadedToCart: "✓ Invoice items loaded into your cart for editing!",
+        toastOrderNotFound: "Order ID not found. Switched to direct checkout mode.",
+        refModelLabel: "Reference / Model:"
+      },
+      it: {
+        navHome: "Home",
+        navCatalog: "Catalogo Completo",
+        navMen: "Uomo",
+        navWomen: "Donna",
+        navOrderDesk: "Ufficio Ordini B2B",
+        navBlog: "Blog B2B",
+        heroBadge: "★ FATTURA PROFORMA CLOUD B2B & CHECKOUT INGROSSO",
+        heroTitle: "Ufficio Ordini & Fattura Proforma Ufficiale",
+        heroSub: "Controlla i tuoi pacchi serie, genera una fattura proforma ufficiale su cloud o cerca un codice ordine esistente (ORD-XXXX).",
+        lookupPlaceholder: "Inserisci ID Ordine (es. ORD-8492)",
+        lookupBtn: "Carica Fattura",
+        btnConfirmWhatsApp: "Conferma e Finalizza Ordine su WhatsApp",
+        btnPrintPdf: "Stampa / Salva in PDF",
+        btnCopyLink: "Copia Link Fattura",
+        btnEditInCart: "Carica nel Carrello per Modificare",
+        proformaDocTitle: "FATTURA PROFORMA UFFICIALE ALL'INGROSSO B2B",
+        supplierBoxLabel: "FORNITORE / ESPORTATORE (SEDE DI ISTANBUL)",
+        buyerBoxLabel: "ACQUIRENTE B2B / DESTINAZIONE",
+        labelCountry: "Destinazione:",
+        labelPhone: "WhatsApp / Telefono:",
+        labelNotes: "Note Ordine:",
+        thProduct: "Prodotto & Riferimento Modello",
+        thSku: "SKU & Taglie",
+        thPackMath: "Calcolo Pacchi (Pacchi × Pz)",
+        thUnitPrice: "Prezzo Unità",
+        thRowTotal: "Totale Riga",
+        statusPending: "In Attesa di Conferma su WhatsApp",
+        statusPreparing: "In Preparazione nel Magazzino di Istanbul",
+        statusShipped: "Spedito tramite Corriere Espresso",
+        statusCompleted: "Completato",
+        moqUnlockedTitle: "★ Miglior Prezzo di Fabbrica Applicato (Fascia 25+ Pezzi)",
+        moqUnlockedDesc: "Il tuo ordine supera i 25 pezzi totali! Priorità di spedizione da Istanbul e massimo sconto B2B per boutique attivi.",
+        moqStandardTitle: "✓ Ordine Boutique Flessibile (Accettato da 1+ Pacco)",
+        moqStandardDesc: "Aggiungi altri {remaining} pezzi per sbloccare la nostra migliore tariffa di fabbrica 25+ pezzi.",
+        shippingNoteTitle: "✈ Nota Spedizione Aerea Express e Dogana (Partenza da Istanbul)",
+        shippingNoteBody: "Il costo esatto del corriere espresso / cargo aereo da Istanbul viene calcolato su WhatsApp in base al peso totale del collo (kg) e al paese di destinazione (Italia, Spagna, UK, USA ed Europa tramite DHL Express, UPS o linea sdoganata).",
+        summaryTotalPacks: "Totale Pacchi Serie",
+        summaryTotalPieces: "Totale Unità (Pezzi)",
+        summaryShipping: "Corriere Espresso (Istanbul → Destinazione)",
+        summaryShippingCalc: "Calcolato su WhatsApp",
+        summarySubtotal: "Totale Parziale Ingrosso",
+        checkoutBagHeading: "1. Controlla e Modifica i Pacchi Serie",
+        addMoreItemsLink: "+ Aggiungi Altri Pacchi dal Catalogo",
+        checkoutFormHeading: "2. Dati Acquirente B2B e Destinazione",
+        checkoutFormSub: "Genera la tua fattura proforma cloud (ORD-XXXX) e apre la chat WhatsApp con la nostra sede di Istanbul.",
+        formLabelName: "Nome Completo / Nome Boutique *",
+        formPlaceholderName: "es. Marco Rossi — Boutique Milano",
+        formLabelCountry: "Paese di Destinazione *",
+        formLabelCity: "Città / Provincia *",
+        formPlaceholderCity: "es. Milano / Roma",
+        formLabelPhone: "Numero WhatsApp (con Prefisso) *",
+        formPlaceholderPhone: "es. +39 340 000 0000",
+        formLabelNotes: "Note Ordine / Corriere Preferito (Opzionale)",
+        formPlaceholderNotes: "es. Preferisco spedizione DHL Express, inviare video prima della partenza.",
+        btnGenerateAndSend: "Genera Fattura Ufficiale e Invia su WhatsApp",
+        emptyCartCheckoutTitle: "Il Tuo Carrello Ingrosso è Attualmente Vuoto",
+        emptyCartCheckoutSub: "Aggiungi pacchi serie dal catalogo oppure inserisci un codice ordine (ORD-XXXX) nella barra di ricerca in alto.",
+        emptyCartBtnCatalog: "Sfoglia il Catalogo Ingrosso →",
+        toastLinkCopied: "✓ Link della Fattura Copiato negli Appunti!",
+        toastLoadedToCart: "✓ Articoli caricati nel carrello per la modifica!",
+        toastOrderNotFound: "Codice ordine non trovato. Passaggio alla modalità checkout.",
+        refModelLabel: "Riferimento / Modello:"
+      },
+      es: {
+        navHome: "Inicio",
+        navCatalog: "Catálogo Completo",
+        navMen: "Hombre",
+        navWomen: "Mujer",
+        navOrderDesk: "Mesa de Pedidos B2B",
+        navBlog: "Blog Mayorista",
+        heroBadge: "★ FACTURA PROFORMA CLOUD B2B & CHECKOUT MAYORISTA",
+        heroTitle: "Mesa Oficial de Pedidos y Factura Proforma",
+        heroSub: "Revisa tus paquetes serie detallados, genera una factura proforma oficial en la nube o busca un código de pedido existente (ORD-XXXX).",
+        lookupPlaceholder: "Introduce ID de Pedido (ej. ORD-8492)",
+        lookupBtn: "Cargar Factura",
+        btnConfirmWhatsApp: "Confirmar y Finalizar Pedido en WhatsApp",
+        btnPrintPdf: "Imprimir / Guardar PDF",
+        btnCopyLink: "Copiar Enlace de Factura",
+        btnEditInCart: "Cargar Artículos al Carrito para Editar",
+        proformaDocTitle: "FACTURA PROFORMA OFICIAL MAYORISTA B2B",
+        supplierBoxLabel: "PROVEEDOR / EXPORTADOR (CENTRAL ESTAMBUL)",
+        buyerBoxLabel: "COMPRADOR B2B / DATOS DE DESTINO",
+        labelCountry: "Destino:",
+        labelPhone: "WhatsApp / Teléfono:",
+        labelNotes: "Notas del Pedido:",
+        thProduct: "Producto y Referencia de Marca",
+        thSku: "SKU y Tallas",
+        thPackMath: "Cálculo de Pack (Packs × Uds)",
+        thUnitPrice: "Precio Unidad",
+        thRowTotal: "Total Línea",
+        statusPending: "Pendiente de Confirmación en WhatsApp",
+        statusPreparing: "Preparando en Almacén de Estambul",
+        statusShipped: "Enviado por Carga Aérea Express",
+        statusCompleted: "Completado",
+        moqUnlockedTitle: "★ Mejor Tarifa Mayorista de Fábrica Aplicada (Nivel +25 Uds)",
+        moqUnlockedDesc: "¡Tu pedido alcanza las +25 unidades totales! Prioridad de despacho en Estambul y máximo descuento B2B activos.",
+        moqStandardTitle: "✓ Pedido Flexible de Boutique (Aceptado desde 1+ Pack)",
+        moqStandardDesc: "Añade {remaining} unidades más para desbloquear nuestra Mejor Tarifa de Fábrica (+25 uds).",
+        shippingNoteTitle: "✈ Aviso de Envío Aéreo Express y Aduanas (Salida desde Estambul)",
+        shippingNoteBody: "El costo exacto de envío express desde nuestro almacén en Estambul se calcula por WhatsApp según el peso total del paquete (kg) y el país de destino (España, Italia, UK, EE. UU. y Latinoamérica vía DHL Express, UPS o carga aérea).",
+        summaryTotalPacks: "Total Paquetes Serie",
+        summaryTotalPieces: "Total Unidades (Piezas)",
+        summaryShipping: "Envío Express (Estambul → Destino)",
+        summaryShippingCalc: "Calculado en WhatsApp",
+        summarySubtotal: "Subtotal Mayorista",
+        checkoutBagHeading: "1. Revisar y Ajustar Paquetes Serie",
+        addMoreItemsLink: "+ Añadir Más Paquetes del Catálogo",
+        checkoutFormHeading: "2. Datos del Comprador B2B y Destino",
+        checkoutFormSub: "Genera tu factura proforma oficial (ORD-XXXX) y abre nuestro WhatsApp en Estambul para confirmar el envío.",
+        formLabelName: "Nombre Completo / Nombre de Boutique *",
+        formPlaceholderName: "ej. Carlos Gómez — Boutique Madrid",
+        formLabelCountry: "País de Destino *",
+        formLabelCity: "Ciudad / Provincia *",
+        formPlaceholderCity: "ej. Madrid / Barcelona",
+        formLabelPhone: "Número de WhatsApp (con Prefijo) *",
+        formPlaceholderPhone: "ej. +34 600 000 000",
+        formLabelNotes: "Notas del Pedido / Transporte Preferido (Opcional)",
+        formPlaceholderNotes: "ej. Prefiero envío DHL Express, enviar vídeo antes del despacho.",
+        btnGenerateAndSend: "Generar Factura Oficial y Enviar por WhatsApp",
+        emptyCartCheckoutTitle: "Tu Bolsa Mayorista Está Vacía",
+        emptyCartCheckoutSub: "Añade paquetes serie desde nuestro catálogo o introduce un código de pedido (ORD-XXXX) en el buscador superior.",
+        emptyCartBtnCatalog: "Explorar Catálogo Mayorista →",
+        toastLinkCopied: "✓ ¡Enlace Oficial de Factura Copiado!",
+        toastLoadedToCart: "✓ ¡Artículos cargados en el carrito para editar!",
+        toastOrderNotFound: "Código de pedido no encontrado. Modo checkout activado.",
+        refModelLabel: "Referencia / Modelo:"
+      }
+    };
+
+    let currentLoadedOrder = null;
+
+    function ot(key, replacements = {}) {
+      const lang = state.lang || "en";
+      const dict = ORDER_I18N[lang] || ORDER_I18N.en;
+      let str = dict[key] || ORDER_I18N.en[key] || key;
+      Object.keys(replacements).forEach((k) => {
+        str = str.replace(`{${k}}`, replacements[k]);
+      });
+      return str;
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("paradise-toast");
+      if (!toast) return;
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 3200);
+    }
+
+    /**
+     * Enforces permanent `noindex, nofollow, noarchive` on order.html
+     * even if the user opens and closes the header search bar.
+     */
+    function enforcePermanentNoIndex() {
+      let metaRobots = document.querySelector('meta[name="robots"]');
+      if (!metaRobots) {
+        metaRobots = document.createElement("meta");
+        metaRobots.setAttribute("name", "robots");
+        document.head.appendChild(metaRobots);
+      }
+      metaRobots.setAttribute("content", "noindex, nofollow, noarchive");
+    }
+
+    /* ------------------------------------------------------------------------
+       B. LOCAL & FIRESTORE ORDER STORAGE / RETRIEVAL
+       ------------------------------------------------------------------------ */
+    function cacheOrderLocally(orderData) {
+      if (!orderData || !orderData.orderCode) return;
+      try {
+        const raw = localStorage.getItem(LOCAL_ORDERS_CACHE_KEY);
+        const mapObj = raw ? JSON.parse(raw) : {};
+        mapObj[orderData.orderCode.toUpperCase()] = orderData;
+        localStorage.setItem(LOCAL_ORDERS_CACHE_KEY, JSON.stringify(mapObj));
+      } catch (e) {}
+    }
+
+    function getLocallyCachedOrder(orderCode) {
+      if (!orderCode) return null;
+      try {
+        const raw = localStorage.getItem(LOCAL_ORDERS_CACHE_KEY);
+        if (!raw) return null;
+        const mapObj = JSON.parse(raw);
+        return mapObj[orderCode.toUpperCase()] || null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    async function fetchOrderByCode(rawCode) {
+      const cleanCode = String(rawCode || "").trim().toUpperCase();
+      if (!cleanCode) return null;
+
+      // 1. Try direct Firestore Document `orders/{cleanCode}`
+      try {
+        const directSnap = await getDoc(doc(db, "orders", cleanCode));
+        if (directSnap.exists()) {
+          const data = { orderCode: directSnap.id, ...directSnap.data() };
+          cacheOrderLocally(data);
+          return data;
+        }
+
+        // 2. Query by `orderCode` field in `orders` collection
+        const q = query(collection(db, "orders"), where("orderCode", "==", cleanCode), limit(1));
+        const qSnap = await getDocs(q);
+        if (!qSnap.empty) {
+          const d = qSnap.docs[0];
+          const data = { orderCode: d.id, ...d.data() };
+          cacheOrderLocally(data);
+          return data;
+        }
+      } catch (err) {
+        console.warn("Firestore order lookup fallback to local cache:", err.message);
+      }
+
+      // 3. Fallback to local browser cache if offline
+      return getLocallyCachedOrder(cleanCode);
+    }
+
+    /* ------------------------------------------------------------------------
+       C. BUILD STANDARDIZED WHATSAPP PROFORMA MESSAGE
+       ------------------------------------------------------------------------ */
+    function buildStandardInvoiceWhatsAppMessage(order) {
+      if (!order) return "";
+      const code = order.orderCode || "ORD-0000";
+      const invoiceUrl = `${SITE_DOMAIN}/order.html?id=${encodeURIComponent(code)}`;
+      const items = Array.isArray(order.items) ? order.items : [];
+
+      const itemLines = items
+        .map((item, idx) => {
+          const packs = Math.max(1, parseInt(item.packs, 10) || 1);
+          const pcsPerPack = Math.max(1, parseInt(item.pcsPerPack, 10) || 1);
+          const totalPcs = packs * pcsPerPack;
+          const unitPrice = Number(item.unitPrice) || 0;
+          const rowTotal = totalPcs * unitPrice;
+          const pubTitle = getLocalizedField(item.publicTitle, "Wholesale Pack");
+          const brandRef = getLocalizedField(item.brandTitle, "");
+          const refText = brandRef && brandRef !== pubTitle ? ` [Ref: ${brandRef}]` : "";
+
+          return `${idx + 1}. *${item.sku || "PRD"}* — ${pubTitle}${refText}\n   • ${packs} Pack × ${pcsPerPack} pcs = *${totalPcs} pcs* × ${formatPrice(unitPrice)} = *${formatPrice(rowTotal)}*`;
+        })
+        .join("\n");
+
+      const totalPieces = Number(order.totalPieces) || 0;
+      const totalPacks = Number(order.totalPacks) || 0;
+      const totalAmount = Number(order.totalAmount) || 0;
+
+      return [
+        `🏛 *PARADISE WHOLESALE ISTANBUL — OFFICIAL B2B PROFORMA*`,
+        `🆔 *Invoice ID:* ${code}`,
+        order.buyerName ? `👤 *Buyer / Boutique:* ${order.buyerName}` : null,
+        order.buyerCountry ? `🌍 *Destination:* ${order.buyerCountry}` : null,
+        order.buyerPhone ? `📱 *WhatsApp:* ${order.buyerPhone}` : null,
+        order.buyerNotes ? `📝 *Notes:* ${order.buyerNotes}` : null,
+        `────────────────────`,
+        itemLines,
+        `────────────────────`,
+        `📦 *Total Serie Packs:* ${totalPacks} Packs`,
+        `👕 *Total Units:* ${totalPieces} pcs ${
+          totalPieces >= 25 ? "(★ 25+ PCS BEST FACTORY RATE APPLIED)" : "(✓ 1+ Pack Flexible MOQ)"
+        }`,
+        `💶 *Subtotal Wholesale Amount:* ${formatPrice(totalAmount)}`,
+        `────────────────────`,
+        `🔗 *Official Cloud Proforma Invoice & HD Photos:*`,
+        `${invoiceUrl}`
+      ]
+        .filter(Boolean)
+        .join("\n");
+    }
+
+    /* ------------------------------------------------------------------------
+       D. RENDER MODE A: OFFICIAL CLOUD PROFORMA INVOICE VIEW
+       ------------------------------------------------------------------------ */
+    function resolveStatusBadge(statusRaw) {
+      const s = String(statusRaw || "pending_whatsapp").toLowerCase();
+      if (s.includes("complet")) {
+        return { cls: "status-completed", text: `● ${ot("statusCompleted")}` };
+      }
+      if (s.includes("ship") || s.includes("cargo")) {
+        return { cls: "status-shipped", text: `✈ ${ot("statusShipped")}` };
+      }
+      if (s.includes("prepar") || s.includes("warehouse")) {
+        return { cls: "status-preparing", text: `⚙ ${ot("statusPreparing")}` };
+      }
+      return { cls: "status-pending", text: `● ${ot("statusPending")}` };
+    }
+
+    function renderInvoiceView(order) {
+      if (!order) return;
+      currentLoadedOrder = order;
+
+      document.getElementById("checkout-mode-section").style.display = "none";
+      document.getElementById("invoice-mode-section").style.display = "block";
+
+      const code = order.orderCode || "ORD-0000";
+      document.getElementById("inv-display-code").textContent = code;
+      document.getElementById("order-lookup-input").value = code;
+
+      // Format Date & Time
+      let formattedDate = order.createdAtIso
+        ? new Date(order.createdAtIso).toLocaleString(state.lang || "en", {
+            year: "numeric",
+            month: "short",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit"
+          })
+        : new Date().toLocaleDateString();
+      document.getElementById("inv-display-date").textContent = `📅 ${formattedDate}`;
+
+      // Status Badge
+      const badgeInfo = resolveStatusBadge(order.status);
+      const badgeEl = document.getElementById("inv-status-badge");
+      if (badgeEl) {
+        badgeEl.className = `order-status-badge ${badgeInfo.cls}`;
+        badgeEl.textContent = badgeInfo.text;
+      }
+
+      // Buyer Details
+      document.getElementById("inv-buyer-name").textContent = order.buyerName || "B2B Wholesale Buyer";
+      document.getElementById("inv-buyer-country").textContent = order.buyerCountry || "International Express";
+      document.getElementById("inv-buyer-phone").textContent = order.buyerPhone || "—";
+      document.getElementById("inv-buyer-notes").textContent = order.buyerNotes || "Standard Express Air Cargo";
+
+      // Render Itemized Table (Shows BOTH publicTitle AND brandTitle Reference!)
+      const tbody = document.getElementById("invoice-items-tbody");
+      const items = Array.isArray(order.items) ? order.items : [];
+
+      let calcTotalPacks = 0;
+      let calcTotalPieces = 0;
+      let calcSubtotal = 0;
+
+      tbody.innerHTML = items
+        .map((item) => {
+          const packs = Math.max(1, parseInt(item.packs, 10) || 1);
+          const pcsPerPack = Math.max(1, parseInt(item.pcsPerPack, 10) || 1);
+          const rowPieces = packs * pcsPerPack;
+          const unitPrice = Number(item.unitPrice) || 0;
+          const rowTotal = rowPieces * unitPrice;
+
+          calcTotalPacks += packs;
+          calcTotalPieces += rowPieces;
+          calcSubtotal += rowTotal;
+
+          const pubTitle = getLocalizedField(item.publicTitle, "Turkish Wholesale Serie Pack");
+          const brandTitle = getLocalizedField(item.brandTitle, "");
+          const hasDistinctBrand = brandTitle && brandTitle.toLowerCase() !== pubTitle.toLowerCase();
+
+          const img = escapeHtml(
+            item.imageUrl ||
+              "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=400&q=80"
+          );
+          const sku = escapeHtml(item.sku || item.id || "PRD-TR");
+          const sizeRange = escapeHtml(item.sizeRange || "Full Serie Size Run");
+
+          return `
+            <tr>
+              <td>
+                <div class="inv-item-cell">
+                  <button
+                    type="button"
+                    class="inv-thumb-btn"
+                    data-lightbox-img="${img}"
+                    data-lightbox-title="${escapeHtml(brandTitle || pubTitle)}"
+                    data-lightbox-sku="${sku}"
+                    data-lightbox-price="${formatPrice(unitPrice)}"
+                    title="Click to inspect HD photo">
+                    <img src="${img}" alt="${escapeHtml(pubTitle)}" loading="lazy" />
+                  </button>
+                  <div>
+                    <div class="inv-public-title">${escapeHtml(pubTitle)}</div>
+                    ${
+                      hasDistinctBrand
+                        ? `<div class="inv-brand-ref">★ ${escapeHtml(ot("refModelLabel"))} ${escapeHtml(brandTitle)}</div>`
+                        : brandTitle
+                        ? `<div class="inv-brand-ref">★ ${escapeHtml(ot("refModelLabel"))} ${escapeHtml(brandTitle)}</div>`
+                        : ""
+                    }
+                  </div>
+                </div>
+              </td>
+              <td>
+                <strong style="color:var(--gold-dark); display:block;">${sku}</strong>
+                <span style="font-size:0.76rem; color:var(--text-muted);">${sizeRange}</span>
+              </td>
+              <td>
+                <span class="inv-math-pill">
+                  ${packs} Pack × ${pcsPerPack} pcs = <strong style="color:var(--charcoal);">${rowPieces} pcs</strong>
+                </span>
+              </td>
+              <td style="font-weight:700; color:var(--charcoal);">
+                ${formatPrice(unitPrice)} <small style="color:var(--text-muted); font-weight:500;">/ pc</small>
+              </td>
+              <td style="text-align:right; font-weight:800; font-size:0.95rem; color:var(--charcoal);">
+                ${formatPrice(rowTotal)}
+              </td>
+            </tr>
+          `;
+        })
+        .join("");
+
+      // Update Financial Totals & MOQ Indicator
+      document.getElementById("inv-total-packs").textContent = `${calcTotalPacks} Packs`;
+      document.getElementById("inv-total-pieces").textContent = `${calcTotalPieces} pcs`;
+      document.getElementById("inv-subtotal-amount").textContent = formatPrice(calcSubtotal);
+
+      const moqBanner = document.getElementById("inv-moq-banner");
+      if (moqBanner) {
+        if (calcTotalPieces >= 25) {
+          moqBanner.className = "moq-status-banner unlocked";
+          moqBanner.innerHTML = `
+            <strong style="display:block; font-size:0.92rem; color:var(--emerald-dark); margin-bottom:3px;">
+              ${escapeHtml(ot("moqUnlockedTitle"))}
+            </strong>
+            <span>${escapeHtml(ot("moqUnlockedDesc"))}</span>
+          `;
+        } else {
+          const rem = Math.max(1, 25 - calcTotalPieces);
+          moqBanner.className = "moq-status-banner standard";
+          moqBanner.innerHTML = `
+            <strong style="display:block; font-size:0.92rem; color:var(--gold-dark); margin-bottom:3px;">
+              ${escapeHtml(ot("moqStandardTitle"))}
+            </strong>
+            <span>${escapeHtml(ot("moqStandardDesc", { remaining: rem }))}</span>
+          `;
+        }
+      }
+
+      observeNewElements(document.getElementById("invoice-mode-section"));
+    }
+
+    /* ------------------------------------------------------------------------
+       E. RENDER MODE B: DIRECT WHOLESALE CHECKOUT & PROFORMA GENERATOR
+       ------------------------------------------------------------------------ */
+    function renderCheckoutMode() {
+      document.getElementById("invoice-mode-section").style.display = "none";
+      document.getElementById("checkout-mode-section").style.display = "block";
+
+      const { totalPacks, totalPieces, totalAmount } = getCartTotals();
+
+      // Update 25+ Pieces Progress Bar
+      const pct = Math.min(100, Math.round((totalPieces / 25) * 100));
+      const barEl = document.getElementById("checkout-tier-bar");
+      const pillEl = document.getElementById("checkout-tier-pill");
+      const headlineEl = document.getElementById("checkout-tier-headline");
+
+      if (barEl) barEl.style.width = `${pct}%`;
+      if (pillEl) pillEl.textContent = `${totalPieces} / 25 PCS`;
+      if (headlineEl) {
+        if (totalPieces >= 25) {
+          headlineEl.textContent = ot("moqUnlockedTitle");
+        } else {
+          headlineEl.textContent = ot("moqStandardDesc", { remaining: Math.max(0, 25 - totalPieces) });
+        }
+      }
+
+      // Update Summary Totals inside Checkout Form
+      document.getElementById("chk-summary-packs").textContent = `${totalPacks} Packs`;
+      document.getElementById("chk-summary-pieces").textContent = `${totalPieces} pcs`;
+      document.getElementById("chk-summary-amount").textContent = formatPrice(totalAmount);
+
+      // Pre-fill saved buyer info if available
+      try {
+        const savedBuyer = JSON.parse(localStorage.getItem("paradise_b2b_buyer_info") || "{}");
+        const nameInput = document.getElementById("chk-buyer-name");
+        const cityInput = document.getElementById("chk-buyer-city");
+        const phoneInput = document.getElementById("chk-buyer-phone");
+        if (savedBuyer.name && nameInput && !nameInput.value) nameInput.value = savedBuyer.name;
+        if (savedBuyer.city && cityInput && !cityInput.value) cityInput.value = savedBuyer.city;
+        if (savedBuyer.phone && phoneInput && !phoneInput.value) phoneInput.value = savedBuyer.phone;
+      } catch (e) {}
+
+      // Render Interactive Checkout Table
+      const container = document.getElementById("checkout-table-container");
+      if (!container) return;
+
+      if (state.cart.length === 0) {
+        container.innerHTML = `
+          <div style="padding: 48px 24px; text-align:center;">
+            <h3 style="font-family:var(--font-display); font-size:1.35rem; color:var(--charcoal); margin-bottom:8px;">
+              ${escapeHtml(ot("emptyCartCheckoutTitle"))}
+            </h3>
+            <p style="font-size:0.9rem; color:var(--text-secondary); max-width:500px; margin:0 auto 20px;">
+              ${escapeHtml(ot("emptyCartCheckoutSub"))}
+            </p>
+            <a href="category.html" class="btn btn-gold">
+              ${escapeHtml(ot("emptyCartBtnCatalog"))}
+            </a>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <table class="invoice-table" aria-label="Wholesale Checkout Bag Table">
+          <thead>
+            <tr>
+              <th>${escapeHtml(ot("thProduct"))}</th>
+              <th>${escapeHtml(ot("thPackMath"))}</th>
+              <th>${escapeHtml(ot("thUnitPrice"))}</th>
+              <th style="text-align:right;">${escapeHtml(ot("thRowTotal"))}</th>
+              <th style="width:50px;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${state.cart
+              .map((item) => {
+                const packs = Math.max(1, parseInt(item.packs, 10) || 1);
+                const pcsPerPack = Math.max(1, parseInt(item.pcsPerPack, 10) || 1);
+                const rowPcs = packs * pcsPerPack;
+                const unitPrice = Number(item.unitPrice) || 0;
+                const rowTotal = rowPcs * unitPrice;
+                const pubTitle = getLocalizedField(item.publicTitle, "Wholesale Serie Pack");
+                const brandRef = getLocalizedField(item.brandTitle, "");
+                const img = escapeHtml(
+                  item.imageUrl ||
+                    "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=300&q=80"
+                );
+                const id = escapeHtml(item.id);
+
+                return `
+                  <tr>
+                    <td>
+                      <div class="inv-item-cell">
+                        <button
+                          type="button"
+                          class="inv-thumb-btn"
+                          data-lightbox-img="${img}"
+                          data-lightbox-title="${escapeHtml(brandRef || pubTitle)}"
+                          data-lightbox-sku="${escapeHtml(item.sku || id)}"
+                          data-lightbox-price="${formatPrice(unitPrice)}">
+                          <img src="${img}" alt="${escapeHtml(pubTitle)}" loading="lazy" />
+                        </button>
+                        <div>
+                          <div class="inv-public-title">${escapeHtml(pubTitle)}</div>
+                          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+                            SKU: <strong style="color:var(--gold-dark);">${escapeHtml(item.sku || id)}</strong>
+                          </div>
+                          ${
+                            brandRef
+                              ? `<div class="inv-brand-ref">★ ${escapeHtml(ot("refModelLabel"))} ${escapeHtml(brandRef)}</div>`
+                              : ""
+                          }
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div style="display:flex; align-items:center; gap:8px;">
+                        <div class="cart-qty-controls">
+                          <button type="button" class="cart-qty-btn" data-chk-dec="${id}">−</button>
+                          <span class="cart-qty-val">${packs} Pack</span>
+                          <button type="button" class="cart-qty-btn" data-chk-inc="${id}">+</button>
+                        </div>
+                        <span style="font-size:0.78rem; color:var(--text-secondary); font-weight:700;">
+                          × ${pcsPerPack} = <strong>${rowPcs} pcs</strong>
+                        </span>
+                      </div>
+                    </td>
+                    <td style="font-weight:700;">${formatPrice(unitPrice)}</td>
+                    <td style="text-align:right; font-weight:800; color:var(--charcoal);">${formatPrice(rowTotal)}</td>
+                    <td style="text-align:center;">
+                      <button
+                        type="button"
+                        data-chk-remove="${id}"
+                        title="Remove Item"
+                        style="color:var(--danger); font-weight:800; padding:4px 8px;">
+                        ✕
+                      </button>
+                    </td>
+                  </tr>
+                `;
+              })
+              .join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    /* ------------------------------------------------------------------------
+       F. HANDLE DIRECT CHECKOUT SUBMISSION -> CLOUD PROFORMA & WHATSAPP
+       ------------------------------------------------------------------------ */
+    async function handleCheckoutFormSubmit(e) {
+      e.preventDefault();
+      if (state.cart.length === 0) {
+        showToast(ot("emptyCartCheckoutTitle"));
+        return;
+      }
+
+      const buyerName = document.getElementById("chk-buyer-name").value.trim() || "VIP Boutique Buyer";
+      const countrySelect = document.getElementById("chk-buyer-country").value.trim();
+      const cityInput = document.getElementById("chk-buyer-city").value.trim();
+      const buyerCountry = cityInput ? `${cityInput}, ${countrySelect}` : countrySelect;
+      const buyerPhone = document.getElementById("chk-buyer-phone").value.trim();
+      const buyerNotes = document.getElementById("chk-buyer-notes").value.trim();
+
+      try {
+        localStorage.setItem(
+          "paradise_b2b_buyer_info",
+          JSON.stringify({ name: buyerName, country: buyerCountry, city: cityInput, phone: buyerPhone })
+        );
+      } catch (err) {}
+
+      const { totalPacks, totalPieces, totalAmount } = getCartTotals();
+      const randomDigits = Math.floor(1000 + Math.random() * 9000);
+      const timeSuffix = String(Date.now()).slice(-2);
+      const orderCode = `ORD-${randomDigits}${timeSuffix}`;
+      const orderUrl = `${SITE_DOMAIN}/order.html?id=${orderCode}`;
+      const nowIso = new Date().toISOString();
+
+      const orderPayload = {
+        orderCode,
+        orderUrl,
+        buyerName,
+        buyerCountry,
+        buyerPhone,
+        buyerNotes,
+        language: state.lang || "en",
+        currency: state.config.currencyCode || "EUR",
+        totalPacks,
+        totalPieces,
+        totalAmount,
+        qualifiesBulkTier: totalPieces >= 25,
+        status: "pending_whatsapp",
+        items: state.cart.map((i) => ({
+          id: i.id,
+          sku: i.sku,
+          publicTitle: i.publicTitle,
+          brandTitle: i.brandTitle || i.publicTitle,
+          packs: i.packs,
+          pcsPerPack: i.pcsPerPack,
+          sizeRange: i.sizeRange || "S-XL",
+          totalPieces: i.packs * i.pcsPerPack,
+          unitPrice: i.unitPrice,
+          lineTotal: Number((i.packs * i.pcsPerPack * i.unitPrice).toFixed(2)),
+          imageUrl: i.imageUrl
+        })),
+        createdAt: serverTimestamp(),
+        createdAtIso: nowIso
+      };
+
+      // 1. Cache locally immediately for instant zero-latency rendering
+      cacheOrderLocally(orderPayload);
+
+      // 2. Save in Firestore `orders` & `customers`
+      try {
+        await setDoc(doc(db, "orders", orderCode), orderPayload);
+        await addDoc(collection(db, "customers"), {
+          name: buyerName,
+          country: buyerCountry,
+          phone: buyerPhone,
+          notes: buyerNotes,
+          lastOrderCode: orderCode,
+          lastOrderAmount: totalAmount,
+          lastOrderPieces: totalPieces,
+          language: state.lang || "en",
+          updatedAt: serverTimestamp()
+        });
+      } catch (err) {
+        console.warn("Firestore save warning (continuing with local proforma & WhatsApp):", err.message);
+      }
+
+      // 3. Fire Google Ads Conversion & Open WhatsApp via Global Engine
+      const waMessage = buildStandardInvoiceWhatsAppMessage(orderPayload);
+      if (window.ParadiseApp && typeof window.ParadiseApp.openWhatsApp === "function") {
+        window.ParadiseApp.openWhatsApp(waMessage, "order_page_checkout", totalAmount);
+      }
+
+      // 4. Update URL to `order.html?id=ORD-XXXX` and switch to Official Proforma Invoice View
+      window.history.pushState({}, "", `order.html?id=${encodeURIComponent(orderCode)}`);
+      renderInvoiceView(orderPayload);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    /* ------------------------------------------------------------------------
+       G. APPLY TRANSLATIONS & BIND PAGE EVENTS
+       ------------------------------------------------------------------------ */
+    function applyOrderPageTranslations() {
+      enforcePermanentNoIndex();
+
+      document.querySelectorAll("[data-ord-i18n]").forEach((el) => {
+        const key = el.getAttribute("data-ord-i18n");
+        if (key) el.textContent = ot(key);
+      });
+
+      document.querySelectorAll("[data-ord-i18n-placeholder]").forEach((el) => {
+        const key = el.getAttribute("data-ord-i18n-placeholder");
+        if (key) el.setAttribute("placeholder", ot(key));
+      });
+
+      if (currentLoadedOrder && document.getElementById("invoice-mode-section").style.display !== "none") {
+        renderInvoiceView(currentLoadedOrder);
+      } else {
+        renderCheckoutMode();
+      }
+    }
+
+    async function routeOrderPage() {
+      enforcePermanentNoIndex();
+
+      const params = new URLSearchParams(window.location.search);
+      const urlLang = params.get("lang");
+      if (urlLang && ["en", "it", "es"].includes(urlLang)) {
+        setLanguage(urlLang);
+      }
+
+      const orderIdParam = (params.get("id") || params.get("order") || "").trim();
+      if (orderIdParam) {
+        const foundOrder = await fetchOrderByCode(orderIdParam);
+        if (foundOrder) {
+          renderInvoiceView(foundOrder);
+          return;
+        } else {
+          showToast(ot("toastOrderNotFound"));
+        }
+      }
+
+      renderCheckoutMode();
+    }
+
+    function bindOrderPageEvents() {
+      // 1. Quick Order Lookup Bar
+      document.getElementById("quick-order-lookup-form")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const codeInput = document.getElementById("order-lookup-input")?.value.trim().toUpperCase();
+        if (!codeInput) return;
+
+        const found = await fetchOrderByCode(codeInput);
+        if (found) {
+          window.history.pushState({}, "", `order.html?id=${encodeURIComponent(codeInput)}`);
+          renderInvoiceView(found);
+        } else {
+          showToast(ot("toastOrderNotFound"));
+          renderCheckoutMode();
+        }
+      });
+
+      // 2. Confirm & Finalize Order on WhatsApp (Top & Bottom Invoice Buttons)
+      const confirmWaHandler = () => {
+        if (!currentLoadedOrder) return;
+        const msg = buildStandardInvoiceWhatsAppMessage(currentLoadedOrder);
+        if (window.ParadiseApp && typeof window.ParadiseApp.openWhatsApp === "function") {
+          window.ParadiseApp.openWhatsApp(msg, "invoice_whatsapp_confirm", currentLoadedOrder.totalAmount || 1);
+        }
+      };
+      document.getElementById("btn-invoice-wa-top")?.addEventListener("click", confirmWaHandler);
+      document.getElementById("btn-invoice-wa-bottom")?.addEventListener("click", confirmWaHandler);
+
+      // 3. Print / Save as PDF Button
+      document.getElementById("btn-print-invoice")?.addEventListener("click", () => {
+        window.print();
+      });
+
+      // 4. Copy Invoice Link Button
+      document.getElementById("btn-copy-invoice-link")?.addEventListener("click", async () => {
+        const code = currentLoadedOrder?.orderCode || "";
+        const link = code ? `${SITE_DOMAIN}/order.html?id=${encodeURIComponent(code)}` : window.location.href;
+        try {
+          await navigator.clipboard.writeText(link);
+          showToast(ot("toastLinkCopied"));
+        } catch (err) {
+          showToast(link);
+        }
+      });
+
+      // 5. Load Items into Cart to Edit Button
+      document.getElementById("btn-load-into-cart")?.addEventListener("click", () => {
+        if (!currentLoadedOrder || !Array.isArray(currentLoadedOrder.items)) return;
+        state.cart = currentLoadedOrder.items.map((item) => ({
+          id: item.id || item.sku,
+          sku: item.sku || item.id,
+          publicTitle: getLocalizedField(item.publicTitle, "Wholesale Serie Pack"),
+          brandTitle: getLocalizedField(item.brandTitle, ""),
+          unitPrice: Number(item.unitPrice) || 0,
+          pcsPerPack: Math.max(1, parseInt(item.pcsPerPack, 10) || 6),
+          sizeRange: item.sizeRange || "S-XL",
+          imageUrl: item.imageUrl || "",
+          packs: Math.max(1, parseInt(item.packs, 10) || 1)
+        }));
+        saveCart();
+        showToast(ot("toastLoadedToCart"));
+        window.history.pushState({}, "", "order.html");
+        renderCheckoutMode();
+      });
+
+      // 6. Interactive Checkout Table (+ / - / Remove buttons)
+      document.getElementById("checkout-table-container")?.addEventListener("click", (e) => {
+        const incBtn = e.target.closest("[data-chk-inc]");
+        if (incBtn) {
+          const id = incBtn.getAttribute("data-chk-inc");
+          const item = state.cart.find((i) => i.id === id);
+          if (item) {
+            updateCartPackQty(id, item.packs + 1);
+            renderCheckoutMode();
+          }
+          return;
+        }
+
+        const decBtn = e.target.closest("[data-chk-dec]");
+        if (decBtn) {
+          const id = decBtn.getAttribute("data-chk-dec");
+          const item = state.cart.find((i) => i.id === id);
+          if (item) {
+            updateCartPackQty(id, item.packs - 1);
+            renderCheckoutMode();
+          }
+          return;
+        }
+
+        const remBtn = e.target.closest("[data-chk-remove]");
+        if (remBtn) {
+          const id = remBtn.getAttribute("data-chk-remove");
+          updateCartPackQty(id, 0);
+          renderCheckoutMode();
+        }
+      });
+
+      // 7. Submit Direct Checkout Form
+      document.getElementById("b2b-checkout-form")?.addEventListener("submit", handleCheckoutFormSubmit);
+
+      // 8. Topbar, Footer & Floating WhatsApp buttons routed via global openWhatsApp
+      const generalOrderWa = (e) => {
+        if (e) e.preventDefault();
+        if (currentLoadedOrder) {
+          confirmWaHandler();
+        } else if (window.ParadiseApp?.openWhatsApp) {
+          window.ParadiseApp.openWhatsApp("", "order_page_whatsapp_desk");
+        }
+      };
+      document.getElementById("order-topbar-wa")?.addEventListener("click", generalOrderWa);
+      document.getElementById("order-footer-wa")?.addEventListener("click", generalOrderWa);
+      document.getElementById("order-floating-wa")?.addEventListener("click", generalOrderWa);
+
+      // 9. Keep robots shield permanently on `noindex, nofollow, noarchive`
+      document.addEventListener("click", enforcePermanentNoIndex);
+      document.addEventListener("keydown", enforcePermanentNoIndex);
+
+      // 10. Re-translate on language switch
+      window.addEventListener("paradise:languageChanged", () => {
+        applyOrderPageTranslations();
+      });
+    }
+
+    async function initOrderPage() {
+      document.getElementById("current-year").textContent = new Date().getFullYear();
+      applyOrderPageTranslations();
+      bindOrderPageEvents();
+      await routeOrderPage();
+    }
+
+    initOrderPage();
+  </script>
+</body>
+</html>
