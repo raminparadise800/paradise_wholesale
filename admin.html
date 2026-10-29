@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <!-- STRICT NO-INDEX SHIELD: Protects Admin Dashboard & CRM from Public Search Engines -->
+  <meta name="robots" content="noindex, nofollow, noarchive" />
+  <meta name="googlebot" content="noindex, nofollow, noarchive" />
+
+  <title>Paradise Wholesale | Executive B2B Admin & AI Management Suite</title>
+  <meta name="description" content="Secure executive administration dashboard for Paradise Wholesale Clothing (Istanbul, Turkey)." />
+  <meta name="theme-color" content="#0f172a" />
+
+  <!-- Fonts & Main Luxury Stylesheet -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Admin Panel Specialized UI Styles -->
+  <style>
+    :root {
+      --admin-sidebar-width: 270px;
+    }
+    body {
+      background-color: var(--bg-pearl);
+    }
+    /* Auth Screen */
+    .admin-auth-wrapper {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 50% 20%, rgba(212, 175, 55, 0.18) 0%, transparent 60%),
+                  linear-gradient(135deg, #090d16 0%, var(--charcoal) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5000;
+      padding: 20px;
+    }
+    .admin-auth-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--gold-border);
+      border-radius: var(--radius-lg);
+      padding: 36px 32px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+    }
+    /* Main Admin Shell */
+    .admin-shell {
+      display: flex;
+      min-height: 100vh;
+      width: 100%;
+    }
+    .admin-sidebar {
+      width: var(--admin-sidebar-width);
+      background: var(--charcoal);
+      color: #ffffff;
+      border-right: 1px solid rgba(212, 175, 55, 0.2);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 1000;
+      transition: transform 0.3s var(--ease-out-expo);
+    }
+    @media (max-width: 1023px) {
+      .admin-sidebar {
+        transform: translateX(-100%);
+      }
+      .admin-sidebar.open {
+        transform: translateX(0);
+      }
+    }
+    .admin-sidebar-header {
+      padding: 22px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .admin-nav-list {
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+    .admin-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #94a3b8;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .admin-nav-item:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .admin-nav-item.active {
+      color: var(--charcoal);
+      background: linear-gradient(135deg, var(--gold) 0%, #f3e5ab 100%);
+      box-shadow: var(--shadow-sm);
+    }
+    .admin-main-content {
+      flex: 1;
+      margin-left: 0;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    @media (min-width: 1024px) {
+      .admin-main-content {
+        margin-left: var(--admin-sidebar-width);
+      }
+    }
+    .admin-topbar {
+      height: 70px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-inline: 24px;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+    }
+    .admin-content-body {
+      padding: 24px;
+      flex: 1;
+    }
+    /* Tabs Control */
+    .admin-tab-pane {
+      display: none;
+    }
+    .admin-tab-pane.active {
+      display: block;
+      animation: fadeInAdmin 0.3s ease;
+    }
+    @keyframes fadeInAdmin {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Stat Cards Grid */
+    .admin-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow-xs);
+    }
+    .stat-card-label {
+      font-size: 0.73rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .stat-card-value {
+      font-family: var(--font-display);
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: var(--charcoal);
+    }
+    /* Admin Cards & Tables */
+    .admin-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      box-shadow: var(--shadow-xs);
+      margin-bottom: 24px;
+    }
+    .admin-card-title {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--charcoal);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .admin-table th {
+      background: var(--bg-subtle);
+      color: var(--charcoal);
+      font-size: 0.73rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .admin-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+    }
+    .admin-table tbody tr:hover {
+      background: var(--bg-pearl);
+    }
+    /* AI Dropzone */
+    .ai-dropzone {
+      border: 2px dashed var(--gold-border);
+      border-radius: var(--radius-md);
+      background: var(--bg-pearl);
+      padding: 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+      margin-bottom: 20px;
+    }
+    .ai-dropzone:hover {
+      background: var(--gold-soft);
+      border-color: var(--gold);
+    }
+    .ai-preview-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .ai-thumb-preview {
+      width: 80px;
+      height: 100px;
+      border-radius: 6px;
+      object-fit: cover;
+      border: 1px solid var(--border-color);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================================================
+       1. SECURE FIREBASE AUTH LOGIN SCREEN (Default: Paradise.men2019@gmail.com)
+       ======================================================================== -->
+  <div class="admin-auth-wrapper" id="admin-auth-screen" style="display: none;">
+    <div class="admin-auth-card">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <span class="top-bar-badge" style="margin-bottom: 10px;">EXECUTIVE ACCESS ONLY</span>
+        <div class="brand-logo-main" style="font-size: 1.5rem; justify-content: center; color: #fff;">
+          PARADISE WHOLESALE <span class="brand-logo-dot"></span>
+        </div>
+        <div style="font-size: 0.78rem; color: var(--gold-light); letter-spacing: 0.15em; text-transform: uppercase; margin-top: 4px;">
+          Secure B2B Management Suite
+        </div>
+      </div>
+
+      <form id="admin-login-form">
+        <div class="form-field">
+          <label for="admin-email" style="color: #cbd5e1;">Admin Email Address</label>
+          <input
+            type="email"
+            id="admin-email"
+            class="form-input"
+            value="Paradise.men2019@gmail.com"
+            required
+            style="background: rgba(255,255,255,0.08); color: #fff; border-color: rgba(255,255,255,0.15);"
+          />
+        </div>
+
+        <div class="form-field" style="margin-bottom: 20px;">
+          <label for="admin-password" style="color: #cbd5e1;">Password</label>
+          <input
+            type="password"
+            id="admin-password"
+            class="form-input"
+            required
+            placeholder="••••••••••••"
+            style="background: rgba(255,255,255,0.08); color: #fff; border-color: rgba(255,255,255,0.15);"
+          />
+        </div>
+
+        <button type="submit" class="btn btn-gold" id="admin-login-btn" style="width: 100%; padding: 13px;">
+          Authenticate Executive Session
+        </button>
+      </form>
+      <div id="admin-auth-error" style="color: var(--danger); font-size: 0.8rem; text-align: center; margin-top: 12px;"></div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       2. MAIN LUXURY ADMIN SHELL (SIDEBAR + TOPBAR + 6 TABS)
+       ======================================================================== -->
+  <div class="admin-shell" id="admin-shell" style="display: none;">
+
+    <!-- Sidebar Navigation -->
+    <aside class="admin-sidebar" id="admin-sidebar">
+      <div class="admin-sidebar-header">
+        <div class="brand-logo">
+          <span class="brand-logo-main" style="color: #fff; font-size: 1.15rem;">
+            PARADISE <span class="brand-logo-dot"></span>
+          </span>
+          <span class="brand-logo-sub" style="color: var(--gold-light);">Admin Control Panel</span>
+        </div>
+        <button type="button" id="sidebar-close-btn" style="color:#fff; font-size:1.2rem; display:block;" class="lg:hidden">✕</button>
+      </div>
+
+      <nav class="admin-nav-list" role="tablist">
+        <div class="admin-nav-item active" data-tab-target="orders" role="tab">
+          <span>📦</span> <span>Orders & CRM</span>
+        </div>
+        <div class="admin-nav-item" data-tab-target="ai-uploader" role="tab">
+          <span>✨</span> <span>AI Product Uploader</span>
+        </div>
+        <div class="admin-nav-item" data-tab-target="catalog" role="tab">
+          <span>🏷️</span> <span>Catalog & Shards</span>
+        </div>
+        <div class="admin-nav-item" data-tab-target="blog" role="tab">
+          <span>📰</span> <span>AI 3-Lang Blog & SEO</span>
+        </div>
+        <div class="admin-nav-item" data-tab-target="videos" role="tab">
+          <span>🎬</span> <span>Videos & Media</span>
+        </div>
+        <div class="admin-nav-item" data-tab-target="settings" role="tab">
+          <span>⚙️</span> <span>Live Site Settings</span>
+        </div>
+      </nav>
+
+      <div style="padding: 16px; border-top: 1px solid rgba(255,255,255,0.08);">
+        <div style="font-size: 0.74rem; color: #94a3b8; margin-bottom: 8px;" id="current-admin-user">Connected</div>
+        <button type="button" class="btn btn-outline-light" id="admin-logout-btn" style="width: 100%; padding: 8px; font-size: 0.78rem;">
+          Sign Out Executive
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="admin-main-content">
+      <!-- Topbar -->
+      <header class="admin-topbar">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <button type="button" id="sidebar-toggle-btn" class="lg:hidden" style="font-size:1.2rem; font-weight:800;">☰</button>
+          <span id="active-tab-title" style="font-family:var(--font-display); font-size:1.15rem; font-weight:800; color:var(--charcoal);">
+            Orders & WhatsApp CRM
+          </span>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <a href="index.html" target="_blank" class="btn btn-outline-light" style="padding:7px 14px; font-size:0.76rem; color:var(--charcoal); border-color:var(--border-color);">
+            View Live Site ↗
+          </a>
+        </div>
+      </header>
+
+      <!-- Content Body -->
+      <div class="admin-content-body">
+
+        <!-- ====================================================================
+             TAB 1: ORDERS & CRM DASHBOARD
+             ==================================================================== -->
+        <div class="admin-tab-pane active" id="tab-orders">
+          <div class="admin-stats-grid">
+            <div class="stat-card">
+              <div class="stat-card-label">Total Products in DB</div>
+              <div class="stat-card-value" id="stat-products-count">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-label">WhatsApp Proforma Orders</div>
+              <div class="stat-card-value" id="stat-orders-count">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-label">Registered B2B Customers</div>
+              <div class="stat-card-value" id="stat-customers-count">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-label">Gemini AI Rotator</div>
+              <div class="stat-card-value" style="color: var(--emerald);" id="stat-ai-status">Ready ⚡</div>
+            </div>
+          </div>
+
+          <div class="admin-card">
+            <div class="admin-card-title">
+              <span>Wholesale Proforma Orders (`orders`)</span>
+              <button type="button" class="btn btn-outline-light" id="refresh-orders-btn" style="padding:6px 12px; font-size:0.75rem; color:var(--charcoal); border-color:var(--border-color);">
+                ↻ Refresh Orders
+              </button>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="admin-table" aria-label="Orders CRM Table">
+                <thead>
+                  <tr>
+                    <th>Order Code</th>
+                    <th>Buyer / Boutique</th>
+                    <th>Destination</th>
+                    <th>WhatsApp</th>
+                    <th>Packs / Pcs</th>
+                    <th>Subtotal</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-orders-tbody">
+                  <tr><td colspan="8" style="text-align:center; padding:24px; color:var(--text-muted);">Loading wholesale orders...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="admin-card">
+            <div class="admin-card-title">
+              <span>Registered B2B Customers (`customers`)</span>
+              <button type="button" class="btn btn-outline-light" id="export-customers-csv" style="padding:6px 12px; font-size:0.75rem; color:var(--charcoal); border-color:var(--border-color);">
+                Export CSV
+              </button>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="admin-table" aria-label="Customers CRM Table">
+                <thead>
+                  <tr>
+                    <th>Boutique Name</th>
+                    <th>Country / City</th>
+                    <th>WhatsApp Phone</th>
+                    <th>Last Order</th>
+                    <th>Total Spent</th>
+                    <th>Contact</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-customers-tbody">
+                  <tr><td colspan="6" style="text-align:center; padding:24px; color:var(--text-muted);">Loading customers...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ====================================================================
+             TAB 2: AI PRODUCT UPLOADER & DUAL-TITLE ENGINE
+             ==================================================================== -->
+        <div class="admin-tab-pane" id="tab-ai-uploader">
+          <div class="admin-card">
+            <div class="admin-card-title">Gemini Vision AI Product Uploader & Dual-Title Engine</div>
+            <p style="font-size:0.88rem; color:var(--text-secondary); margin-bottom:18px;">
+              Upload apparel, shoe or bag photos. Gemini AI will automatically generate 3-language dual titles (public safe title for Google Ads + brand title for search), descriptions, tags, and pricing suggestions.
+            </p>
+
+            <div class="ai-dropzone" id="ai-dropzone-box">
+              <div style="font-size:2rem; margin-bottom:8px;">🖼️</div>
+              <strong style="display:block; font-size:0.95rem; color:var(--charcoal); margin-bottom:4px;">
+                Drag & Drop Product Photos Here or Click to Browse
+              </strong>
+              <span style="font-size:0.8rem; color:var(--text-muted);">Supports multiple images (Front detail, close-up label, stitching close-up)</span>
+              <input type="file" id="ai-file-input" accept="image/*" multiple style="display:none;" />
+            </div>
+
+            <div class="ai-preview-grid" id="ai-preview-grid"></div>
+
+            <div class="form-field" style="margin-top:16px;">
+              <label for="ai-admin-prompt">Optional AI Instructions / Brand Hints (Persian or English)</label>
+              <input
+                type="text"
+                id="ai-admin-prompt"
+                class="form-input"
+                placeholder="e.g. این هودی مشکی زارا با کیفیت مستر و پنبه ۳۲۵ گرم است..."
+              />
+            </div>
+
+            <button type="button" class="btn btn-gold" id="btn-run-gemini-vision" style="margin-top:12px;">
+              ✨ Analyze Image with Gemini Vision AI (3 Languages)
+            </button>
+          </div>
+
+          <!-- Structured Product Form (Populated by AI or Manual Entry) -->
+          <div class="admin-card" id="product-form-card">
+            <div class="admin-card-title">Product Specifications & Dual-Title Shield</div>
+
+            <form id="admin-product-form">
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:14px; margin-bottom:14px;">
+                <div class="form-field">
+                  <label for="prod-department">Department *</label>
+                  <select id="prod-department" class="form-select" required>
+                    <option value="men">Men</option>
+                    <option value="women">Women</option>
+                    <option value="kids-baby">Kids & Baby</option>
+                    <option value="shoes">Shoes</option>
+                    <option value="bags-accessories">Bags & Accessories</option>
+                  </select>
+                </div>
+
+                <div class="form-field">
+                  <label for="prod-subcategory">Subcategory *</label>
+                  <select id="prod-subcategory" class="form-select" required></select>
+                </div>
+
+                <div class="form-field">
+                  <label for="prod-substyle">Cut / Style Tag</label>
+                  <select id="prod-substyle" class="form-select">
+                    <option value="oversize">Oversize Fit</option>
+                    <option value="regular">Regular / Tailored</option>
+                    <option value="monogram">Monogram / Crest</option>
+                    <option value="heavyweight">Heavyweight 300+ GSM</option>
+                    <option value="leather">Genuine Leather</option>
+                  </select>
+                </div>
+
+                <div class="form-field">
+                  <label for="prod-sku">SKU / Code *</label>
+                  <input type="text" id="prod-sku" class="form-input" required value="PRD-TR-901" />
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:14px; margin-bottom:18px;">
+                <div class="form-field">
+                  <label for="prod-unit-price">Unit Price (€) *</label>
+                  <input type="number" step="0.5" id="prod-unit-price" class="form-input" required value="16.5" />
+                </div>
+                <div class="form-field">
+                  <label for="prod-pcs-pack">Pieces in Pack (Serie) *</label>
+                  <input type="number" id="prod-pcs-pack" class="form-input" required value="6" />
+                </div>
+                <div class="form-field">
+                  <label for="prod-size-range">Size Run</label>
+                  <input type="text" id="prod-size-range" class="form-input" value="S - M - L - XL - XXL" />
+                </div>
+              </div>
+
+              <!-- DUAL-TITLE 3-LANGUAGE SECTION -->
+              <div style="border-top:1px solid var(--border-color); padding-top:16px; margin-bottom:18px;">
+                <strong style="display:block; font-size:0.92rem; color:var(--charcoal); margin-bottom:4px;">
+                  1. Public Titles (Safe for Google Ads / No Brand Name)
+                </strong>
+                <span style="font-size:0.76rem; color:var(--text-muted); display:block; margin-bottom:10px;">
+                  Displayed on public catalog cards and image alt attributes so Google Ads never flags branded terms.
+                </span>
+                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;">
+                  <div class="form-field"><label>English Public Title</label><input type="text" id="prod-pub-en" class="form-input" /></div>
+                  <div class="form-field"><label>Italian Public Title</label><input type="text" id="prod-pub-it" class="form-input" /></div>
+                  <div class="form-field"><label>Spanish Public Title</label><input type="text" id="prod-pub-es" class="form-input" /></div>
+                </div>
+              </div>
+
+              <div style="border-top:1px solid var(--border-color); paddingTop:16px; margin-bottom:18px;">
+                <strong style="display:block; font-size:0.92rem; color:var(--charcoal); margin-bottom:4px;">
+                  2. Brand Titles (Real Name / Revealed in Live Search Only)
+                </strong>
+                <span style="font-size:0.76rem; color:var(--text-muted); display:block; margin-bottom:10px;">
+                  Revealed exclusively to buyers when they use the live catalog search bar.
+                </span>
+                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;">
+                  <div class="form-field"><label>English Brand Title</label><input type="text" id="prod-brand-en" class="form-input" /></div>
+                  <div class="form-field"><label>Italian Brand Title</label><input type="text" id="prod-brand-it" class="form-input" /></div>
+                  <div class="form-field"><label>Spanish Brand Title</label><input type="text" id="prod-brand-es" class="form-input" /></div>
+                </div>
+              </div>
+
+              <div class="form-field" style="margin-bottom:18px;">
+                <label for="prod-search-tags">Search Tags (Comma separated)</label>
+                <input type="text" id="prod-search-tags" class="form-input" placeholder="gucci, oversize, tshirt, black, men" />
+              </div>
+
+              <button type="submit" class="btn btn-gold" id="btn-save-product" style="padding:13px 24px;">
+                Save Product to Firestore & Rebuild Shards
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- ====================================================================
+             TAB 3: CATALOG & SHARD MANAGER
+             ==================================================================== -->
+        <div class="admin-tab-pane" id="tab-catalog">
+          <div class="admin-card">
+            <div class="admin-card-title">
+              <span>Catalog & Shard Manager</span>
+              <div style="display:flex; gap:10px;">
+                <button type="button" class="btn btn-gold" id="rebuild-shards-btn" style="padding:8px 14px; font-size:0.8rem;">
+                  ⚡ Sync & Rebuild All Shards
+                </button>
+              </div>
+            </div>
+
+            <div style="margin-bottom:14px; display:flex; gap:10px;">
+              <input type="search" id="admin-catalog-search" class="form-input" placeholder="Search by SKU or title..." style="max-width:320px;" />
+            </div>
+
+            <div style="overflow-x:auto;">
+              <table class="admin-table" aria-label="Admin Catalog Table">
+                <thead>
+                  <tr>
+                    <th>Image</th>
+                    <th>SKU</th>
+                    <th>Public Title</th>
+                    <th>Department</th>
+                    <th>Unit Price</th>
+                    <th>Pack Size</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-catalog-tbody">
+                  <tr><td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted);">Loading catalog...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ====================================================================
+             TAB 4: AI 3-LANGUAGE BLOG & STATIC SEO GENERATOR
+             ==================================================================== -->
+        <div class="admin-tab-pane" id="tab-blog">
+          <div class="admin-card">
+            <div class="admin-card-title">AI 3-Language Blog Studio & Static SEO Generator</div>
+            <p style="font-size:0.88rem; color:var(--text-secondary); margin-bottom:18px;">
+              Enter a topic in Persian or English. Gemini AI will generate a comprehensive, SEO-optimized B2B article in English, Italian, and Spanish complete with FAQ schema.
+            </p>
+
+            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:14px; margin-bottom:14px;">
+              <div class="form-field">
+                <label for="ai-blog-topic">Article Topic / Keyword Strategy</label>
+                <input
+                  type="text"
+                  id="ai-blog-topic"
+                  class="form-input"
+                  placeholder="e.g. How to import luxury streetwear and hoodies from Istanbul to Italy & Spain"
+                />
+              </div>
+              <div class="form-field">
+                <label for="ai-blog-category">Category</label>
+                <select id="ai-blog-category" class="form-select">
+                  <option value="logistics">Shipping & Customs</option>
+                  <option value="textile">Fabric & Quality</option>
+                  <option value="strategy">Boutique Strategy</option>
+                  <option value="trends">Istanbul Trends</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="button" class="btn btn-gold" id="btn-generate-ai-blog">
+              ✨ Generate Native 3-Language SEO Article with Gemini
+            </button>
+          </div>
+
+          <!-- Blog Editor & Preview (EN, IT, ES) -->
+          <div class="admin-card">
+            <div class="admin-card-title">
+              <span>Article Editor & GitHub Publisher</span>
+              <div class="category-tabs" id="blog-lang-tabs" role="tablist">
+                <button type="button" class="cat-pill active" data-blog-tab="en">English</button>
+                <button type="button" class="cat-pill" data-blog-tab="it">Italiano</button>
+                <button type="button" class="cat-pill" data-blog-tab="es">Español</button>
+              </div>
+            </div>
+
+            <form id="admin-blog-form">
+              <input type="hidden" id="blog-edit-id" />
+
+              <div style="display:grid; grid-template-columns: 2fr 1fr; gap:14px; margin-bottom:14px;">
+                <div class="form-field">
+                  <label id="lbl-blog-title">Article Title</label>
+                  <input type="text" id="blog-title" class="form-input" required />
+                </div>
+                <div class="form-field">
+                  <label id="lbl-blog-slug">URL Slug</label>
+                  <input type="text" id="blog-slug" class="form-input" required placeholder="how-to-import-from-turkey" />
+                </div>
+              </div>
+
+              <div class="form-field" style="margin-bottom:14px;">
+                <label id="lbl-blog-excerpt">Excerpt / Meta Description</label>
+                <textarea id="blog-excerpt" class="form-textarea" rows="2" required></textarea>
+              </div>
+
+              <div class="form-field" style="margin-bottom:18px;">
+                <label id="lbl-blog-content">Full HTML Content (with H2, H3 & Links)</label>
+                <textarea id="blog-content" class="form-textarea" rows="10" required></textarea>
+              </div>
+
+              <div style="display:flex; gap:12px;">
+                <button type="submit" class="btn btn-gold" id="btn-save-blog">
+                  Publish to Firestore & GitHub
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- ====================================================================
+             TAB 5: VIDEOS & MEDIA MANAGER
+             ==================================================================== -->
+        <div class="admin-tab-pane" id="tab-videos">
+          <div class="admin-card">
+            <div class="admin-card-title">Hero Video & Customer Cargo Reviews Manager</div>
+            <p style="font-size:0.88rem; color:var(--text-secondary); margin-bottom:18px;">
+              Manage the YouTube / Shorts video ID displayed in the Hero section and customer cargo dispatch video carousels on the live site.
+            </p>
+
+            <form id="admin-videos-form">
+              <div class="form-field" style="margin-bottom:14px;">
+                <label for="settings-hero-yt">Hero YouTube / Shorts Video ID</label>
+                <input type="text" id="settings-hero-yt" class="form-input" placeholder="e.g. dQw4w9WgXcQ" />
+              </div>
+              <button type="submit" class="btn btn-gold" style="padding:10px 20px; font-size:0.84rem;">
+                Save Video Settings
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- ====================================================================
+             TAB 6: LIVE SITE SETTINGS (WHATSAPP, GOOGLE ADS & GEMINI KEYS)
+             ==================================================================== -->
+        <div class="admin-tab-pane" id="tab-settings">
+          <div class="admin-card">
+            <div class="admin-card-title">Global Live Site Settings & API Integrations</div>
+            <p style="font-size:0.88rem; color:var(--text-secondary); margin-bottom:18px;">
+              Changes saved here instantly update WhatsApp numbers, Google Ads tracking, and AI keys across the entire platform.
+            </p>
+
+            <form id="admin-settings-form">
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-bottom:18px;">
+                <div class="form-field">
+                  <label for="set-whatsapp-raw">WhatsApp Raw Number (with +)</label>
+                  <input type="text" id="set-whatsapp-raw" class="form-input" value="+905459099395" required />
+                </div>
+                <div class="form-field">
+                  <label for="set-whatsapp-display">WhatsApp Display Format</label>
+                  <input type="text" id="set-whatsapp-display" class="form-input" value="+90 545 909 93 95" required />
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-bottom:18px;">
+                <div class="form-field">
+                  <label for="set-ga4">Google Analytics 4 Measurement ID</label>
+                  <input type="text" id="set-ga4" class="form-input" placeholder="G-XXXXXXXXXX" />
+                </div>
+                <div class="form-field">
+                  <label for="set-gads">Google Ads Conversion ID</label>
+                  <input type="text" id="set-gads" class="form-input" placeholder="AW-XXXXXXXXXX" />
+                </div>
+              </div>
+
+              <div class="form-field" style="margin-bottom:18px;">
+                <label for="set-gads-label">Google Ads WhatsApp Conversion Label</label>
+                <input type="text" id="set-gads-label" class="form-input" placeholder="AbC-D_eF-GhI" />
+              </div>
+
+              <div class="form-field" style="margin-bottom:18px;">
+                <label for="set-gemini-keys">Gemini API Keys Rotator (One key per line)</label>
+                <textarea
+                  id="set-gemini-keys"
+                  class="form-textarea"
+                  rows="4"
+                  placeholder="AIzaSy...
+AIzaSy..."
+                ></textarea>
+              </div>
+
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-bottom:18px;">
+                <div class="form-field">
+                  <label for="set-github-token">GitHub Personal Access Token</label>
+                  <input type="password" id="set-github-token" class="form-input" placeholder="ghp_..." />
+                </div>
+                <div class="form-field">
+                  <label for="set-github-repo">GitHub Owner / Repo</label>
+                  <input type="text" id="set-github-repo" class="form-input" placeholder="username/paradisewholesaler" />
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-bottom:18px;">
+                <div class="form-field">
+                  <label for="set-instagram">Instagram URL</label>
+                  <input type="url" id="set-instagram" class="form-input" value="https://instagram.com/paradisewholesaler" />
+                </div>
+                <div class="form-field">
+                  <label for="set-telegram">Telegram URL</label>
+                  <input type="url" id="set-telegram" class="form-input" value="https://t.me/paradisewholesaler" />
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-gold" id="btn-save-settings" style="padding:13px 24px;">
+                Save Live Settings & Sync Shards
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Element -->
+  <div class="paradise-toast" id="paradise-toast" role="status" aria-live="polite"></div>
+
+  <!-- ========================================================================
+       3. LINK THE ADMIN JAVASCRIPT ENGINE
+       ======================================================================== -->
+  <script type="module" src="admin.js"></script>
+</body>
+</html>
