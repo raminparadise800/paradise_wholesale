@@ -279,7 +279,7 @@ export const I18N_DICTIONARY = {
 /* ==========================================================================
    3. APPLICATION STATE & HELPERS
    ========================================================================== */
-const state = {
+export const state = {
   lang: localStorage.getItem(STORAGE_KEYS.LANG) || "en",
   config: { ...DEFAULT_PUBLIC_CONFIG },
   cart: [],
