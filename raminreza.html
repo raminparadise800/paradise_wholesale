@@ -5,10 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
   <meta name="googlebot" content="noindex, nofollow, noarchive" />
-  <title>پنل مدیریت عمده‌فروشی پارادایس | Paradise Wholesale</title>
-  <meta name="theme-color" content="#0f172a" />
+  <title>پنل مدیریت هوشمند پارادایس | Paradise B2B</title>
+  <meta name="theme-color" content="#090d16" />
 
-  <!-- فونت فارسی وزیرمتن برای خوانایی عالی در موبایل و دسکتاپ -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -23,13 +22,15 @@
       --text-muted: #64748b;
       --border: #e2e8f0;
       --gold: #d4af37;
+      --gold-light: #fef3c7;
       --gold-dark: #b48a1e;
       --emerald: #10b981;
       --emerald-dark: #059669;
       --danger: #ef4444;
-      --warning: #f59e0b;
-      --radius: 12px;
-      --radius-sm: 8px;
+      --blue: #3b82f6;
+      --radius: 14px;
+      --radius-sm: 9px;
+      --shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
     }
 
     * {
@@ -43,17 +44,17 @@
     body {
       background: var(--bg-main);
       color: var(--text-main);
-      font-size: 14px;
+      font-size: 13.5px;
       line-height: 1.6;
       overflow-x: hidden;
     }
 
-    /* صفحه ورود */
+    /* ۱. صفحه ورود امن (بدون نمایش ایمیل پیش‌فرض) */
     .admin-auth-screen {
       position: fixed;
       inset: 0;
-      z-index: 5000;
-      background: linear-gradient(135deg, #090d16 0%, #1e293b 100%);
+      z-index: 6000;
+      background: radial-gradient(circle at top right, #1e293b 0%, #090d16 70%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -63,23 +64,23 @@
     .admin-auth-card {
       width: 100%;
       max-width: 400px;
-      background: #0f172a;
-      border: 1.5px solid var(--gold);
-      border-radius: 16px;
-      padding: 28px 22px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1.5px solid rgba(212, 175, 55, 0.5);
+      border-radius: 20px;
+      padding: 30px 24px;
       color: #fff;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.65);
     }
 
-    /* ساختار کلی پنل */
+    /* ۲. اسکلت اصلی داشبورد */
     .admin-app-shell {
       display: flex;
       min-height: 100vh;
     }
 
     .admin-sidebar {
-      width: 250px;
-      background: var(--bg-darker);
+      width: 260px;
+      background: linear-gradient(180deg, #090d16 0%, #0f172a 100%);
       color: #fff;
       display: flex;
       flex-direction: column;
@@ -88,29 +89,25 @@
       bottom: 0;
       right: 0;
       z-index: 2000;
-      border-left: 1px solid rgba(212,175,55,0.25);
-      transition: transform 0.3s ease;
+      border-left: 1px solid rgba(212,175,55,0.22);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .admin-sidebar-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.6);
+      background: rgba(9, 13, 22, 0.65);
+      backdrop-filter: blur(3px);
       z-index: 1999;
       display: none;
     }
-
     .admin-sidebar-backdrop.active {
       display: block;
     }
 
     @media (max-width: 991px) {
-      .admin-sidebar {
-        transform: translateX(100%);
-      }
-      .admin-sidebar.open {
-        transform: translateX(0);
-      }
+      .admin-sidebar { transform: translateX(100%); }
+      .admin-sidebar.open { transform: translateX(0); }
     }
 
     .admin-main-area {
@@ -120,61 +117,75 @@
     }
 
     @media (min-width: 992px) {
-      .admin-main-area {
-        margin-right: 250px;
-      }
-      .mobile-only-btn {
-        display: none !important;
-      }
+      .admin-main-area { margin-right: 260px; }
+      .mobile-only-btn { display: none !important; }
     }
 
     .sidebar-brand {
-      padding: 18px;
+      padding: 18px 16px;
       border-bottom: 1px solid rgba(255,255,255,0.08);
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
+    .role-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      background: rgba(16, 185, 129, 0.2);
+      color: #6ee7b7;
+      margin-top: 4px;
+    }
+
     .sidebar-nav {
-      padding: 12px;
+      padding: 12px 10px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
       flex: 1;
       overflow-y: auto;
     }
 
     .sidebar-tab-btn {
       width: 100%;
-      padding: 12px 14px;
+      padding: 11px 13px;
       border-radius: var(--radius-sm);
-      border: none;
+      border: 1px solid transparent;
       background: transparent;
       color: #cbd5e1;
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       font-weight: 700;
       display: flex;
       align-items: center;
       justify-content: space-between;
       cursor: pointer;
       text-align: right;
+      transition: all 0.2s;
+    }
+
+    .sidebar-tab-btn:hover {
+      background: rgba(255,255,255,0.06);
+      color: #fff;
     }
 
     .sidebar-tab-btn.active {
-      background: var(--gold);
+      background: linear-gradient(135deg, var(--gold) 0%, #f3e5ab 100%);
       color: #090d16;
-      font-weight: 800;
+      font-weight: 900;
+      box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3);
     }
 
     .badge-pill {
-      background: rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.14);
       color: #fff;
       padding: 2px 8px;
       border-radius: 20px;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
+      font-weight: 800;
     }
-
     .sidebar-tab-btn.active .badge-pill {
       background: #090d16;
       color: var(--gold);
@@ -185,9 +196,10 @@
       position: sticky;
       top: 0;
       z-index: 1000;
-      background: #fff;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--border);
-      padding: 12px 16px;
+      padding: 11px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -195,30 +207,30 @@
     }
 
     .admin-workspace {
-      padding: 16px;
-      max-width: 1100px;
-      margin: 0 auto 60px;
+      padding: 16px 14px 70px;
+      max-width: 1200px;
+      margin: 0 auto;
     }
 
-    .admin-tab-section {
-      display: none;
-    }
-    .admin-tab-section.active {
-      display: block;
-    }
+    .admin-tab-section { display: none; }
+    .admin-tab-section.active { display: block; }
 
-    /* کارت‌ها و فرم‌های مینیمال */
+    /* کارت‌های مدرن */
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 16px;
       margin-bottom: 16px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      box-shadow: var(--shadow);
+    }
+
+    .card.gold-border {
+      border-color: rgba(212, 175, 55, 0.55);
     }
 
     .card-title {
-      font-size: 1rem;
+      font-size: 0.96rem;
       font-weight: 800;
       margin-bottom: 14px;
       padding-bottom: 10px;
@@ -230,16 +242,17 @@
       gap: 8px;
     }
 
-    .grid-2, .grid-3, .grid-4 {
+    .grid-2, .grid-3, .grid-4, .grid-5 {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 12px;
+      gap: 11px;
     }
 
     @media (min-width: 640px) {
       .grid-2 { grid-template-columns: repeat(2, 1fr); }
       .grid-3 { grid-template-columns: repeat(3, 1fr); }
       .grid-4 { grid-template-columns: repeat(4, 1fr); }
+      .grid-5 { grid-template-columns: repeat(5, 1fr); }
     }
 
     .field {
@@ -249,7 +262,7 @@
     }
 
     .field label {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 700;
       color: #334155;
       display: flex;
@@ -259,12 +272,13 @@
 
     .input, .select, .textarea {
       width: 100%;
-      padding: 11px 12px;
+      padding: 10px 12px;
       border: 1px solid #cbd5e1;
       border-radius: var(--radius-sm);
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       background: #fff;
       color: var(--text-main);
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     .input:focus, .select:focus, .textarea:focus {
@@ -279,85 +293,79 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      padding: 11px 18px;
+      padding: 10px 16px;
       border-radius: var(--radius-sm);
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       font-weight: 800;
       border: none;
       cursor: pointer;
       text-decoration: none;
-      transition: opacity 0.2s;
+      transition: all 0.2s;
     }
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-    .btn-gold {
-      background: var(--gold);
-      color: #090d16;
-    }
-    .btn-emerald {
-      background: var(--emerald);
-      color: #fff;
-    }
-    .btn-danger {
-      background: var(--danger);
-      color: #fff;
-    }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .btn-gold { background: linear-gradient(135deg, var(--gold) 0%, #e6c65a 100%); color: #090d16; }
+    .btn-emerald { background: linear-gradient(135deg, var(--emerald) 0%, var(--emerald-dark) 100%); color: #fff; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-blue { background: var(--blue); color: #fff; }
     .btn-outline {
       background: #fff;
       border: 1px solid #cbd5e1;
       color: var(--text-main);
-      padding: 7px 12px;
-      font-size: 0.78rem;
+      padding: 6px 10px;
+      font-size: 0.76rem;
+      border-radius: 7px;
+      cursor: pointer;
+      font-weight: 700;
     }
+    .btn-outline:hover { border-color: var(--gold-dark); background: #fffbeb; }
 
-    /* انتخابگر ۳ حالته آپلود (مخصوص موبایل) */
+    /* انتخابگر ۳ حالته آپلود */
     .mode-selector {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
     .mode-btn {
-      padding: 12px 8px;
+      padding: 11px 6px;
       border-radius: var(--radius-sm);
       border: 1.5px solid var(--border);
       background: #f8fafc;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 800;
       text-align: center;
       cursor: pointer;
       color: var(--text-muted);
+      transition: all 0.2s;
     }
     .mode-btn.active {
       border-color: var(--emerald);
       background: #ecfdf5;
       color: #065f46;
+      box-shadow: 0 2px 8px rgba(16,185,129,0.15);
     }
 
-    /* دکمه بزرگ انتخاب فایل در موبایل */
     .mobile-file-picker {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 4px;
       width: 100%;
       padding: 16px;
       border-radius: var(--radius);
-      background: #f8fafc;
+      background: linear-gradient(180deg, #fffbeb 0%, #f8fafc 100%);
       border: 2px dashed var(--gold-dark);
       color: var(--text-main);
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       font-weight: 800;
       cursor: pointer;
       text-align: center;
     }
 
-    /* پیش‌نمایش کوچک عکس‌ها */
     .preview-strip {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
       gap: 8px;
       margin-top: 12px;
     }
@@ -378,19 +386,19 @@
       position: absolute;
       top: 4px;
       left: 4px;
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
-      background: rgba(0,0,0,0.75);
+      background: rgba(0,0,0,0.8);
       color: #fff;
       border: none;
-      font-size: 11px;
+      font-size: 10px;
       cursor: pointer;
     }
 
-    /* نوار باریک هوش مصنوعی */
+    /* نوار باریک هوش مصنوعی و نوار پیشرفت آپلود موازی */
     .ai-mini-bar {
-      background: var(--bg-dark);
+      background: linear-gradient(90deg, #090d16 0%, #1e293b 100%);
       color: #fff;
       padding: 10px 14px;
       border-radius: var(--radius-sm);
@@ -400,22 +408,36 @@
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 8px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
+      border: 1px solid rgba(212,175,55,0.35);
+    }
+
+    .progress-bar-wrap {
+      width: 100%;
+      height: 10px;
+      background: #e2e8f0;
+      border-radius: 20px;
+      overflow: hidden;
+      margin: 10px 0;
+      display: none;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--emerald) 0%, var(--gold) 100%);
+      transition: width 0.2s ease;
     }
 
     /* جداول */
-    .table-wrap {
-      width: 100%;
-      overflow-x: auto;
-    }
+    .table-wrap { width: 100%; overflow-x: auto; }
     .adm-table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 650px;
-      font-size: 0.82rem;
+      min-width: 620px;
+      font-size: 0.8rem;
     }
     .adm-table th, .adm-table td {
-      padding: 10px 12px;
+      padding: 9px 10px;
       border-bottom: 1px solid var(--border);
       text-align: right;
       vertical-align: middle;
@@ -424,6 +446,36 @@
       background: #f8fafc;
       font-weight: 800;
       color: #475569;
+      position: sticky;
+      top: 0;
+    }
+    .adm-table tr.selected-row {
+      background: #fef9c3 !important;
+    }
+
+    /* مودال‌های پاپ‌آپ (ویرایش عنوان، آپلود ویدیو، ویرایش مقاله) */
+    .adm-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(9, 13, 22, 0.72);
+      backdrop-filter: blur(4px);
+      z-index: 7500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+    }
+    .adm-modal-backdrop.open { display: flex; }
+    .adm-modal-card {
+      background: #fff;
+      width: 100%;
+      max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+      border: 1.5px solid var(--gold);
     }
 
     /* اعلان شناور */
@@ -434,16 +486,17 @@
       transform: translateX(-50%) translateY(20px);
       background: #090d16;
       color: var(--gold);
-      border: 1px solid var(--gold);
-      padding: 12px 20px;
+      border: 1.5px solid var(--gold);
+      padding: 11px 20px;
       border-radius: 30px;
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       font-weight: 800;
-      z-index: 9000;
+      z-index: 9500;
       opacity: 0;
       pointer-events: none;
       transition: all 0.25s ease;
-      white-space: nowrap;
+      max-width: 92vw;
+      text-align: center;
     }
     .admin-toast.show {
       opacity: 1;
@@ -453,31 +506,35 @@
 </head>
 <body>
 
-  <!-- ۱. صفحه ورود ادمین -->
+  <!-- ۱. صفحه ورود امن (بدون ایمیل از پیش نوشته شده) -->
   <section class="admin-auth-screen" id="admin-auth-screen">
     <div class="admin-auth-card">
-      <div style="text-align:center; margin-bottom:20px;">
-        <h2 style="color:var(--gold); font-size:1.3rem; font-weight:900;">PARADISE WHOLESALE</h2>
-        <p style="font-size:0.8rem; color:#94a3b8; margin-top:4px;">پنل مدیریت عمده‌فروشی استانبول</p>
+      <div style="text-align:center; margin-bottom:22px;">
+        <h2 style="color:var(--gold); font-size:1.35rem; font-weight:900; letter-spacing:1px;">PARADISE B2B</h2>
+        <p style="font-size:0.78rem; color:#94a3b8; margin-top:4px;">درگاه ورود امن مدیریت</p>
       </div>
 
-      <form id="admin-login-form">
+      <form id="admin-login-form" autocomplete="on">
         <div class="field" style="margin-bottom:14px;">
-          <label style="color:#cbd5e1;">ایمیل مدیر</label>
-          <input type="email" id="admin-login-email" class="input" value="Paradise.men2019@gmail.com" required style="direction:ltr;" />
+          <label style="color:#cbd5e1;">ایمیل مدیر یا دستیار</label>
+          <input type="email" id="admin-login-email" class="input" placeholder="ایمیل خود را وارد کنید..." required autocomplete="username" style="direction:ltr;" />
         </div>
-        <div class="field" style="margin-bottom:18px;">
+        <div class="field" style="margin-bottom:16px;">
           <label style="color:#cbd5e1;">
             <span>رمز عبور</span>
             <button type="button" id="toggle-pass-visibility" style="background:none; border:none; color:var(--gold); font-size:0.75rem; cursor:pointer;">نمایش</button>
           </label>
-          <input type="password" id="admin-login-password" class="input" placeholder="رمز عبور فایربیس..." required style="direction:ltr;" />
+          <input type="password" id="admin-login-password" class="input" placeholder="••••••••" required autocomplete="current-password" style="direction:ltr;" />
         </div>
+        <label style="display:flex; align-items:center; gap:8px; font-size:0.78rem; color:#cbd5e1; margin-bottom:18px; cursor:pointer;">
+          <input type="checkbox" id="admin-remember-me" checked style="width:16px; height:16px;" />
+          <span>مرا در این دستگاه لاگین نگه دار</span>
+        </label>
         <button type="submit" class="btn btn-gold" id="admin-login-submit-btn" style="width:100%; padding:13px;">
-          🔐 ورود به پنل مدیریت
+          🔐 ورود به سیستم
         </button>
       </form>
-      <div id="admin-login-error" style="display:none; margin-top:12px; padding:10px; border-radius:8px; background:rgba(239,68,68,0.2); color:#fecaca; font-size:0.8rem; text-align:center;"></div>
+      <div id="admin-login-error" style="display:none; margin-top:12px; padding:10px; border-radius:8px; background:rgba(239,68,68,0.2); color:#fecaca; font-size:0.78rem; text-align:center;"></div>
     </div>
   </section>
 
@@ -485,99 +542,106 @@
   <div class="admin-app-shell" id="admin-app-shell" style="display:none;">
     <div class="admin-sidebar-backdrop" id="admin-sidebar-backdrop"></div>
 
-    <!-- منوی کناری (سایدبار) -->
+    <!-- سایدبار -->
     <aside class="admin-sidebar" id="admin-sidebar">
       <div class="sidebar-brand">
         <div>
-          <strong style="color:var(--gold); font-size:1.05rem; display:block;">پنل مدیریت پارادایس</strong>
-          <span id="sidebar-admin-email" style="font-size:0.7rem; color:#94a3b8;">Paradise.men2019@gmail.com</span>
+          <strong style="color:var(--gold); font-size:1.05rem; display:block;">مدیریت پارادایس</strong>
+          <span id="sidebar-admin-email" style="font-size:0.68rem; color:#94a3b8; display:block; direction:ltr;"></span>
+          <span id="sidebar-admin-role-badge" class="role-badge">مدیر کل (Super Admin)</span>
         </div>
         <button type="button" class="mobile-only-btn" id="sidebar-close-btn" style="background:none; border:none; color:#fff; font-size:1.2rem;">✕</button>
       </div>
 
       <nav class="sidebar-nav">
         <button type="button" class="sidebar-tab-btn active" data-admin-tab="ai-uploader">
-          <span>➕ ۱. آپلود سریع محصول</span>
-          <span class="badge-pill">هوشمند</span>
+          <span>➕ ۱. آپلود سریع (۸تایی موازی)</span>
+          <span class="badge-pill">⚡</span>
         </button>
         <button type="button" class="sidebar-tab-btn" data-admin-tab="catalog">
-          <span>🗂️ ۲. محصولات و عمده‌فروشان</span>
+          <span>🗂️ ۲. مدیریت محصولات و قیمت</span>
           <span class="badge-pill" id="nav-badge-products">0</span>
         </button>
-        <button type="button" class="sidebar-tab-btn" data-admin-tab="orders">
-          <span>📦 ۳. سفارشات و مشتریان</span>
+        <button type="button" class="sidebar-tab-btn" data-admin-tab="categories" data-super-only="true">
+          <span>🌿 ۳. مدیریت بخش‌ها و عکس دسته‌ها</span>
+          <span class="badge-pill">تصویری</span>
+        </button>
+        <button type="button" class="sidebar-tab-btn" data-admin-tab="vendors">
+          <span>🏪 ۴. عمده‌فروشان و کدها</span>
+          <span class="badge-pill" id="nav-badge-vendors">0</span>
+        </button>
+        <button type="button" class="sidebar-tab-btn" data-admin-tab="orders" data-super-only="true">
+          <span>📦 ۵. سفارشات و مشتریان</span>
           <span class="badge-pill" id="nav-badge-orders">0</span>
         </button>
-        <button type="button" class="sidebar-tab-btn" data-admin-tab="videos">
-          <span>🎬 ۴. ویدیوهای سایت</span>
+        <button type="button" class="sidebar-tab-btn" data-admin-tab="videos" data-super-only="true">
+          <span>🎬 ۶. ویدیوهای ویترین و بار</span>
           <span class="badge-pill">YT</span>
         </button>
-        <button type="button" class="sidebar-tab-btn" data-admin-tab="blog">
-          <span>📝 ۵. وبلاگ اتوماتیک سئو</span>
+        <button type="button" class="sidebar-tab-btn" data-admin-tab="blog" data-super-only="true">
+          <span>📝 ۷. مقالات سئو ۳ زبانه</span>
           <span class="badge-pill" id="nav-badge-blogs">0</span>
         </button>
-        <button type="button" class="sidebar-tab-btn" data-admin-tab="settings">
-          <span>⚙️ ۶. تنظیمات و کلیدها</span>
-          <span class="badge-pill">API</span>
+        <button type="button" class="sidebar-tab-btn" data-admin-tab="settings" data-super-only="true">
+          <span>⚙️ ۸. تنظیمات، لوگو و ادمین‌ها</span>
+          <span class="badge-pill">کلید</span>
         </button>
       </nav>
 
-      <div style="padding:14px; border-top:1px solid rgba(255,255,255,0.08);">
-        <button type="button" class="btn btn-outline" id="admin-logout-btn" style="width:100%; background:transparent; color:#f87171; border-color:rgba(248,113,113,0.4);">
+      <div style="padding:12px; border-top:1px solid rgba(255,255,255,0.08);">
+        <button type="button" class="btn btn-outline" id="admin-logout-btn" style="width:100%; background:transparent; color:#f87171; border-color:rgba(248,113,113,0.35);">
           🚪 خروج از حساب
         </button>
       </div>
     </aside>
 
-    <!-- بخش اصلی صفحه -->
+    <!-- ناحیه اصلی -->
     <div class="admin-main-area">
       <header class="admin-topbar">
         <div style="display:flex; align-items:center; gap:10px;">
-          <button type="button" class="mobile-only-btn btn-outline" id="sidebar-open-btn" style="font-size:1.1rem; padding:6px 10px;">☰ منو</button>
-          <strong id="topbar-active-title" style="font-size:0.95rem;">➕ ۱. آپلود سریع محصول</strong>
+          <button type="button" class="mobile-only-btn btn-outline" id="sidebar-open-btn" style="font-size:1rem; padding:6px 10px;">☰ منو</button>
+          <strong id="topbar-active-title" style="font-size:0.92rem;">➕ ۱. آپلود سریع محصول</strong>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
-          <a href="index.html" target="_blank" class="btn btn-gold" style="padding:7px 12px; font-size:0.78rem;">مشاهده سایت ↗</a>
+          <a href="index.html" target="_blank" class="btn btn-gold" style="padding:6px 12px; font-size:0.76rem;">مشاهده سایت ↗</a>
         </div>
       </header>
 
       <main class="admin-workspace">
 
         <!-- ==================================================================
-             تب ۱: آپلود سریع و مینیمال محصول (دسته‌ای / تک محصول / لینک ویدیو)
+             تب ۱: آپلود سریع موازی (۸تایی همزمان + دو کیفیت عکس + ویدیو)
              ================================================================== -->
         <section class="admin-tab-section active" id="tab-ai-uploader">
 
-          <!-- نوار وضعیت بسیار مینیمال جمنای (۱ خط) -->
+          <!-- نوار باریک هوش مصنوعی جمنای -->
           <div class="ai-mini-bar">
-            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <span>🤖 <strong>تگ‌گذار خودکار جمنای:</strong></span>
-              <span style="background:#1e293b; padding:2px 10px; border-radius:20px; color:#fde047;">
-                در صف انتظار: <strong id="ai-queue-pending-count">0</strong>
+              <span style="background:#1e293b; padding:2px 9px; border-radius:20px; color:#fde047;">
+                در صف: <strong id="ai-queue-pending-count">0</strong>
               </span>
-              <span style="background:#064e3b; padding:2px 10px; border-radius:20px; color:#6ee7b7;">
+              <span style="background:#064e3b; padding:2px 9px; border-radius:20px; color:#6ee7b7;">
                 تکمیل شده: <strong id="ai-queue-done-count">0</strong>
               </span>
             </div>
             <div style="display:flex; align-items:center; gap:6px;">
-              <span id="ai-worker-mini-status" style="font-size:0.75rem; color:#94a3b8;">آماده در پس‌زمینه</span>
-              <button type="button" class="btn-outline" id="btn-start-ai-worker" style="background:var(--gold); color:#000; border:none; padding:4px 10px; border-radius:6px; font-weight:800; cursor:pointer;">▶️ شروع</button>
-              <button type="button" class="btn-outline" id="btn-stop-ai-worker" style="display:none; background:var(--danger); color:#fff; border:none; padding:4px 10px; border-radius:6px; cursor:pointer;">⏹ توقف</button>
+              <span id="ai-worker-mini-status" style="font-size:0.74rem; color:#94a3b8;">آماده در پس‌زمینه</span>
+              <button type="button" class="btn-outline" id="btn-start-ai-worker" style="background:var(--gold); color:#000; border:none; padding:4px 10px;">▶️ شروع</button>
+              <button type="button" class="btn-outline" id="btn-stop-ai-worker" style="display:none; background:var(--danger); color:#fff; border:none; padding:4px 10px;">⏹ توقف</button>
             </div>
           </div>
 
-          <!-- کارت اصلی آپلود -->
-          <div class="card">
+          <div class="card gold-border">
             <div class="card-title">
-              <span id="product-form-mode-title">ثبت و آپلود محصول جدید</span>
-              <button type="button" class="btn-outline" id="btn-reset-product-form">↺ پاک کردن فرم</button>
+              <span id="product-form-mode-title">🚀 آپلود پرسرعت (۸ عکس همزمان + ساخت نسخه سبک و HD)</span>
+              <button type="button" class="btn-outline" id="btn-reset-product-form">↺ فرم جدید</button>
             </div>
 
             <form id="admin-product-form">
               <input type="hidden" id="prod-doc-id" value="" />
 
               <!-- ۱. انتخاب حالت آپلود -->
-              <label style="font-size:0.8rem; font-weight:800; display:block; margin-bottom:6px;">۱. نوع آپلود را انتخاب کنید:</label>
               <div class="mode-selector" id="upload-mode-selector">
                 <button type="button" class="mode-btn active" data-mode="batch">
                   📦 آپلود دسته‌ای<br><small style="font-weight:500;">(هر عکس = ۱ محصول)</small>
@@ -585,180 +649,180 @@
                 <button type="button" class="mode-btn" data-mode="single">
                   📸 تک محصول<br><small style="font-weight:500;">(چند عکس از ۱ مدل)</small>
                 </button>
-                <button type="button" class="mode-btn" data-mode="youtube">
-                  ▶️ لینک ویدیو<br><small style="font-weight:500;">(یوتیوب / Shorts)</small>
+                <button type="button" class="mode-btn" data-mode="video">
+                  🎬 ویدیو<br><small style="font-weight:500;">(فایل ویدیو یا لینک)</small>
                 </button>
               </div>
               <input type="hidden" id="batch-upload-mode" value="batch" />
 
-              <!-- ۲. کشوی انتخاب عمده‌فروش + افزودن عمده‌فروش جدید -->
-              <div style="background:#f8fafc; padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border); margin-bottom:14px;">
+              <!-- ۲. انتخاب عمده‌فروش و کد اختصاصی -->
+              <div style="background:#f8fafc; padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border); margin-bottom:12px;">
                 <div class="grid-2">
                   <div class="field">
                     <label for="prod-vendor-select">
-                      <span>۲. انتخاب عمده‌فروش (تامین‌کننده) *</span>
-                      <button type="button" id="btn-toggle-new-vendor" style="background:none; border:none; color:var(--emerald-dark); font-weight:800; font-size:0.78rem; cursor:pointer;">+ ثبت عمده‌فروش جدید</button>
+                      <span>انتخاب عمده‌فروش (تعیین‌کننده کد روی عکس) *</span>
+                      <button type="button" id="btn-toggle-new-vendor" style="background:none; border:none; color:var(--emerald-dark); font-weight:800; font-size:0.75rem; cursor:pointer;">+ ثبت عمده‌فروش جدید</button>
                     </label>
                     <select id="prod-vendor-select" class="select"></select>
                   </div>
 
                   <div class="field">
                     <label for="prod-sku">
-                      <span>کد محصول (شامل کد عمده‌فروش)</span>
-                      <button type="button" id="btn-autogen-sku" style="background:none; border:none; color:var(--gold-dark); font-size:0.75rem; font-weight:800; cursor:pointer;">⚡ کد جدید</button>
+                      <span>کد محصول (بر اساس کد عمده‌فروش)</span>
+                      <button type="button" id="btn-autogen-sku" style="background:none; border:none; color:var(--gold-dark); font-size:0.74rem; font-weight:800; cursor:pointer;">⚡ کد جدید</button>
                     </label>
-                    <input type="text" id="prod-sku" class="input" placeholder="A12-1045" style="direction:ltr; font-weight:800;" />
+                    <input type="text" id="prod-sku" class="input" placeholder="MTR-1045" style="direction:ltr; font-weight:800;" />
                   </div>
                 </div>
 
-                <!-- کشوی بازشونده برای ثبت عمده‌فروش جدید -->
+                <!-- کشوی ثبت سریع عمده‌فروش در همین تب -->
                 <div id="new-vendor-drawer" style="display:none; margin-top:12px; padding-top:12px; border-top:1px dashed #cbd5e1;">
-                  <div class="grid-3">
+                  <div class="grid-4">
                     <div class="field">
-                      <label>نام عمده‌فروش / مغازه *</label>
+                      <label>نام عمده‌فروش *</label>
                       <input type="text" id="new-vendor-name" class="input" placeholder="مثلاً: مهمت مرتر" />
                     </div>
                     <div class="field">
-                      <label>کد اختصاری انگلیسی (۲ تا ۴ حرف) *</label>
-                      <input type="text" id="new-vendor-code" class="input" placeholder="مثلاً: A12 یا MHM" style="direction:ltr; text-transform:uppercase; font-weight:800;" />
+                      <label>کد دلخواه شما (روی عکس) *</label>
+                      <input type="text" id="new-vendor-code" class="input" placeholder="مثلاً: M12 یا MTR" style="direction:ltr; text-transform:uppercase; font-weight:800;" />
                     </div>
-                    <div class="field" style="justify-content:flex-end;">
-                      <button type="button" class="btn btn-emerald" id="btn-save-new-vendor" style="width:100%;">✓ ذخیره در لیست عمده‌فروشان</button>
+                    <div class="field" data-super-only="true">
+                      <label>تلفن عمده‌فروش (محرمانه)</label>
+                      <input type="text" id="new-vendor-phone" class="input" placeholder="0532..." style="direction:ltr;" />
+                    </div>
+                    <div class="field" data-super-only="true">
+                      <label>آدرس مغازه (محرمانه)</label>
+                      <input type="text" id="new-vendor-address" class="input" placeholder="مرتر، کوچه..." />
                     </div>
                   </div>
+                  <button type="button" class="btn btn-emerald" id="btn-save-new-vendor" style="width:100%; margin-top:10px;">✓ ثبت و انتخاب این عمده‌فروش</button>
                 </div>
               </div>
 
-              <!-- ۳. انتخاب بخش، زیرشاخه و قیمت دلاری -->
-              <div class="grid-4" style="margin-bottom:14px;">
+              <!-- ۳. انتخاب بخش، شاخه، زیرمجموعه، قیمت دلاری و تعداد پک -->
+              <div class="grid-5" style="margin-bottom:12px;">
                 <div class="field">
-                  <label for="prod-department">۳. بخش اصلی *</label>
-                  <select id="prod-department" class="select" required>
-                    <option value="men">مردانه (Men)</option>
-                    <option value="women">زنانه (Women)</option>
-                    <option value="kids-baby">بچگانه (Kids & Baby)</option>
-                    <option value="shoes">کفش (Shoes)</option>
-                    <option value="bags-accessories">کیف و اکسسوری (Bags)</option>
-                  </select>
+                  <label for="prod-department">۱. بخش اصلی *</label>
+                  <select id="prod-department" class="select" required></select>
                 </div>
 
                 <div class="field">
-                  <label for="prod-subcategory">۴. نوع محصول (شاخه) *</label>
+                  <label for="prod-subcategory">۲. شاخه (مثلاً تیشرت/کلاه) *</label>
                   <select id="prod-subcategory" class="select" required></select>
                 </div>
 
                 <div class="field">
-                  <label for="prod-unit-price">۵. قیمت هر عدد به دلار ($) *</label>
+                  <label for="prod-leaf-sub">۳. زیرمجموعه (مثلاً جاگر)</label>
+                  <select id="prod-leaf-sub" class="select">
+                    <option value="">— عمومی شاخه —</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label for="prod-unit-price">۴. قیمت هر عدد ($) *</label>
                   <input type="number" id="prod-unit-price" class="input" step="0.5" min="0.5" value="5" required style="direction:ltr; font-weight:800;" />
                 </div>
 
                 <div class="field">
-                  <label for="prod-pcs-per-pack">۶. تعداد در هر پک (سری) *</label>
+                  <label for="prod-pcs-per-pack">۵. تعداد در پک *</label>
                   <input type="number" id="prod-pcs-per-pack" class="input" step="1" min="1" value="6" required style="direction:ltr; font-weight:800;" />
                 </div>
               </div>
 
-              <!-- سایزبندی پک و تیک حک کد روی عکس -->
-              <div class="grid-3" style="margin-bottom:16px; align-items:end;">
+              <!-- سایزبندی و واترمارک (فقط کد بدون قیمت) -->
+              <div class="grid-3" style="margin-bottom:14px; align-items:end;">
                 <div class="field">
                   <label for="prod-size-range">
                     <span>سایزبندی پک</span>
-                    <span style="display:flex; gap:6px;">
-                      <button type="button" class="size-preset-btn" data-preset="S - M - L - XL - XXL" style="border:none; background:#e2e8f0; padding:1px 6px; border-radius:4px; font-size:0.7rem; cursor:pointer;">S-XXL</button>
-                      <button type="button" class="size-preset-btn" data-preset="40 - 41 - 42 - 43 - 44" style="border:none; background:#e2e8f0; padding:1px 6px; border-radius:4px; font-size:0.7rem; cursor:pointer;">40-44</button>
+                    <span style="display:flex; gap:5px;">
+                      <button type="button" class="size-preset-btn" data-preset="S - M - L - XL - XXL" style="border:none; background:#e2e8f0; padding:1px 6px; border-radius:4px; font-size:0.68rem; cursor:pointer;">S-XXL</button>
+                      <button type="button" class="size-preset-btn" data-preset="40 - 41 - 42 - 43 - 44" style="border:none; background:#e2e8f0; padding:1px 6px; border-radius:4px; font-size:0.68rem; cursor:pointer;">40-44</button>
                     </span>
                   </label>
                   <input type="text" id="prod-size-range" class="input" value="S - M - L - XL - XXL" style="direction:ltr;" />
                 </div>
 
                 <div class="field">
-                  <label>قیمت کل هر پک (محاسبه خودکار)</label>
+                  <label>قیمت کل پک</label>
                   <input type="text" id="prod-pack-total-display" class="input" value="$30.00 (6 pcs)" readonly style="background:#f8fafc; font-weight:800; color:var(--emerald-dark); direction:ltr;" />
                 </div>
 
                 <div class="field">
                   <label style="display:flex; align-items:center; gap:8px; cursor:pointer; padding:10px; background:#f8fafc; border-radius:var(--radius-sm); border:1px solid var(--border);">
-                    <input type="checkbox" id="prod-watermark-toggle" checked style="width:18px; height:18px;" />
-                    <span>حک خودکار کد روی عکس (Watermark)</span>
+                    <input type="checkbox" id="prod-watermark-toggle" checked style="width:17px; height:17px;" />
+                    <span>حک فقط «کد محصول» روی عکس (بدون قیمت)</span>
                   </label>
                 </div>
               </div>
 
-              <!-- ۴. انتخاب عکس / ویدیو از موبایل یا لینک یوتیوب -->
-              <div id="media-upload-box-photos" style="margin-bottom:16px;">
+              <!-- ۴. انتخاب عکس از گالری گوشی -->
+              <div id="media-upload-box-photos" style="margin-bottom:14px;">
                 <label for="product-file-input" class="mobile-file-picker">
                   <span>📸 انتخاب عکس‌ها از گالری گوشی</span>
-                  <small id="webp-compression-status" style="color:var(--emerald-dark); font-weight:700;">(فشرده‌سازی خودکار WebP)</small>
+                  <small id="webp-compression-status" style="color:var(--emerald-dark); font-weight:700;">(تولید خودکار ۲ کیفیت Thumbnail و HD + آپلود ۸تایی همزمان)</small>
                 </label>
                 <input type="file" id="product-file-input" accept="image/*" multiple style="display:none;" />
-
-                <!-- نوار پیش‌نمایش عکس‌های انتخاب شده -->
                 <div class="preview-strip" id="product-upload-previews"></div>
               </div>
 
-              <!-- کادر لینک ویدیو یوتیوب یا فایل ویدیو (قابل استفاده هم به تنهایی و هم کنار عکس) -->
-              <div id="media-upload-box-video" style="margin-bottom:16px; padding:12px; border-radius:var(--radius-sm); background:#fffbeb; border:1px solid rgba(212,175,55,0.4);">
+              <!-- ۵. انتخاب فایل ویدیو از گالری یا لینک یوتیوب -->
+              <div id="media-upload-box-video" style="margin-bottom:14px; padding:12px; border-radius:var(--radius-sm); background:#fffbeb; border:1px solid rgba(212,175,55,0.45);">
                 <div class="grid-2">
                   <div class="field">
-                    <label for="prod-youtube-url">▶️ لینک ویدیوی یوتیوب / Shorts (برای نمایش ویدیو در محصول)</label>
-                    <input type="text" id="prod-youtube-url" class="input" placeholder="https://youtube.com/shorts/..." style="direction:ltr;" />
+                    <label for="prod-video-file">📹 انتخاب فایل ویدیو از گالری گوشی (MP4 / MOV)</label>
+                    <input type="file" id="prod-video-file" class="input" accept="video/*,video/mp4,video/quicktime,video/webm" />
                   </div>
                   <div class="field">
-                    <label for="prod-video-file">📹 یا انتخاب فایل ویدیو از گالری گوشی (MP4 - اختیاری)</label>
-                    <input type="file" id="prod-video-file" class="input" accept="video/mp4,video/webm,video/quicktime" />
+                    <label for="prod-youtube-url">▶️ یا لینک ویدیوی یوتیوب / Shorts</label>
+                    <input type="text" id="prod-youtube-url" class="input" placeholder="https://youtube.com/shorts/..." style="direction:ltr;" />
                   </div>
                 </div>
               </div>
 
-              <!-- دکمه اصلی آپلود و ثبت -->
-              <button type="submit" class="btn btn-emerald" id="btn-save-product-submit" style="width:100%; padding:15px; font-size:1rem; box-shadow:0 6px 16px rgba(16,185,129,0.25);">
-                🚀 شروع آپلود هوشمند و ثبت محصولات
+              <!-- نوار پیشرفت آپلود موازی -->
+              <div class="progress-bar-wrap" id="parallel-upload-progress-wrap">
+                <div class="progress-bar-fill" id="parallel-upload-progress-fill"></div>
+              </div>
+
+              <button type="submit" class="btn btn-emerald" id="btn-save-product-submit" style="width:100%; padding:14px; font-size:0.96rem; box-shadow:0 6px 16px rgba(16,185,129,0.25);">
+                🚀 شروع آپلود موازی (۸تایی) و ثبت محصولات
               </button>
             </form>
 
-            <!-- گزارش نهایی آپلود (موفق / تکراری / ناموفق + دکمه تلاش مجدد) -->
-            <div id="batch-upload-report-box" style="display:none; margin-top:16px; padding:14px; border-radius:var(--radius-sm); background:#f8fafc; border:1.5px solid var(--border);">
+            <!-- گزارش آپلود و دکمه تلاش مجدد -->
+            <div id="batch-upload-report-box" style="display:none; margin-top:14px; padding:14px; border-radius:var(--radius-sm); background:#f8fafc; border:1.5px solid var(--border);">
               <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
-                <strong style="font-size:0.9rem;">📊 نتیجه آپلود:</strong>
-                <button type="button" class="btn btn-danger" id="btn-retry-failed-uploads" style="display:none; padding:8px 14px; font-size:0.8rem;">
+                <strong style="font-size:0.88rem;">📊 گزارش آپلود:</strong>
+                <button type="button" class="btn btn-danger" id="btn-retry-failed-uploads" style="display:none; padding:7px 14px; font-size:0.78rem;">
                   🔄 تلاش مجدد برای خطاها (0)
                 </button>
               </div>
               <div class="grid-3" style="margin-bottom:10px; text-align:center;">
-                <div style="padding:8px; border-radius:6px; background:#ecfdf5; color:#065f46; font-weight:800;">
-                  ✅ موفق: <span id="rep-count-success">0</span>
-                </div>
-                <div style="padding:8px; border-radius:6px; background:#fef3c7; color:#92400e; font-weight:800;">
-                  ⚠️ تکراری: <span id="rep-count-duplicate">0</span>
-                </div>
-                <div style="padding:8px; border-radius:6px; background:#fef2f2; color:#991b1b; font-weight:800;">
-                  ❌ خطا: <span id="rep-count-failed">0</span>
-                </div>
+                <div style="padding:7px; border-radius:6px; background:#ecfdf5; color:#065f46; font-weight:800;">✅ موفق: <span id="rep-count-success">0</span></div>
+                <div style="padding:7px; border-radius:6px; background:#fef3c7; color:#92400e; font-weight:800;">⚠️ تکراری: <span id="rep-count-duplicate">0</span></div>
+                <div style="padding:7px; border-radius:6px; background:#fef2f2; color:#991b1b; font-weight:800;">❌ خطا: <span id="rep-count-failed">0</span></div>
               </div>
-              <div id="batch-report-details-log" style="max-height:130px; overflow-y:auto; font-size:0.76rem; background:#fff; padding:8px; border-radius:6px; border:1px solid var(--border);"></div>
+              <div id="batch-report-details-log" style="max-height:120px; overflow-y:auto; font-size:0.75rem; background:#fff; padding:8px; border-radius:6px; border:1px solid var(--border);"></div>
             </div>
-
           </div>
         </section>
-<!-- === پایان بلوک ۱ از ۲ فایل admin.html — بلوک ۲ را دقیقاً زیر این خط پیست کنید === -->
-        <!-- === شروع بلوک ۲ از ۲ فایل admin.html — دقیقاً زیر بلوک ۱ پیست کنید === -->
 
         <!-- ==================================================================
-             تب ۲: مدیریت محصولات، فیلتر عمده‌فروش و حذف دسته‌جمعی
+             تب ۲: مدیریت محصولات (فیلتر قیمت/پک + ویرایش گروهی + انتخاب تیکی پایدار)
              ================================================================== -->
         <section class="admin-tab-section" id="tab-catalog">
           <div class="card">
             <div class="card-title">
-              <span>🗂️ مدیریت محصولات و پاکسازی بر اساس عمده‌فروش</span>
-              <button type="button" class="btn btn-gold" id="btn-rebuild-all-shards" style="padding:7px 14px; font-size:0.78rem;">
+              <span>🗂️ مدیریت محصولات، ویرایش گروهی قیمت/پک و حذف انتخابی</span>
+              <button type="button" class="btn btn-gold" id="btn-rebuild-all-shards" style="padding:6px 12px; font-size:0.76rem;">
                 ⚡ همگام‌سازی کاتالوگ سایت
               </button>
             </div>
 
-            <!-- فیلترهای سریع (عمده‌فروش + بخش + نوع محصول + جستجو) -->
-            <div class="grid-4" style="margin-bottom:12px;">
+            <!-- ردیف فیلترهای پیشرفته (عمده‌فروش + بخش + شاخه + قیمت فعلی + تعداد پک + جستجو) -->
+            <div class="grid-5" style="margin-bottom:12px;">
               <div class="field">
-                <label>۱. انتخاب عمده‌فروش</label>
+                <label>۱. عمده‌فروش</label>
                 <select id="catalog-filter-vendor" class="select">
                   <option value="all">همه عمده‌فروش‌ها</option>
                 </select>
@@ -768,88 +832,316 @@
                 <label>۲. بخش اصلی</label>
                 <select id="catalog-filter-dept" class="select">
                   <option value="all">همه بخش‌ها</option>
-                  <option value="men">مردانه</option>
-                  <option value="women">زنانه</option>
-                  <option value="kids-baby">بچگانه</option>
-                  <option value="shoes">کفش</option>
-                  <option value="bags-accessories">کیف و اکسسوری</option>
                 </select>
               </div>
 
               <div class="field">
-                <label>۳. نوع محصول (تیشرت، ترک‌سوئیت...)</label>
+                <label>۳. شاخه (تیشرت، هودی...)</label>
                 <select id="catalog-filter-subcat" class="select">
-                  <option value="all">همه زیرشاخه‌ها</option>
+                  <option value="all">همه شاخه‌ها</option>
                 </select>
               </div>
 
               <div class="field">
-                <label>۴. جستجوی کد یا نام</label>
-                <input type="search" id="catalog-search-input" class="input" placeholder="جستجوی کد، برند یا تگ..." />
+                <label>۴. فیلتر قیمت واحد ($)</label>
+                <input type="number" id="catalog-filter-price" class="input" step="0.5" placeholder="مثلاً: 10 (فقط ۱۰ دلاری‌ها)" style="direction:ltr;" />
+              </div>
+
+              <div class="field">
+                <label>۵. جستجوی کد یا تگ</label>
+                <input type="search" id="catalog-search-input" class="input" placeholder="کد، برند یا تگ..." />
               </div>
             </div>
 
-            <!-- نوار حذف یکجای محصولات عمده‌فروش -->
-            <div style="background:#fef2f2; border:1px solid #fecaca; padding:10px 14px; border-radius:var(--radius-sm); margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-              <div style="font-size:0.8rem; color:#991b1b;">
-                در حال نمایش <strong id="catalog-showing-count">0</strong> محصول — برای حذف محصولات یک عمده‌فروش (یا مثلاً فقط تیشرت‌های آن عمده‌فروش)، ابتدا از بالا فیلتر کنید.
+            <!-- نوار عملیات گروهی (تغییر یکجای قیمت، تغییر یکجای تعداد در پک، و حذف انتخاب‌شده‌ها) -->
+            <div style="background:#f8fafc; border:1.5px solid #cbd5e1; padding:12px; border-radius:var(--radius-sm); margin-bottom:14px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:10px; padding-bottom:8px; border-bottom:1px dashed #cbd5e1;">
+                <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                  <label style="display:inline-flex; align-items:center; gap:6px; font-weight:800; cursor:pointer;">
+                    <input type="checkbox" id="catalog-select-all-filtered" style="width:17px; height:17px;" />
+                    <span>انتخاب همه فیلتر شده‌ها (<strong id="catalog-showing-count">0</strong> محصول)</span>
+                  </label>
+                  <span style="background:#090d16; color:var(--gold); padding:2px 10px; border-radius:20px; font-size:0.76rem; font-weight:800;">
+                    تیک‌خورده‌ها: <strong id="catalog-selected-count">0</strong> مورد
+                  </span>
+                  <button type="button" class="btn-outline" id="btn-clear-selected-checks" style="font-size:0.72rem;">پاک کردن تیک‌ها</button>
+                </div>
+
+                <div style="display:flex; gap:8px; flex-wrap:wrap;" data-super-only="true">
+                  <button type="button" class="btn btn-danger" id="btn-delete-selected-products" style="padding:7px 13px; font-size:0.78rem;">
+                    🗑️ حذف تیک‌خورده‌ها
+                  </button>
+                  <button type="button" class="btn-outline" id="btn-bulk-delete-filtered" style="color:var(--danger); border-color:#fecaca;">
+                    🗑️ حذف کل فیلتر فعلی
+                  </button>
+                </div>
               </div>
-              <button type="button" class="btn btn-danger" id="btn-bulk-delete-filtered" style="padding:8px 14px; font-size:0.8rem;">
-                🗑️ حذف یکجای محصولات فیلتر شده
-              </button>
+
+              <!-- ابزار تغییر دسته‌جمعی قیمت (مثلاً ۵۰۰ تیشرت ۱۰ دلاری) و تغییر دسته‌جمعی تعداد در پک (مثلاً ۵تایی به ۶تایی) -->
+              <div class="grid-2" data-super-only="true">
+                <div style="display:flex; align-items:center; gap:8px; background:#fff; padding:8px; border-radius:8px; border:1px solid var(--border);">
+                  <span style="font-size:0.78rem; font-weight:800; white-space:nowrap;">💲 قیمت جدید ($):</span>
+                  <input type="number" id="bulk-new-unit-price" class="input" step="0.5" min="0.5" placeholder="مثلاً: 8" style="width:95px; padding:6px; direction:ltr;" />
+                  <button type="button" class="btn btn-emerald" id="btn-apply-bulk-price" style="padding:7px 12px; font-size:0.76rem; flex:1;">
+                    اعمال روی تیک‌خورده‌ها / فیلتر
+                  </button>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:8px; background:#fff; padding:8px; border-radius:8px; border:1px solid var(--border);">
+                  <span style="font-size:0.78rem; font-weight:800; white-space:nowrap;">📦 تعداد جدید در پک:</span>
+                  <input type="number" id="bulk-new-pcs-pack" class="input" step="1" min="1" placeholder="مثلاً: 6" style="width:85px; padding:6px; direction:ltr;" />
+                  <button type="button" class="btn btn-blue" id="btn-apply-bulk-pcs" style="padding:7px 12px; font-size:0.76rem; flex:1;">
+                    تبدیل یکجای تعداد پک
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <!-- جدول محصولات -->
+            <!-- جدول فشرده محصولات (بدون شلوغی عنوان، لود ۱۰۰تایی بدون پریدن تیک‌ها) -->
             <div class="table-wrap">
               <table class="adm-table">
                 <thead>
                   <tr>
-                    <th>تصویر</th>
+                    <th style="width:36px; text-align:center;">☑️</th>
+                    <th>عکس</th>
                     <th>کد و عمده‌فروش</th>
-                    <th>عنوان محصول (وضعیت AI)</th>
-                    <th>قیمت واحد ($)</th>
-                    <th>تعداد در پک</th>
-                    <th>قیمت پک</th>
+                    <th>قیمت ($)</th>
+                    <th>تعداد پک</th>
+                    <th>جمع پک</th>
                     <th>وضعیت</th>
+                    <th>ابزارها (عنوان / ویدیو / حذف)</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-catalog-tbody"></tbody>
+              </table>
+            </div>
+
+            <!-- دکمه بارگذاری ۱۰۰ محصول بعدی (بدون پاک شدن تیک‌های قبلی) -->
+            <div style="text-align:center; margin-top:14px;">
+              <button type="button" class="btn btn-gold" id="btn-load-more-catalog" style="display:none; padding:10px 24px;">
+                ⬇️ نمایش ۱۰۰ محصول بعدی (حفظ تیک‌های قبلی)
+              </button>
+            </div>
+          </div>
+        </section>
+<!-- === پایان بلوک ۱ از ۲ فایل admin.html — بلوک ۲ را دقیقاً زیر این خط پیست کنید === -->
+        <!-- === شروع بلوک ۲ از ۲ فایل raminreza.html — دقیقاً زیر بلوک ۱ پیست کنید === -->
+
+        <!-- ==================================================================
+             تب ۳: مدیریت تصویری بخش‌ها، زیرشاخه‌ها، جابجایی فصلی و مخفی‌سازی
+             ================================================================== -->
+        <section class="admin-tab-section" id="tab-categories" data-super-only="true">
+
+          <!-- ۱. افزودن یا ویرایش بخش اصلی (مثلاً مردانه، زنانه یا شاخه تخفیفی صفحه اول) -->
+          <div class="card gold-border">
+            <div class="card-title">
+              <span>🌟 ۱. مدیریت بخش‌های اصلی و بخش‌های ویژه صفحه اول (مثل شاخه تخفیفی)</span>
+            </div>
+            <form id="form-add-department" style="margin-bottom:14px; background:#f8fafc; padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+              <input type="hidden" id="dept-edit-mode" value="" />
+              <div class="grid-4" style="margin-bottom:10px;">
+                <div class="field">
+                  <label>شناسه انگلیسی (ID) *</label>
+                  <input type="text" id="dept-id-input" class="input" placeholder="مثلاً: sale یا men" required style="direction:ltr; font-weight:800;" />
+                </div>
+                <div class="field">
+                  <label>نام فارسی (در پنل) *</label>
+                  <input type="text" id="dept-label-fa" class="input" placeholder="مثلاً: شاخه تخفیفی ویژه" required />
+                </div>
+                <div class="field">
+                  <label>نام انگلیسی (EN) *</label>
+                  <input type="text" id="dept-label-en" class="input" placeholder="Special Sale / Outlet" required style="direction:ltr;" />
+                </div>
+                <div class="field">
+                  <label>نام ایتالیایی و اسپانیایی</label>
+                  <input type="text" id="dept-label-ites" class="input" placeholder="Saldi / Ofertas" style="direction:ltr;" />
+                </div>
+              </div>
+              <div class="grid-3" style="align-items:end;">
+                <div class="field">
+                  <label>📸 آپلود عکس کاور بخش (از گالری گوشی)</label>
+                  <input type="file" id="dept-image-file" class="input" accept="image/*" />
+                </div>
+                <div class="field">
+                  <label>یا لینک مستقیم عکس بخش</label>
+                  <input type="url" id="dept-image-url" class="input" placeholder="https://..." style="direction:ltr;" />
+                </div>
+                <div class="field">
+                  <button type="submit" class="btn btn-emerald" id="btn-save-dept" style="width:100%;">+ ذخیره بخش اصلی</button>
+                </div>
+              </div>
+            </form>
+
+            <div class="table-wrap">
+              <table class="adm-table">
+                <thead>
+                  <tr>
+                    <th>عکس</th>
+                    <th>نام بخش</th>
+                    <th>تعداد زیرشاخه</th>
+                    <th>وضعیت نمایش در سایت</th>
+                    <th>ترتیب (بالا/پایین)</th>
+                    <th>ویرایش / حذف</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-departments-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ۲. افزودن یا ویرایش شاخه‌ها (مثل کلاه، تیشرت، هودی) و زیرمجموعه‌ها (مثل جاگر) + عکس اختصاصی -->
+          <div class="card">
+            <div class="card-title">
+              <span>🌿 ۲. مدیریت شاخه‌ها (تیشرت، کلاه، هودی...)، زیرمجموعه‌ها (جاگر...) و عکس‌های کاتالوگ</span>
+            </div>
+
+            <form id="form-add-subcategory" style="margin-bottom:14px; background:#f8fafc; padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+              <input type="hidden" id="subcat-edit-id" value="" />
+              <div class="grid-4" style="margin-bottom:10px;">
+                <div class="field">
+                  <label>متعلق به کدام بخش اصلی؟ *</label>
+                  <select id="subcat-parent-dept" class="select" required></select>
+                </div>
+                <div class="field">
+                  <label>شناسه شاخه (انگلیسی) *</label>
+                  <input type="text" id="subcat-id-input" class="input" placeholder="مثلاً: men-hats" required style="direction:ltr; font-weight:800;" />
+                </div>
+                <div class="field">
+                  <label>نام فارسی شاخه *</label>
+                  <input type="text" id="subcat-label-fa" class="input" placeholder="مثلاً: کلاه مردانه" required />
+                </div>
+                <div class="field">
+                  <label>نام انگلیسی (نمایش در سایت) *</label>
+                  <input type="text" id="subcat-label-en" class="input" placeholder="Men's Hats & Caps" required style="direction:ltr;" />
+                </div>
+              </div>
+
+              <div class="grid-4" style="align-items:end;">
+                <div class="field">
+                  <label>زیرمجموعه‌ها (با کاما جدا کنید - مثلاً جاگر، اسلیم)</label>
+                  <input type="text" id="subcat-leaves-input" class="input" placeholder="Jogger, Cargo, Slim Fit" />
+                </div>
+                <div class="field">
+                  <label>📸 آپلود عکس شاخه (برای تصویری شدن کاتالوگ)</label>
+                  <input type="file" id="subcat-image-file" class="input" accept="image/*" />
+                </div>
+                <div class="field">
+                  <label>یا لینک عکس شاخه</label>
+                  <input type="url" id="subcat-image-url" class="input" placeholder="https://..." style="direction:ltr;" />
+                </div>
+                <div class="field">
+                  <button type="submit" class="btn btn-gold" id="btn-save-subcat" style="width:100%;">💾 ذخیره شاخه و عکس</button>
+                </div>
+              </div>
+            </form>
+
+            <!-- فیلتر نمایش شاخه‌های هر بخش برای جابجایی فصلی (زمستان/تابستان) و مخفی‌سازی -->
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <strong>نمایش شاخه‌های بخش:</strong>
+                <select id="filter-subcat-manager-dept" class="select" style="width:190px;"></select>
+              </div>
+              <small style="color:var(--text-muted);">💡 با دکمه‌های ⬆️ و ⬇️ ترتیب فصلی (مثلاً هودی در زمستان یا تیشرت در تابستان) را جابجا کنید و با 👁️ بدون حذف محصولات، شاخه را موقتاً مخفی کنید.</small>
+            </div>
+
+            <div class="table-wrap">
+              <table class="adm-table">
+                <thead>
+                  <tr>
+                    <th>عکس شاخه</th>
+                    <th>نام شاخه و شناسه</th>
+                    <th>زیرمجموعه‌ها (Leaves)</th>
+                    <th>وضعیت نمایش</th>
+                    <th>جابجایی (⬆️⬇️)</th>
                     <th>عملیات</th>
                   </tr>
                 </thead>
-                <tbody id="admin-catalog-tbody">
+                <tbody id="admin-subcategories-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ==================================================================
+             تب ۴: مدیریت عمده‌فروشان (نام، کد اختصاصی، و اطلاعات تماس محرمانه مدیر)
+             ================================================================== -->
+        <section class="admin-tab-section" id="tab-vendors">
+          <div class="card gold-border">
+            <div class="card-title">
+              <span>🏪 بانک عمده‌فروشان و تامین‌کنندگان</span>
+              <span style="font-size:0.75rem; color:var(--emerald-dark);">شماره تماس و آدرس فقط برای مدیر کل قابل مشاهده است</span>
+            </div>
+
+            <form id="form-manage-vendor" style="margin-bottom:16px; background:#f8fafc; padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+              <input type="hidden" id="vendor-original-code" value="" />
+              <div class="grid-4" style="margin-bottom:10px;">
+                <div class="field">
+                  <label>کد اختصاصی عمده‌فروش (حک روی عکس) *</label>
+                  <input type="text" id="vendor-form-code" class="input" placeholder="مثلاً: M12 یا MTR" required style="direction:ltr; text-transform:uppercase; font-weight:900;" />
+                </div>
+                <div class="field">
+                  <label>نام عمده‌فروش / مغازه *</label>
+                  <input type="text" id="vendor-form-name" class="input" placeholder="مثلاً: مهمت مرتر (تیشرت)" required />
+                </div>
+                <div class="field" data-super-only="true">
+                  <label>📞 شماره تلفن / واتساپ (محرمانه مدیر)</label>
+                  <input type="text" id="vendor-form-phone" class="input" placeholder="+90 532 ..." style="direction:ltr;" />
+                </div>
+                <div class="field" data-super-only="true">
+                  <label>📍 آدرس دقیق مغازه / یادداشت (محرمانه مدیر)</label>
+                  <input type="text" id="vendor-form-address" class="input" placeholder="مرتر، خیابان ... پلاک ..." />
+                </div>
+              </div>
+              <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button type="button" class="btn-outline" id="btn-reset-vendor-form">فرم جدید</button>
+                <button type="submit" class="btn btn-emerald" id="btn-submit-vendor-form">💾 ذخیره اطلاعات عمده‌فروش</button>
+              </div>
+            </form>
+
+            <div class="table-wrap">
+              <table class="adm-table">
+                <thead>
                   <tr>
-                    <td colspan="8" style="text-align:center; padding:24px; color:var(--text-muted);">در حال بارگذاری محصولات...</td>
+                    <th>کد اختصاصی</th>
+                    <th>نام عمده‌فروش</th>
+                    <th>تعداد محصولات</th>
+                    <th data-super-only="true">📞 تلفن و 📍 آدرس (محرمانه مدیر)</th>
+                    <th>عملیات</th>
                   </tr>
-                </tbody>
+                </thead>
+                <tbody id="admin-vendors-tbody"></tbody>
               </table>
             </div>
           </div>
         </section>
 
         <!-- ==================================================================
-             تب ۳: سفارشات پیش‌فاکتور واتساپ و مشتریان
+             تب ۵: سفارشات پیش‌فاکتور واتساپ و مشتریان
              ================================================================== -->
-        <section class="admin-tab-section" id="tab-orders">
+        <section class="admin-tab-section" id="tab-orders" data-super-only="true">
           <div class="grid-3" style="margin-bottom:14px;">
             <div class="card" style="margin:0; text-align:center;">
-              <span style="font-size:0.78rem; color:var(--text-muted);">کل محصولات سایت</span>
-              <strong id="kpi-total-products" style="display:block; font-size:1.5rem; margin-top:4px;">0</strong>
+              <span style="font-size:0.76rem; color:var(--text-muted);">کل محصولات فعال</span>
+              <strong id="kpi-total-products" style="display:block; font-size:1.45rem; margin-top:4px;">0</strong>
             </div>
             <div class="card" style="margin:0; text-align:center;">
-              <span style="font-size:0.78rem; color:var(--text-muted);">کل پیش‌فاکتورها</span>
-              <strong id="kpi-total-orders" style="display:block; font-size:1.5rem; color:var(--gold-dark); margin-top:4px;">0</strong>
+              <span style="font-size:0.76rem; color:var(--text-muted);">کل سفارشات ثبت شده</span>
+              <strong id="kpi-total-orders" style="display:block; font-size:1.45rem; color:var(--gold-dark); margin-top:4px;">0</strong>
               <small id="kpi-orders-volume" style="font-size:0.74rem; color:var(--emerald-dark);">$0.00</small>
             </div>
             <div class="card" style="margin:0; text-align:center;">
-              <span style="font-size:0.78rem; color:var(--text-muted);">مشتریان ثبت شده</span>
-              <strong id="kpi-total-customers" style="display:block; font-size:1.5rem; margin-top:4px;">0</strong>
+              <span style="font-size:0.76rem; color:var(--text-muted);">مشتریان عمده</span>
+              <strong id="kpi-total-customers" style="display:block; font-size:1.45rem; margin-top:4px;">0</strong>
             </div>
           </div>
 
           <div class="card">
             <div class="card-title">
-              <span>📦 لیست پیش‌فاکتورها و سفارشات واتساپ</span>
+              <span>📦 لیست پیش‌فاکتورهای واتساپ</span>
               <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                <input type="search" id="orders-search-input" class="input" placeholder="جستجوی کد سفارش یا نام..." style="width:180px; padding:6px 10px;" />
-                <select id="orders-status-filter" class="select" style="width:150px; padding:6px 10px;">
+                <input type="search" id="orders-search-input" class="input" placeholder="جستجوی کد سفارش یا نام..." style="width:175px; padding:6px 10px;" />
+                <select id="orders-status-filter" class="select" style="width:145px; padding:6px 10px;">
                   <option value="all">همه وضعیت‌ها</option>
                   <option value="pending_whatsapp">در انتظار واتساپ</option>
                   <option value="preparing">در حال آماده‌سازی</option>
@@ -859,7 +1151,6 @@
                 <button type="button" class="btn-outline" id="btn-refresh-orders">↻ بروزرسانی</button>
               </div>
             </div>
-
             <div class="table-wrap">
               <table class="adm-table">
                 <thead>
@@ -881,9 +1172,9 @@
 
           <div class="card">
             <div class="card-title">
-              <span>👥 بانک اطلاعات مشتریان</span>
+              <span>👥 لیست مشتریان</span>
               <div style="display:flex; gap:6px;">
-                <input type="search" id="customers-search-input" class="input" placeholder="جستجوی مشتری..." style="width:170px; padding:6px 10px;" />
+                <input type="search" id="customers-search-input" class="input" placeholder="جستجو..." style="width:160px; padding:6px 10px;" />
                 <button type="button" class="btn-outline" id="btn-export-customers-csv">📥 خروجی اکسل</button>
               </div>
             </div>
@@ -891,11 +1182,11 @@
               <table class="adm-table">
                 <thead>
                   <tr>
-                    <th>نام مشتری</th>
+                    <th>نام</th>
                     <th>کشور</th>
-                    <th>شماره واتساپ</th>
+                    <th>واتساپ</th>
                     <th>آخرین سفارش</th>
-                    <th>مبلغ آخرین خرید</th>
+                    <th>مبلغ</th>
                     <th>ارتباط</th>
                   </tr>
                 </thead>
@@ -906,17 +1197,16 @@
         </section>
 
         <!-- ==================================================================
-             تب ۴: مدیریت ویدیوهای سایت (صفحه اول، رضایت مشتریان و ویترین ویدیویی)
+             تب ۶: ویدیوهای سایت (آپلود فایل ویدیو یا لینک یوتیوب)
              ================================================================== -->
-        <section class="admin-tab-section" id="tab-videos">
+        <section class="admin-tab-section" id="tab-videos" data-super-only="true">
 
-          <!-- ۱. ویدیوی اصلی بالای صفحه اول -->
           <div class="card">
             <div class="card-title">🎬 ۱. ویدیوی اصلی بالای صفحه اول (Hero Video)</div>
             <form id="admin-hero-video-form">
-              <div class="grid-3" style="margin-bottom:12px;">
+              <div class="grid-3" style="margin-bottom:10px;">
                 <div class="field">
-                  <label>لینک یوتیوب / Shorts *</label>
+                  <label>لینک یوتیوب / Shorts یا لینک MP4 *</label>
                   <input type="text" id="hero-yt-url" class="input" required placeholder="https://youtube.com/shorts/..." style="direction:ltr;" />
                 </div>
                 <div class="field">
@@ -932,14 +1222,17 @@
             </form>
           </div>
 
-          <!-- ۲. ویدیوهای ویترین نمایش محصولات (Showroom) -->
           <div class="card">
-            <div class="card-title">📺 ۲. ویترین ویدیویی محصولات (پخش در صفحه اصلی)</div>
+            <div class="card-title">📺 ۲. ویترین ویدیویی محصولات (پشتیبانی از آپلود فایل ویدیو از گالری یا لینک یوتیوب)</div>
             <form id="admin-add-showroom-video-form" style="margin-bottom:14px;">
-              <div class="grid-3" style="margin-bottom:10px;">
+              <div class="grid-4" style="margin-bottom:10px;">
                 <div class="field">
-                  <label>لینک یوتیوب / Shorts *</label>
-                  <input type="text" id="showroom-vid-url" class="input" required placeholder="https://youtube.com/shorts/..." style="direction:ltr;" />
+                  <label>📹 انتخاب فایل ویدیو از گوشی (اختیاری)</label>
+                  <input type="file" id="showroom-vid-file" class="input" accept="video/*,video/mp4,video/quicktime" />
+                </div>
+                <div class="field">
+                  <label>▶️ یا لینک یوتیوب / Shorts</label>
+                  <input type="text" id="showroom-vid-url" class="input" placeholder="https://youtube.com/shorts/..." style="direction:ltr;" />
                 </div>
                 <div class="field">
                   <label>عنوان ویدیو *</label>
@@ -948,7 +1241,7 @@
                 <div class="field">
                   <label>بخش مرتبط</label>
                   <select id="showroom-vid-dept" class="select">
-                    <option value="all">عمومی (کل سایت)</option>
+                    <option value="all">کل سایت</option>
                     <option value="men">مردانه</option>
                     <option value="women">زنانه</option>
                     <option value="shoes">کفش</option>
@@ -956,7 +1249,7 @@
                   </select>
                 </div>
               </div>
-              <button type="submit" class="btn btn-emerald">+ افزودن به ویترین ویدیویی</button>
+              <button type="submit" class="btn btn-emerald" id="btn-submit-showroom-vid">+ آپلود و افزودن به ویترین ویدیویی</button>
             </form>
             <div class="table-wrap">
               <table class="adm-table">
@@ -965,7 +1258,7 @@
                     <th>کاور</th>
                     <th>عنوان</th>
                     <th>بخش</th>
-                    <th>شناسه یوتیوب</th>
+                    <th>لینک / شناسه</th>
                     <th>حذف</th>
                   </tr>
                 </thead>
@@ -974,25 +1267,28 @@
             </div>
           </div>
 
-          <!-- ۳. ویدیوهای رضایت مشتریان و ارسال بار -->
           <div class="card">
             <div class="card-title">✈️ ۳. ویدیوهای رضایت مشتریان و ارسال بار (Cargo & Reviews)</div>
             <form id="admin-add-cargo-video-form" style="margin-bottom:14px;">
-              <div class="grid-3" style="margin-bottom:10px;">
+              <div class="grid-4" style="margin-bottom:10px;">
                 <div class="field">
-                  <label>لینک یوتیوب / Shorts *</label>
-                  <input type="text" id="cargo-vid-url" class="input" required placeholder="https://youtube.com/shorts/..." style="direction:ltr;" />
+                  <label>📹 آپلود فایل ویدیو از گوشی (اختیاری)</label>
+                  <input type="file" id="cargo-vid-file" class="input" accept="video/*,video/mp4,video/quicktime" />
                 </div>
                 <div class="field">
-                  <label>برچسب مقصد (مثلاً MILAN CARGO) *</label>
-                  <input type="text" id="cargo-vid-badge" class="input" required placeholder="ITALY CARGO" />
+                  <label>▶️ یا لینک یوتیوب / Shorts</label>
+                  <input type="text" id="cargo-vid-url" class="input" placeholder="https://youtube.com/shorts/..." style="direction:ltr;" />
+                </div>
+                <div class="field">
+                  <label>برچسب مقصد (مثلاً ITALY CARGO) *</label>
+                  <input type="text" id="cargo-vid-badge" class="input" required placeholder="MILAN CARGO" />
                 </div>
                 <div class="field">
                   <label>توضیح کوتاه *</label>
-                  <input type="text" id="cargo-vid-title" class="input" required placeholder="150 Pcs Express Delivery" />
+                  <input type="text" id="cargo-vid-title" class="input" required placeholder="180 Pcs Express Delivery" />
                 </div>
               </div>
-              <button type="submit" class="btn btn-gold">+ افزودن ویدیوی رضایت و بار</button>
+              <button type="submit" class="btn btn-gold" id="btn-submit-cargo-vid">+ افزودن ویدیوی رضایت و بار</button>
             </form>
             <div class="table-wrap">
               <table class="adm-table">
@@ -1013,19 +1309,15 @@
         </section>
 
         <!-- ==================================================================
-             تب ۵: وبلاگ اتوماتیک سئو (تولید و انتشار ۱ کلیکی به ۳ زبان)
+             تب ۷: مقالات سئو ۳ زبانه (تولید خودکار + قابلیت ویرایش توسط مدیر کل)
              ================================================================== -->
-        <section class="admin-tab-section" id="tab-blog">
+        <section class="admin-tab-section" id="tab-blog" data-super-only="true">
           <div class="card">
-            <div class="card-title">🤖 تولید و انتشار خودکار مقاله سئو (انگلیسی، ایتالیایی، اسپانیایی)</div>
-            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">
-              فقط موضوع مقاله را به فارسی بنویسید؛ جمنای خودش مقاله کامل را به ۳ زبان می‌نویسد و صفحات مجزای سئو را در سایت و گیت‌هاب منتشر می‌کند.
-            </p>
-
+            <div class="card-title">🤖 تولید خودکار مقاله سئو به ۳ زبان (EN / IT / ES)</div>
             <div class="grid-3" style="margin-bottom:12px;">
               <div class="field" style="grid-column: span 2;">
                 <label>موضوع مقاله (به فارسی بنویسید) *</label>
-                <input type="text" id="blog-ai-prompt" class="input" placeholder="مثلاً: راهنمای خرید عمده تیشرت و هودی ترک از استانبول و ارسال سریع به اروپا" />
+                <input type="text" id="blog-ai-prompt" class="input" placeholder="مثلاً: راهنمای خرید عمده تیشرت و هودی ترک از استانبول و ارسال به اروپا" />
               </div>
               <div class="field">
                 <label>دسته‌بندی</label>
@@ -1037,32 +1329,29 @@
                 </select>
               </div>
             </div>
-
-            <div class="field" style="margin-bottom:14px;">
+            <div class="field" style="margin-bottom:12px;">
               <label>لینک عکس کاور مقاله</label>
               <input type="url" id="blog-cover-url" class="input" value="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=85" style="direction:ltr;" />
             </div>
-
-            <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
               <button type="button" class="btn btn-emerald" id="btn-auto-generate-and-publish-blog">
-                🚀 تولید خودکار ۳ زبانه با جمنای و انتشار مستقیم
+                🚀 تولید خودکار با جمنای و انتشار در سایت
               </button>
               <span id="blog-ai-status" style="font-size:0.8rem; color:var(--text-muted);"></span>
             </div>
           </div>
 
           <div class="card">
-            <div class="card-title">📚 مقالات منتشر شده</div>
+            <div class="card-title">📚 مقالات منتشر شده (با قابلیت ویرایش توسط مدیر کل)</div>
             <div class="table-wrap">
               <table class="adm-table">
                 <thead>
                   <tr>
                     <th>کاور</th>
-                    <th>عنوان مقاله (EN / IT / ES)</th>
+                    <th>عنوان مقاله</th>
                     <th>لینک صفحه</th>
-                    <th>دسته</th>
                     <th>تاریخ</th>
-                    <th>حذف</th>
+                    <th>ویرایش / حذف</th>
                   </tr>
                 </thead>
                 <tbody id="admin-blogs-tbody"></tbody>
@@ -1072,62 +1361,96 @@
         </section>
 
         <!-- ==================================================================
-             تب ۶: تنظیمات کلی، واتساپ، کلیدهای جمنای و گیت‌هاب
+             تب ۸: تنظیمات کلی، لوگو، فرمول حداقل سفارش (۲۵ عدد) و دسترسی دستیاران
              ================================================================== -->
-        <section class="admin-tab-section" id="tab-settings">
+        <section class="admin-tab-section" id="tab-settings" data-super-only="true">
           <form id="admin-global-settings-form">
 
-            <div class="card">
-              <div class="card-title">📱 ۱. شماره واتساپ و تنظیمات فروش</div>
-              <div class="grid-3">
+            <!-- ۱. لوگو، واتساپ و فرمول محاسباتی حداقل سفارش (MOQ) -->
+            <div class="card gold-border">
+              <div class="card-title">🏷️ ۱. لوگوی سایت، شماره واتساپ و فرمول محاسباتی حداقل سفارش (۲۵ عدد)</div>
+
+              <div class="grid-3" style="margin-bottom:12px; align-items:end;">
                 <div class="field">
-                  <label>شماره واتساپ (با کد کشور) *</label>
-                  <input type="text" id="cfg-whatsapp-raw" class="input" value="+905459099395" required style="direction:ltr;" />
+                  <label>📸 آپلود لوگوی سایت (PNG / WebP)</label>
+                  <input type="file" id="cfg-logo-file" class="input" accept="image/*" />
                 </div>
                 <div class="field">
-                  <label>نمایش شماره در سایت *</label>
+                  <label>یا لینک مستقیم لوگو</label>
+                  <input type="url" id="cfg-logo-url" class="input" placeholder="https://..." style="direction:ltr;" />
+                </div>
+                <div class="field">
+                  <label>شماره واتساپ فروش (با کد کشور) *</label>
+                  <input type="text" id="cfg-whatsapp-raw" class="input" value="+905459099395" required style="direction:ltr; font-weight:800;" />
+                </div>
+              </div>
+
+              <div class="grid-3" style="background:#fffbeb; padding:12px; border-radius:var(--radius-sm); border:1px solid rgba(212,175,55,0.4);">
+                <div class="field">
+                  <label>نمایش شماره واتساپ در سایت *</label>
                   <input type="text" id="cfg-whatsapp-display" class="input" value="+90 545 909 93 95" required style="direction:ltr;" />
                 </div>
                 <div class="field">
-                  <label>حداقل تعداد برای بهترین قیمت عمده</label>
-                  <input type="number" id="cfg-bulk-threshold" class="input" value="25" min="1" style="direction:ltr;" />
+                  <label>🎯 حد نصاب بهترین قیمت عمده (تعداد قطعات) *</label>
+                  <input type="number" id="cfg-bulk-threshold" class="input" value="25" min="1" required style="direction:ltr; font-weight:900;" />
+                </div>
+                <div class="field">
+                  <label>درصد افزایش قیمت برای سفارشِ زیر حد نصاب (%)</label>
+                  <input type="number" id="cfg-under-moq-markup" class="input" value="15" min="0" max="100" style="direction:ltr; font-weight:800;" />
                 </div>
               </div>
+              <small style="display:block; margin-top:6px; color:var(--text-muted);">
+                💡 این عدد در دیتابیس ذخیره شده و مبنای محاسبات سبد خرید و پیش‌فاکتور است (مثلاً اگر حد نصاب ۲۵ عدد باشد، مشتری با رسیدن به ۲۵ قطعه، قیمت پایه عمده را می‌گیرد و زیر ۲۵ قطعه درصد تعیین‌شده لحاظ می‌گردد).
+              </small>
               <input type="hidden" id="cfg-currency-symbol" value="$" />
             </div>
 
+            <!-- ۲. مدیریت ادمین‌ها و دستیار آپلود عکس -->
             <div class="card">
-              <div class="card-title">
-                <span>🧠 ۲. کلیدهای هوش مصنوعی جمنای (چرخش خودکار)</span>
-                <button type="button" class="btn-outline" id="btn-test-gemini-keys">🩺 تست سلامت کلیدها</button>
-              </div>
-              <div class="grid-3">
-                <div class="field" style="grid-column: span 2;">
-                  <label>
-                    <span>درج یک یا چند کلید Gemini API (هر خط یک کلید)</span>
-                    <span id="gemini-key-count-badge" style="color:var(--emerald-dark);">0 کلید</span>
-                  </label>
-                  <textarea id="cfg-gemini-keys" class="textarea" rows="4" placeholder="AIzaSy..." style="direction:ltr; font-family:monospace;"></textarea>
+              <div class="card-title">🛡️ ۲. مدیریت سطوح دسترسی (مدیر کل و دستیار آپلود عکس)</div>
+              <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:10px;">
+                ایمیل‌هایی که در کادر زیر به عنوان «دستیار آپلود» وارد کنید، پس از ورود فقط به تب آپلود عکس دسترسی دارند و اطلاعات تماس عمده‌فروشان، تنظیمات، سفارشات و حذف دسته‌جمعی برایشان قفل و مخفی است.
+              </p>
+              <div class="grid-2">
+                <div class="field">
+                  <label>ایمیل‌های مدیر کل (Super Admin - دسترسی کامل - هر خط یک ایمیل)</label>
+                  <textarea id="cfg-super-admin-emails" class="textarea" rows="3" placeholder="your.personal.email@gmail.com" style="direction:ltr; font-family:monospace;"></textarea>
                 </div>
                 <div class="field">
-                  <label>مدل هوش مصنوعی</label>
+                  <label>ایمیل‌های دستیار آپلود (Assistant Uploader - دسترسی محدود - هر خط یک ایمیل)</label>
+                  <textarea id="cfg-assistant-emails" class="textarea" rows="3" placeholder="assistant@gmail.com" style="direction:ltr; font-family:monospace;"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- ۳. کلیدهای جمنای و گیت‌هاب -->
+            <div class="card">
+              <div class="card-title">
+                <span>🧠 ۳. کلیدهای هوش مصنوعی جمنای و اتصال گیت‌هاب</span>
+                <div style="display:flex; gap:6px;">
+                  <button type="button" class="btn-outline" id="btn-test-gemini-keys">🩺 تست جمنای</button>
+                  <button type="button" class="btn-outline" id="btn-test-github-conn">تست گیت‌هاب</button>
+                  <button type="button" class="btn-outline" id="btn-push-sitemap-robots">🗺️ آپدیت Sitemap</button>
+                </div>
+              </div>
+              <div class="grid-3" style="margin-bottom:12px;">
+                <div class="field" style="grid-column: span 2;">
+                  <label>
+                    <span>کلیدهای Gemini API (هر خط یک کلید برای چرخش خودکار)</span>
+                    <span id="gemini-key-count-badge" style="color:var(--emerald-dark);">0 کلید</span>
+                  </label>
+                  <textarea id="cfg-gemini-keys" class="textarea" rows="3" placeholder="AIzaSy..." style="direction:ltr; font-family:monospace;"></textarea>
+                </div>
+                <div class="field">
+                  <label>مدل جمنای</label>
                   <select id="cfg-gemini-model" class="select">
-                    <option value="gemini-2.5-flash">gemini-2.5-flash (پیشنهادی و سریع)</option>
+                    <option value="gemini-2.5-flash">gemini-2.5-flash (سریع)</option>
                     <option value="gemini-2.0-flash">gemini-2.0-flash</option>
                   </select>
                 </div>
               </div>
-              <div id="gemini-diagnostic-log" style="display:none; margin-top:10px; padding:10px; border-radius:8px; background:#090d16; color:#6ee7b7; font-family:monospace; font-size:0.78rem; direction:ltr; white-space:pre-wrap;"></div>
-            </div>
+              <div id="gemini-diagnostic-log" style="display:none; margin-bottom:12px; padding:10px; border-radius:8px; background:#090d16; color:#6ee7b7; font-family:monospace; font-size:0.76rem; direction:ltr; white-space:pre-wrap;"></div>
 
-            <div class="card">
-              <div class="card-title">
-                <span>🐙 ۳. اتصال گیت‌هاب و ساخت نقشه سایت (`sitemap.xml`)</span>
-                <div style="display:flex; gap:6px;">
-                  <button type="button" class="btn-outline" id="btn-test-github-conn">تست گیت‌هاب</button>
-                  <button type="button" class="btn-outline" id="btn-push-sitemap-robots">🗺️ ساخت Sitemap</button>
-                </div>
-              </div>
               <div class="grid-3">
                 <div class="field">
                   <label>GitHub Token</label>
@@ -1144,48 +1467,24 @@
               </div>
             </div>
 
+            <!-- ۴. گوگل ادز و شبکه‌های اجتماعی -->
             <div class="card">
-              <div class="card-title">📈 ۴. کدهای گوگل ادز، آنالیتیکس و شبکه‌های اجتماعی</div>
-              <div class="grid-4" style="margin-bottom:12px;">
-                <div class="field">
-                  <label>Google Analytics 4 ID</label>
-                  <input type="text" id="cfg-ga4-id" class="input" placeholder="G-XXXXXXXX" style="direction:ltr;" />
-                </div>
-                <div class="field">
-                  <label>Google Ads ID</label>
-                  <input type="text" id="cfg-gads-id" class="input" placeholder="AW-XXXXXXXX" style="direction:ltr;" />
-                </div>
-                <div class="field">
-                  <label>Conversion Label واتساپ</label>
-                  <input type="text" id="cfg-gads-label" class="input" placeholder="AbC-123" style="direction:ltr;" />
-                </div>
-                <div class="field">
-                  <label>کد تایید سرچ کنسول</label>
-                  <input type="text" id="cfg-gsc-verify" class="input" style="direction:ltr;" />
-                </div>
+              <div class="card-title">📈 ۴. گوگل ادز، آنالیتیکس و شبکه‌های اجتماعی</div>
+              <div class="grid-4" style="margin-bottom:10px;">
+                <div class="field"><label>GA4 ID</label><input type="text" id="cfg-ga4-id" class="input" placeholder="G-XXXX" style="direction:ltr;" /></div>
+                <div class="field"><label>Google Ads ID</label><input type="text" id="cfg-gads-id" class="input" placeholder="AW-XXXX" style="direction:ltr;" /></div>
+                <div class="field"><label>Conversion Label</label><input type="text" id="cfg-gads-label" class="input" style="direction:ltr;" /></div>
+                <div class="field"><label>کد سرچ کنسول</label><input type="text" id="cfg-gsc-verify" class="input" style="direction:ltr;" /></div>
               </div>
-
               <div class="grid-4">
-                <div class="field">
-                  <label>لینک اینستاگرام</label>
-                  <input type="url" id="cfg-instagram-url" class="input" style="direction:ltr;" />
-                </div>
-                <div class="field">
-                  <label>لینک تلگرام</label>
-                  <input type="url" id="cfg-telegram-url" class="input" style="direction:ltr;" />
-                </div>
-                <div class="field">
-                  <label>لینک تیک‌تاک</label>
-                  <input type="url" id="cfg-tiktok-url" class="input" style="direction:ltr;" />
-                </div>
-                <div class="field">
-                  <label>لینک اپلیکیشن اندروید</label>
-                  <input type="url" id="cfg-android-app-url" class="input" style="direction:ltr;" />
-                </div>
+                <div class="field"><label>اینستاگرام</label><input type="url" id="cfg-instagram-url" class="input" style="direction:ltr;" /></div>
+                <div class="field"><label>تلگرام</label><input type="url" id="cfg-telegram-url" class="input" style="direction:ltr;" /></div>
+                <div class="field"><label>تیک‌تاک</label><input type="url" id="cfg-tiktok-url" class="input" style="direction:ltr;" /></div>
+                <div class="field"><label>لینک اپ اندروید</label><input type="url" id="cfg-android-app-url" class="input" style="direction:ltr;" /></div>
               </div>
 
               <button type="submit" class="btn btn-gold" id="btn-save-global-settings" style="width:100%; margin-top:16px; padding:14px; font-size:0.95rem;">
-                💾 ذخیره تمام تنظیمات سایت
+                💾 ذخیره تمام تنظیمات، لوگو و دسترسی‌ها
               </button>
             </div>
 
@@ -1193,6 +1492,119 @@
         </section>
 
       </main>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       مودال ۱: پاپ‌آپ ویرایش سریع عنوان و تگ‌های محصول (وقتی روی دکمه 🏷️ عنوان کلیک شود)
+       ======================================================================== -->
+  <div class="adm-modal-backdrop" id="modal-edit-titles">
+    <div class="adm-modal-card">
+      <div class="card-title">
+        <span id="modal-title-heading">🏷️ مشاهده و ویرایش عناوین ۳ زبانه محصول</span>
+        <button type="button" class="btn-outline" id="btn-close-title-modal">✕ بستن</button>
+      </div>
+      <form id="form-modal-edit-titles">
+        <input type="hidden" id="modal-prod-id" value="" />
+        <div class="field" style="margin-bottom:10px;">
+          <label>🟢 عنوان عمومی انگلیسی (بدون نام برند - Google Ads Safe)</label>
+          <input type="text" id="modal-pub-en" class="input" style="direction:ltr;" />
+        </div>
+        <div class="grid-2" style="margin-bottom:10px;">
+          <div class="field">
+            <label>🟢 عنوان عمومی ایتالیایی (IT)</label>
+            <input type="text" id="modal-pub-it" class="input" style="direction:ltr;" />
+          </div>
+          <div class="field">
+            <label>🟢 عنوان عمومی اسپانیایی (ES)</label>
+            <input type="text" id="modal-pub-es" class="input" style="direction:ltr;" />
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>🟡 عنوان برنددار (فقط برای جستجوی داخلی سایت)</label>
+          <input type="text" id="modal-brand-en" class="input" style="direction:ltr;" />
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>🔍 تگ‌های جستجو (با کاما جدا کنید)</label>
+          <input type="text" id="modal-search-tags" class="input" />
+        </div>
+        <div class="field" style="margin-bottom:14px;">
+          <label>📝 توضیحات محصول (EN)</label>
+          <textarea id="modal-desc-en" class="textarea" rows="3" style="direction:ltr;"></textarea>
+        </div>
+        <button type="submit" class="btn btn-emerald" style="width:100%;">💾 ذخیره عناوین و تگ‌ها</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       مودال ۲: پاپ‌آپ افزودن/ویرایش ویدیوی محصول (آپلود فایل ویدیو از گوشی یا لینک یوتیوب)
+       ======================================================================== -->
+  <div class="adm-modal-backdrop" id="modal-product-video">
+    <div class="adm-modal-card">
+      <div class="card-title">
+        <span id="modal-video-heading">🎬 افزودن فایل ویدیو یا لینک یوتیوب به محصول</span>
+        <button type="button" class="btn-outline" id="btn-close-video-modal">✕ بستن</button>
+      </div>
+      <form id="form-modal-product-video">
+        <input type="hidden" id="modal-video-prod-id" value="" />
+        <div class="field" style="margin-bottom:12px;">
+          <label>📹 روش ۱: انتخاب و آپلود مستقیم فایل ویدیو از گالری گوشی (MP4 / MOV)</label>
+          <input type="file" id="modal-video-file-input" class="input" accept="video/*,video/mp4,video/quicktime,video/webm" />
+        </div>
+        <div class="field" style="margin-bottom:14px;">
+          <label>▶️ روش ۲: یا وارد کردن لینک یوتیوب / Shorts (یا لینک مستقیم ویدیو)</label>
+          <input type="text" id="modal-video-url-input" class="input" placeholder="https://youtube.com/shorts/..." style="direction:ltr;" />
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button type="submit" class="btn btn-emerald" id="btn-save-modal-video" style="flex:1;">💾 آپلود و ذخیره ویدیوی محصول</button>
+          <button type="button" class="btn btn-danger" id="btn-remove-modal-video">🗑️ حذف ویدیو</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       مودال ۳: پاپ‌آپ ویرایش مقالات منتشر شده (مخصوص مدیر کل)
+       ======================================================================== -->
+  <div class="adm-modal-backdrop" id="modal-edit-blog">
+    <div class="adm-modal-card" style="max-width:700px;">
+      <div class="card-title">
+        <span>✏️ ویرایش مقاله منتشر شده (۳ زبانه)</span>
+        <button type="button" class="btn-outline" id="btn-close-blog-modal">✕ بستن</button>
+      </div>
+      <form id="form-modal-edit-blog">
+        <input type="hidden" id="edit-blog-id" value="" />
+        <div class="field" style="margin-bottom:10px;">
+          <label>🇬🇧 عنوان انگلیسی (EN)</label>
+          <input type="text" id="edit-blog-title-en" class="input" style="direction:ltr;" />
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>🇬🇧 متن کامل HTML انگلیسی (EN)</label>
+          <textarea id="edit-blog-html-en" class="textarea" rows="5" style="direction:ltr;"></textarea>
+        </div>
+        <div class="grid-2" style="margin-bottom:10px;">
+          <div class="field">
+            <label>🇮🇹 عنوان ایتالیایی (IT)</label>
+            <input type="text" id="edit-blog-title-it" class="input" style="direction:ltr;" />
+          </div>
+          <div class="field">
+            <label>🇪🇸 عنوان اسپانیایی (ES)</label>
+            <input type="text" id="edit-blog-title-es" class="input" style="direction:ltr;" />
+          </div>
+        </div>
+        <div class="grid-2" style="margin-bottom:14px;">
+          <div class="field">
+            <label>🇮🇹 متن ایتالیایی (IT)</label>
+            <textarea id="edit-blog-html-it" class="textarea" rows="4" style="direction:ltr;"></textarea>
+          </div>
+          <div class="field">
+            <label>🇪🇸 متن اسپانیایی (ES)</label>
+            <textarea id="edit-blog-html-es" class="textarea" rows="4" style="direction:ltr;"></textarea>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-emerald" id="btn-save-edited-blog" style="width:100%;">💾 ذخیره تغییرات مقاله و بروزرسانی سایت</button>
+      </form>
     </div>
   </div>
 
