@@ -2,8 +2,8 @@
  * ============================================================================
  * PARADISE WHOLESALE CLOTHING (Paradise Turkey Wholesale)
  * Domain: https://paradisewholesaler.com
- * File: admin.js — Executive B2B Admin Engine, Gemini Vision Dual-Title AI,
- *                  WebP Storage Uploader, 1-Read Shard Sync & GitHub SEO Publisher
+ * File: admin.js (BLOCK 1 OF 2) — Persian Executive B2B Admin Engine,
+ *       Batch Uploader with Duplicate Shield, Retry Queue, Watermark & AI Worker
  * ============================================================================
  */
 
@@ -50,68 +50,69 @@ export const firebaseConfig = {
 export const SUPER_ADMIN_EMAIL = "Paradise.men2019@gmail.com";
 export const SITE_DOMAIN = "https://paradisewholesaler.com";
 export const DEFAULT_WHATSAPP = "+905459099395";
+export const SHARD_CHUNK_SIZE = 100; // بسته‌های ۱۰۰تایی برای پشتیبانی از ده‌ها هزار محصول
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-/* 5-Department Taxonomy (100% synced with core.js & category.html) */
+/* درخت ۵ دپارتمان و شاخه‌ها (کاملاً هماهنگ با core.js و category.html) */
 export const DEPARTMENTS_TAXONOMY = [
   {
     id: "men",
-    label: "Men",
+    label: "مردانه (Men)",
     subcategories: [
-      { id: "men-tshirts", label: "T-Shirts" },
-      { id: "men-shirts", label: "Shirts" },
-      { id: "men-knitwear", label: "Knitwear" },
-      { id: "men-sweatshirts-hoodies", label: "Sweatshirts & Hoodies" },
-      { id: "men-tracksuits", label: "Tracksuits" },
-      { id: "men-jeans", label: "Jeans" },
-      { id: "men-trousers", label: "Trousers" },
-      { id: "men-jackets-coats", label: "Jackets & Coats" },
-      { id: "men-suits-blazers", label: "Suits & Blazers" }
+      { id: "men-tshirts", label: "تیشرت مردانه (T-Shirts)" },
+      { id: "men-shirts", label: "پیراهن مردانه (Shirts)" },
+      { id: "men-knitwear", label: "بافت و پلیور مردانه (Knitwear)" },
+      { id: "men-sweatshirts-hoodies", label: "هودی و دورس مردانه (Hoodies & Sweatshirts)" },
+      { id: "men-tracksuits", label: "ست ورزشی و ترک‌سوئیت مردانه (Tracksuits)" },
+      { id: "men-jeans", label: "شلوار جین مردانه (Jeans)" },
+      { id: "men-trousers", label: "شلوار کتان و پارچه‌ای مردانه (Trousers)" },
+      { id: "men-jackets-coats", label: "کاپشن و پالتو مردانه (Jackets & Coats)" },
+      { id: "men-suits-blazers", label: "کت و شلوار مردانه (Suits & Blazers)" }
     ]
   },
   {
     id: "women",
-    label: "Women",
+    label: "زنانه (Women)",
     subcategories: [
-      { id: "women-tops-tshirts", label: "Tops & T-Shirts" },
-      { id: "women-blouses-shirts", label: "Blouses & Shirts" },
-      { id: "women-knitwear", label: "Knitwear" },
-      { id: "women-sweatshirts-hoodies", label: "Sweatshirts & Hoodies" },
-      { id: "women-dresses-jumpsuits", label: "Dresses & Jumpsuits" },
-      { id: "women-skirts", label: "Skirts" },
-      { id: "women-jeans-trousers", label: "Jeans & Trousers" },
-      { id: "women-tracksuits-loungewear", label: "Tracksuits & Loungewear" },
-      { id: "women-jackets-coats", label: "Jackets & Coats" },
-      { id: "women-suits-coord", label: "Suits & Co-ord Sets" }
+      { id: "women-tops-tshirts", label: "تاپ و تیشرت زنانه (Tops & T-Shirts)" },
+      { id: "women-blouses-shirts", label: "بلوز و شومیز زنانه (Blouses & Shirts)" },
+      { id: "women-knitwear", label: "بافت زنانه (Knitwear)" },
+      { id: "women-sweatshirts-hoodies", label: "هودی و سوئیشرت زنانه (Sweatshirts & Hoodies)" },
+      { id: "women-dresses-jumpsuits", label: "پیراهن، مجلسی و سرهمی (Dresses & Jumpsuits)" },
+      { id: "women-skirts", label: "دامن زنانه (Skirts)" },
+      { id: "women-jeans-trousers", label: "شلوار و جین زنانه (Jeans & Trousers)" },
+      { id: "women-tracksuits-loungewear", label: "ست راحتی و ترک‌سوئیت زنانه (Tracksuits)" },
+      { id: "women-jackets-coats", label: "کاپشن و مانتو/پالتو زنانه (Jackets & Coats)" },
+      { id: "women-suits-coord", label: "ست دو تکه و کت‌شلوار زنانه (Suits & Co-ord)" }
     ]
   },
   {
     id: "kids-baby",
-    label: "Kids & Baby",
+    label: "بچگانه و نوزادی (Kids & Baby)",
     subcategories: [
-      { id: "kids-boys", label: "Boys Clothing" },
-      { id: "kids-girls", label: "Girls Clothing" },
-      { id: "kids-baby-sets", label: "Baby Sets" }
+      { id: "kids-boys", label: "پسرانه (Boys Clothing)" },
+      { id: "kids-girls", label: "دخترانه (Girls Clothing)" },
+      { id: "kids-baby-sets", label: "ست نوزادی (Baby Sets)" }
     ]
   },
   {
     id: "shoes",
-    label: "Shoes",
+    label: "کفش و کتانی (Shoes)",
     subcategories: [
-      { id: "shoes-men", label: "Men's Shoes" },
-      { id: "shoes-women", label: "Women's Shoes" }
+      { id: "shoes-men", label: "کفش و کتانی مردانه (Men's Shoes)" },
+      { id: "shoes-women", label: "کفش و کتانی زنانه (Women's Shoes)" }
     ]
   },
   {
     id: "bags-accessories",
-    label: "Bags & Accessories",
+    label: "کیف و اکسسوری (Bags & Accessories)",
     subcategories: [
-      { id: "bags-main", label: "Bags" },
-      { id: "accessories-main", label: "Accessories" }
+      { id: "bags-main", label: "کیف (Bags)" },
+      { id: "accessories-main", label: "اکسسوری، کمربند و کلاه (Accessories)" }
     ]
   }
 ];
@@ -125,7 +126,16 @@ const adminState = {
   customers: [],
   products: [],
   blogs: [],
-  stagedImages: [], // Array of { file, blob, base64Data, mimeType, dataUrl, origSize, webpSize, remoteUrl }
+  stagedImages: [], // آرایه فایل‌های انتخاب‌شده برای آپلود
+  failedUploadQueue: [], // صف عکس‌هایی که هنگام آپلود با خطا مواجه شدند (برای دکمه تلاش مجدد)
+  lastUploadReport: {
+    totalSelected: 0,
+    successItems: [],
+    failedItems: [],
+    duplicateItems: []
+  },
+  aiWorkerRunning: false,
+  aiWorkerStopRequested: false,
   publicConfig: {
     whatsappRaw: "+905459099395",
     whatsappDisplay: "+90 545 909 93 95",
@@ -145,7 +155,8 @@ const adminState = {
       poster: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=85",
       title: "Istanbul Warehouse & Live Order Packing"
     },
-    cargoVideos: []
+    cargoVideos: [],
+    showroomVideos: []
   },
   adminSecrets: {
     geminiKeys: [],
@@ -158,7 +169,7 @@ const adminState = {
 };
 
 /* ==========================================================================
-   3. UTILITY HELPERS & TOAST NOTIFICATIONS
+   3. UTILITY HELPERS & DUPLICATE FINGERPRINT ENGINE
    ========================================================================== */
 function escapeHtml(str) {
   return String(str || "")
@@ -169,7 +180,7 @@ function escapeHtml(str) {
     .replace(/'/g, "&" + "#039;");
 }
 
-function showAdminToast(message, duration = 3600) {
+function showAdminToast(message, duration = 4000) {
   const toast = document.getElementById("admin-toast");
   if (!toast) return;
   toast.textContent = message;
@@ -207,8 +218,262 @@ function formatMoney(amount) {
   return `${sym}${(Number(amount) || 0).toFixed(2)}`;
 }
 
+/**
+ * تولید اثرانگشت یکتا برای هر فایل جهت جلوگیری ۱۰۰٪ از آپلود تکراری
+ */
+function getFileFingerprint(file) {
+  if (!file) return "";
+  const cleanName = String(file.name || "").trim().toLowerCase();
+  const size = Number(file.size) || 0;
+  return `${cleanName}__${size}`;
+}
+
+/**
+ * بررسی می‌کند آیا این فایل قبلاً در دیتابیس آپلود شده است یا خیر
+ */
+function findDuplicateProductByFingerprint(fingerprint) {
+  if (!fingerprint) return null;
+  return adminState.products.find(
+    (p) =>
+      p.fileFingerprint === fingerprint ||
+      (Array.isArray(p.fileFingerprints) && p.fileFingerprints.includes(fingerprint))
+  );
+}
+
 /* ==========================================================================
-   4. FIREBASE AUTHENTICATION & INITIAL BOOTSTRAP
+   4. AUTO-PERSIAN UI TRANSLATOR & SMART CONTROLS INJECTOR
+   ========================================================================== */
+function injectPersianAndSmartFeaturesUI() {
+  // ۱. فارسی کردن منوهای سایدبار و هدر
+  const navMap = {
+    orders: "📦 ۱. سفارشات و مشتریان واتساپ",
+    "ai-uploader": "✨ ۲. آپلود دسته‌ای و هوش مصنوعی",
+    catalog: "🏷️ ۳. مدیریت کاتالوگ و عمده‌فروشان",
+    blog: "📰 ۴. مقاله‌نویس ۳ زبانه و سئو",
+    videos: "🎬 ۵. ویدیوها و ویترین یوتیوب",
+    settings: "⚙️ ۶. تنظیمات کلی، کلیدها و ادز"
+  };
+
+  document.querySelectorAll("[data-admin-tab]").forEach((btn) => {
+    const tabKey = btn.getAttribute("data-admin-tab");
+    const labelSpan = btn.querySelector(".sidebar-tab-btn-left span:last-child");
+    if (labelSpan && navMap[tabKey]) {
+      labelSpan.textContent = navMap[tabKey];
+    }
+  });
+
+  const topTitle = document.getElementById("topbar-active-title");
+  if (topTitle) topTitle.textContent = "📦 ۱. مدیریت سفارشات و مشتریان واتساپ";
+
+  const syncBtn = document.getElementById("topbar-quick-shard-sync");
+  if (syncBtn) syncBtn.textContent = "⚡ بروزرسانی فوری کاتالوگ سایت";
+
+  // ۲. تزریق پنل «آپلود دسته‌ای سریع + کد عمده‌فروش + ویدیو + گزارش آپلود و تلاش مجدد + صف هوش مصنوعی» در تب ۲
+  const tabUploader = document.getElementById("tab-ai-uploader");
+  if (tabUploader && !document.getElementById("smart-batch-control-panel")) {
+    const batchPanel = document.createElement("div");
+    batchPanel.id = "smart-batch-control-panel";
+    batchPanel.className = "panel-card gold-accent";
+    batchPanel.style.direction = "rtl";
+    batchPanel.innerHTML = `
+      <div class="panel-header dark-header" style="direction:rtl;">
+        <div class="panel-title">
+          <span>🚀</span>
+          <span>مرکز آپلود دسته‌ای هوشمند (۱۰۰ تیشرت یکجا)، حک کد عمده‌فروش و صف خودکار هوش مصنوعی</span>
+        </div>
+        <span class="top-bar-badge" style="background:var(--adm-emerald); color:#fff;">ضد تکراری + تلاش مجدد خودکار</span>
+      </div>
+      <div class="panel-body" style="direction:rtl; text-align:right;">
+        <!-- وضعیت ربات هوش مصنوعی پس‌زمینه -->
+        <div id="ai-background-worker-bar" style="background:#0f172a; color:#fff; padding:14px 18px; border-radius:10px; border:1px solid var(--gold); margin-bottom:18px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px;">
+          <div>
+            <strong style="color:var(--gold-light); font-size:0.92rem; display:block;">🤖 ربات تگ‌گذار خودکار جمنای در پس‌زمینه (Background AI Queue)</strong>
+            <span id="ai-worker-status-label" style="font-size:0.8rem; color:#cbd5e1;">آماده به کار — محصولات آپلود شده بدون معطلی شما در پس‌زمینه یکی‌یکی تگ‌گذاری و ۳ زبانه می‌شوند.</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span id="ai-queue-remaining-badge" class="top-bar-badge" style="background:#1e293b; color:#a7f3d0; font-size:0.8rem;">در صف انتظار AI: 0 محصول</span>
+            <button type="button" class="btn btn-gold" id="btn-start-ai-worker" style="padding:8px 14px; font-size:0.78rem;">▶️ شروع/ادامه تگ‌گذاری خودکار</button>
+            <button type="button" class="adm-btn-xs danger" id="btn-stop-ai-worker" style="display:none; padding:8px 12px;">⏹ توقف موقت</button>
+          </div>
+        </div>
+
+        <!-- تنظیمات مشترک آپلود دسته‌ای، عمده‌فروش، واترمارک و ویدیو -->
+        <div class="form-grid-4" style="margin-bottom:16px; background:#f8fafc; padding:16px; border-radius:10px; border:1px solid var(--adm-border);">
+          <div class="adm-field">
+            <label for="batch-upload-mode">حالت آپلود عکس‌ها *</label>
+            <select id="batch-upload-mode" class="adm-select">
+              <option value="batch_separate">📦 آپلود دسته‌ای: هر عکس = ۱ محصول مجزا (سریع)</option>
+              <option value="single_multi_angle">📸 آپلود تکی: همه عکس‌ها متعلق به ۱ محصول است</option>
+            </select>
+          </div>
+          <div class="adm-field">
+            <label for="prod-vendor-code">کد اختصاری عمده‌فروش (حک در کد و عکس) *</label>
+            <input type="text" id="prod-vendor-code" class="adm-input" placeholder="مثلاً: A12 یا MTR" value="PRD" style="font-weight:800; text-transform:uppercase;" />
+          </div>
+          <div class="adm-field">
+            <label for="prod-vendor-name">نام عمده‌فروش / مغازه (فقط برای ادمین)</label>
+            <input type="text" id="prod-vendor-name" class="adm-input" placeholder="مثلاً: مهمت مرتر - تیشرت" />
+          </div>
+          <div class="adm-field">
+            <label for="prod-watermark-toggle">حک کد روی عکس (Watermark)</label>
+            <label style="display:flex; align-items:center; gap:8px; padding-top:8px; cursor:pointer; font-size:0.82rem; font-weight:700;">
+              <input type="checkbox" id="prod-watermark-toggle" checked style="width:18px; height:18px;" />
+              <span>حک خودکار کد و قیمت روی عکس (بدون افت سرعت)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- افزودن ویدیو به محصول (فایل ویدیو یا لینک یوتیوب/Shorts) -->
+        <div class="form-grid-2" style="margin-bottom:16px; background:#fffbeb; padding:14px 16px; border-radius:10px; border:1px solid rgba(212,175,55,0.4);">
+          <div class="adm-field">
+            <label for="prod-youtube-url">🎬 لینک ویدیوی یوتیوب / Shorts برای این محصول (اختیاری)</label>
+            <input type="text" id="prod-youtube-url" class="adm-input" placeholder="https://youtube.com/shorts/... یا لینک ویدیو" />
+          </div>
+          <div class="adm-field">
+            <label for="prod-video-file">📹 یا آپلود مستقیم فایل ویدیوی محصول (MP4 - اختیاری)</label>
+            <input type="file" id="prod-video-file" class="adm-input" accept="video/mp4,video/webm,video/quicktime" />
+          </div>
+        </div>
+
+        <!-- دکمه بزرگ آپلود دسته‌ای سریع -->
+        <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px;">
+          <div style="font-size:0.82rem; color:var(--text-secondary);">
+            💡 <strong>راهنمای آپلود دسته‌ای:</strong> ابتدا شاخه (مثلاً تیشرت مردانه)، قیمت واحد (مثلاً 5) و کد عمده‌فروش (مثلاً A12) را در فرم پایین تنظیم کنید، سپس صدها عکس را انتخاب کرده و دکمه سبز روبرو را بزنید.
+          </div>
+          <button type="button" class="btn btn-gold" id="btn-fast-batch-upload" style="background:var(--adm-emerald); color:#fff; padding:14px 26px; font-size:0.95rem; box-shadow:0 8px 20px rgba(16,185,129,0.3);">
+            🚀 شروع آپلود دسته‌ای سریع + ارسال به صف هوش مصنوعی
+          </button>
+        </div>
+
+        <!-- کادر گزارش دقیق آپلود (موفق / ناموفق / تکراری + دکمه تلاش مجدد) -->
+        <div id="batch-upload-report-box" style="display:none; margin-top:18px; padding:18px; border-radius:10px; background:#ffffff; border:2px solid var(--adm-border);">
+          <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;">
+            <strong id="batch-report-headline" style="font-size:0.95rem; color:var(--charcoal);">📊 گزارش نهایی عملیات آپلود:</strong>
+            <button type="button" class="btn btn-gold" id="btn-retry-failed-uploads" style="display:none; background:#ef4444; color:#fff; padding:9px 18px; font-size:0.84rem;">
+              🔄 تلاش مجدد برای عکس‌های ناموفق (0)
+            </button>
+          </div>
+          <div class="form-grid-3" style="margin-bottom:12px;">
+            <div style="padding:10px 14px; border-radius:8px; background:#ecfdf5; border:1px solid #10b981; color:#065f46; font-weight:800;">
+              ✅ آپلود موفق: <span id="rep-count-success">0</span> محصول
+            </div>
+            <div style="padding:10px 14px; border-radius:8px; background:#fef3c7; border:1px solid #f59e0b; color:#92400e; font-weight:800;">
+              ⚠️ تکراری (رد شده): <span id="rep-count-duplicate">0</span> فایل
+            </div>
+            <div style="padding:10px 14px; border-radius:8px; background:#fef2f2; border:1px solid #ef4444; color:#991b1b; font-weight:800;">
+              ❌ ناموفق (خطا): <span id="rep-count-failed">0</span> فایل
+            </div>
+          </div>
+          <div id="batch-report-details-log" style="max-height:170px; overflow-y:auto; font-size:0.78rem; background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #e2e8f0; line-height:1.7;"></div>
+        </div>
+      </div>
+    `;
+    tabUploader.insertBefore(batchPanel, tabUploader.firstChild);
+  }
+
+  // ۳. تزریق فیلتر عمده‌فروش + فیلتر زیرشاخه + دکمه «حذف دسته‌جمعی محصولات عمده‌فروش» در تب ۳ (کاتالوگ)
+  const tabCatalog = document.getElementById("tab-catalog");
+  const catFilterDept = document.getElementById("catalog-filter-dept");
+  if (tabCatalog && catFilterDept && !document.getElementById("catalog-filter-vendor")) {
+    const filterParent = catFilterDept.parentElement;
+
+    // فیلتر زیرشاخه (تیشرت، ترک‌سوئیت، هودی و...)
+    const subcatSelect = document.createElement("select");
+    subcatSelect.id = "catalog-filter-subcat";
+    subcatSelect.className = "adm-select";
+    subcatSelect.style.width = "190px";
+    subcatSelect.innerHTML = `<option value="all">همه زیرشاخه‌ها (تیشرت، هودی...)</option>`;
+    DEPARTMENTS_TAXONOMY.forEach((d) => {
+      d.subcategories.forEach((sc) => {
+        subcatSelect.innerHTML += `<option value="${sc.id}">${sc.label}</option>`;
+      });
+    });
+    filterParent.insertBefore(subcatSelect, catFilterDept.nextSibling);
+
+    // فیلتر کد عمده‌فروش
+    const vendorSelect = document.createElement("select");
+    vendorSelect.id = "catalog-filter-vendor";
+    vendorSelect.className = "adm-select";
+    vendorSelect.style.width = "190px";
+    vendorSelect.innerHTML = `<option value="all">همه عمده‌فروش‌ها (Vendors)</option>`;
+    filterParent.insertBefore(vendorSelect, subcatSelect.nextSibling);
+
+    // نوار حذف دسته‌جمعی بر اساس عمده‌فروش و شاخه
+    const bulkDeleteBar = document.createElement("div");
+    bulkDeleteBar.id = "vendor-bulk-delete-bar";
+    bulkDeleteBar.style.cssText =
+      "direction:rtl; margin-bottom:16px; padding:12px 16px; border-radius:10px; background:#fef2f2; border:1px solid #fecaca; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px;";
+    bulkDeleteBar.innerHTML = `
+      <div style="font-size:0.82rem; color:#991b1b; font-weight:700;">
+        🗑️ <strong>بروزرسانی و پاکسازی عمده‌فروش:</strong> ابتدا از منوهای بالا «عمده‌فروش» و در صورت تمایل «زیرشاخه (مثلاً تیشرت یا ترک‌سوئیت)» را انتخاب کنید، سپس دکمه مقابل را بزنید تا فقط همان محصولات یکجا پاک شوند.
+      </div>
+      <button type="button" class="adm-btn-xs danger" id="btn-bulk-delete-filtered" style="padding:9px 16px; font-size:0.82rem; background:#ef4444; color:#fff; border:none;">
+        🗑️ حذف یکجای محصولات فیلتر شده
+      </button>
+    `;
+    filterParent.parentElement.insertAdjacentElement("afterend", bulkDeleteBar);
+  }
+
+  // ۴. تزریق بخش «ویترین ویدیوها و تیزرهای یوتیوب (Showroom Videos)» در تب ۵
+  const tabVideos = document.getElementById("tab-videos");
+  if (tabVideos && !document.getElementById("showroom-videos-card")) {
+    const showroomCard = document.createElement("div");
+    showroomCard.id = "showroom-videos-card";
+    showroomCard.className = "panel-card gold-accent";
+    showroomCard.style.direction = "rtl";
+    showroomCard.innerHTML = `
+      <div class="panel-header dark-header">
+        <div class="panel-title">
+          <span>📺</span>
+          <span>ویترین ویدیوها و تیزرهای نمایش محصولات (پخش در صفحه اصلی در کنار رضایت مشتریان)</span>
+        </div>
+      </div>
+      <div class="panel-body">
+        <form id="admin-add-showroom-video-form" style="margin-bottom:20px; padding:16px; background:#f8fafc; border:1px solid var(--adm-border); border-radius:10px;">
+          <div class="form-grid-3" style="margin-bottom:12px;">
+            <div class="adm-field">
+              <label for="showroom-vid-url">لینک یوتیوب / Shorts یا لینک مستقیم MP4 *</label>
+              <input type="text" id="showroom-vid-url" class="adm-input" required placeholder="https://youtube.com/shorts/..." />
+            </div>
+            <div class="adm-field">
+              <label for="showroom-vid-title">عنوان ویدیو (نمایش زیر ویدیو) *</label>
+              <input type="text" id="showroom-vid-title" class="adm-input" required placeholder="مثلاً: کالکشن جدید تیشرت‌های سنگین‌وزن ۲۰۲۵" />
+            </div>
+            <div class="adm-field">
+              <label for="showroom-vid-dept">دپارتمان مرتبط</label>
+              <select id="showroom-vid-dept" class="adm-select">
+                <option value="all">کل سایت (عمومی)</option>
+                <option value="men">مردانه</option>
+                <option value="women">زنانه</option>
+                <option value="shoes">کفش</option>
+                <option value="bags-accessories">کیف و اکسسوری</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-gold" style="padding:9px 18px; font-size:0.82rem;">+ افزودن به ویترین ویدیوهای سایت</button>
+        </form>
+        <div class="table-responsive">
+          <table class="adm-table">
+            <thead>
+              <tr>
+                <th>پیش‌نمایش</th>
+                <th>عنوان ویدیو</th>
+                <th>دپارتمان</th>
+                <th>شناسه / لینک</th>
+                <th style="text-align:right;">حذف</th>
+              </tr>
+            </thead>
+            <tbody id="admin-showroom-videos-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    `;
+    tabVideos.appendChild(showroomCard);
+  }
+}
+
+/* ==========================================================================
+   5. FIREBASE AUTHENTICATION & INITIAL BOOTSTRAP
    ========================================================================== */
 function bindAuthEvents() {
   const loginForm = document.getElementById("admin-login-form");
@@ -220,7 +485,7 @@ function bindAuthEvents() {
     togglePassBtn.addEventListener("click", () => {
       const isPass = passInput.type === "password";
       passInput.type = isPass ? "text" : "password";
-      togglePassBtn.textContent = isPass ? "HIDE" : "SHOW";
+      togglePassBtn.textContent = isPass ? "مخفی" : "نمایش";
     });
   }
 
@@ -235,21 +500,21 @@ function bindAuthEvents() {
       if (errBox) errBox.style.display = "none";
       if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.textContent = "Authenticating with Firebase...";
+        submitBtn.textContent = "در حال بررسی و ورود به پنل...";
       }
 
       try {
         await signInWithEmailAndPassword(auth, email, password);
-        showAdminToast("✓ Executive Session Authenticated");
+        showAdminToast("✓ خوش آمدید! ورود با موفقیت انجام شد.");
       } catch (err) {
         if (errBox) {
           errBox.style.display = "block";
-          errBox.textContent = `Authentication failed: ${err.message}`;
+          errBox.textContent = `خطا در ورود: رمز عبور یا ایمیل اشتباه است (${err.message})`;
         }
       } finally {
         if (submitBtn) {
           submitBtn.disabled = false;
-          submitBtn.textContent = "🔐 Authenticate & Unlock Suite";
+          submitBtn.textContent = "🔐 ورود به پنل مدیریت";
         }
       }
     });
@@ -258,7 +523,7 @@ function bindAuthEvents() {
   if (logoutBtn) {
     logoutBtn.addEventListener("click", async () => {
       await signOut(auth);
-      showAdminToast("Signed out of executive session.");
+      showAdminToast("از حساب مدیریت خارج شدید.");
     });
   }
 
@@ -273,6 +538,8 @@ function bindAuthEvents() {
       if (appShell) appShell.style.display = "flex";
       if (emailLabel) emailLabel.textContent = user.email || SUPER_ADMIN_EMAIL;
       await loadAllAdminData();
+      // اگر محصولی از قبل در صف هوش مصنوعی مانده باشد، وضعیتش را نشان بده
+      updateAiQueueBadge();
     } else {
       if (authScreen) authScreen.style.display = "flex";
       if (appShell) appShell.style.display = "none";
@@ -288,6 +555,7 @@ async function loadAllAdminData() {
     loadPublishedBlogs()
   ]);
   updateDashboardKPIs();
+  refreshVendorFilterDropdown();
 }
 
 function updateDashboardKPIs() {
@@ -306,9 +574,9 @@ function updateDashboardKPIs() {
 
   setTxt("kpi-total-products", String(prodCount));
   setTxt("kpi-total-orders", String(ordCount));
-  setTxt("kpi-orders-volume", `Total Volume: ${formatMoney(totalVolume)}`);
+  setTxt("kpi-orders-volume", `مجموع کل سفارشات: ${formatMoney(totalVolume)}`);
   setTxt("kpi-total-customers", String(custCount));
-  setTxt("kpi-ai-keys-count", keyCount > 0 ? `${keyCount} Active Keys ⚡` : "Add Key in Tab 6");
+  setTxt("kpi-ai-keys-count", keyCount > 0 ? `${keyCount} کلید فعال ⚡` : "کلید جمنای را در تب ۶ وارد کنید");
 
   setTxt("nav-badge-orders", String(ordCount));
   setTxt("nav-badge-products", String(prodCount));
@@ -316,7 +584,7 @@ function updateDashboardKPIs() {
 }
 
 /* ==========================================================================
-   5. NAVIGATION & SIDEBAR TABS CONTROLLER
+   6. NAVIGATION & SIDEBAR TABS CONTROLLER
    ========================================================================== */
 function bindNavigationEvents() {
   const sidebar = document.getElementById("admin-sidebar");
@@ -331,18 +599,18 @@ function bindNavigationEvents() {
 
   openBtn?.addEventListener("click", () => {
     sidebar?.classList.add("open");
-    backdrop?.classList.add("active");
+    backdrop?.classList.remove("active");
   });
   closeBtn?.addEventListener("click", closeMobileSidebar);
   backdrop?.addEventListener("click", closeMobileSidebar);
 
   const tabTitles = {
-    orders: "1. Orders & WhatsApp B2B CRM",
-    "ai-uploader": "2. Gemini Vision AI Product Uploader & Dual-Title Shield",
-    catalog: "3. Master Catalog & 1-Read Shard Optimizer",
-    blog: "4. AI 3-Language Blog Studio & Static GitHub SEO",
-    videos: "5. YouTube & Shorts Showroom Media Manager",
-    settings: "6. Global Live Settings, Google Ads & API Keys"
+    orders: "📦 ۱. سفارشات پیش‌فاکتور و مشتریان واتساپ",
+    "ai-uploader": "✨ ۲. آپلود دسته‌ای محصولات، واترمارک و هوش مصنوعی",
+    catalog: "🏷️ ۳. مدیریت کاتالوگ، قیمت‌ها و حذف بر اساس عمده‌فروش",
+    blog: "📰 ۴. استودیوی مقاله‌نویس ۳ زبانه و سئوی گیت‌هاب",
+    videos: "🎬 ۵. مدیریت ویدیوهای یوتیوب، رضایت مشتریان و ویترین",
+    settings: "⚙️ ۶. تنظیمات کلی سایت، شماره واتساپ، گوگل ادز و کلیدهای API"
   };
 
   document.querySelectorAll("[data-admin-tab]").forEach((btn) => {
@@ -368,18 +636,17 @@ function bindNavigationEvents() {
     });
   });
 
-  // Quick Shard Sync in Topbar
   document.getElementById("topbar-quick-shard-sync")?.addEventListener("click", async () => {
     await rebuildAllCatalogShards();
   });
 }
 
 /* ==========================================================================
-   6. TAB 1: ORDERS & WHATSAPP CRM ENGINE
+   7. TAB 1: ORDERS & WHATSAPP CRM ENGINE
    ========================================================================== */
 async function loadOrdersAndCustomers() {
   try {
-    const ordQuery = query(collection(db, "orders"), orderBy("createdAt", "desc"), limit(100));
+    const ordQuery = query(collection(db, "orders"), orderBy("createdAt", "desc"), limit(200));
     const ordSnap = await getDocs(ordQuery);
     const ordersList = [];
     ordSnap.forEach((d) => ordersList.push({ id: d.id, orderCode: d.id, ...d.data() }));
@@ -428,15 +695,15 @@ function renderOrdersTable() {
   });
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:26px; color:var(--text-muted);">No matching wholesale proforma orders found.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:26px; color:var(--text-muted);">هیچ پیش‌فاکتوری یافت نشد.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = filtered
     .map((o) => {
       const code = escapeHtml(o.orderCode || o.id || "ORD-0000");
-      const dateStr = o.createdAtIso ? new Date(o.createdAtIso).toLocaleDateString() : "2026";
-      const buyer = escapeHtml(o.buyerName || "B2B Buyer");
+      const dateStr = o.createdAtIso ? new Date(o.createdAtIso).toLocaleDateString("fa-IR") : "2026";
+      const buyer = escapeHtml(o.buyerName || "مشتری عمده");
       const country = escapeHtml(o.buyerCountry || "—");
       const phone = escapeHtml(o.buyerPhone || "—");
       const cleanPhone = String(o.buyerPhone || "").replace(/[^0-9]/g, "");
@@ -463,21 +730,21 @@ function renderOrdersTable() {
           <td>${country}</td>
           <td>${phone}</td>
           <td>
-            <strong>${packs} Packs</strong>
-            <span style="display:block; font-size:0.74rem; color:var(--emerald-dark); font-weight:700;">${pcs} pcs ${pcs >= 25 ? "★ VIP" : ""}</span>
+            <strong>${packs} پک</strong>
+            <span style="display:block; font-size:0.74rem; color:var(--emerald-dark); font-weight:700;">${pcs} عدد ${pcs >= 25 ? "★ عمده VIP" : ""}</span>
           </td>
           <td style="font-weight:800; color:var(--gold-dark);">${amount}</td>
           <td>
-            <select class="adm-select" data-order-status-change="${code}" style="padding:5px 8px; font-size:0.76rem; width:165px;">
-              <option value="pending_whatsapp" ${status === "pending_whatsapp" ? "selected" : ""}>🟡 Pending WhatsApp</option>
-              <option value="preparing" ${status === "preparing" ? "selected" : ""}>🔵 Preparing Warehouse</option>
-              <option value="shipped" ${status === "shipped" ? "selected" : ""}>🟣 Shipped Cargo</option>
-              <option value="completed" ${status === "completed" ? "selected" : ""}>🟢 Completed</option>
+            <select class="adm-select" data-order-status-change="${code}" style="padding:5px 8px; font-size:0.76rem; width:170px;">
+              <option value="pending_whatsapp" ${status === "pending_whatsapp" ? "selected" : ""}>🟡 در انتظار واتساپ</option>
+              <option value="preparing" ${status === "preparing" ? "selected" : ""}>🔵 در حال آماده‌سازی انبار</option>
+              <option value="shipped" ${status === "shipped" ? "selected" : ""}>🟣 تحویل به کارگو</option>
+              <option value="completed" ${status === "completed" ? "selected" : ""}>🟢 تکمیل شده</option>
             </select>
           </td>
           <td style="text-align:right; white-space:nowrap;">
-            <a href="${invoiceUrl}" target="_blank" class="adm-btn-xs" title="Open Proforma Invoice">📄 Invoice ↗</a>
-            <a href="${waHref}" target="_blank" rel="noopener" class="adm-btn-xs" style="background:var(--emerald-light); color:var(--emerald-dark); border-color:var(--adm-emerald);">💬 WhatsApp</a>
+            <a href="${invoiceUrl}" target="_blank" class="adm-btn-xs" title="مشاهده پیش‌فاکتور">📄 فاکتور ↗</a>
+            <a href="${waHref}" target="_blank" rel="noopener" class="adm-btn-xs" style="background:var(--emerald-light); color:var(--emerald-dark); border-color:var(--adm-emerald);">💬 واتساپ مشتری</a>
           </td>
         </tr>
       `;
@@ -497,13 +764,13 @@ function renderCustomersTable() {
   });
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:24px; color:var(--text-muted);">No customer records found.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:24px; color:var(--text-muted);">هنوز مشتری ثبت نشده است.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = filtered
     .map((c) => {
-      const name = escapeHtml(c.name || "VIP Buyer");
+      const name = escapeHtml(c.name || "خریدار عمده");
       const country = escapeHtml(c.country || "—");
       const phone = escapeHtml(c.phone || "—");
       const cleanPhone = String(c.phone || "").replace(/[^0-9]/g, "");
@@ -521,9 +788,9 @@ function renderCustomersTable() {
           <td>
             ${lastOrder !== "—" ? `<a href="order.html?id=${encodeURIComponent(lastOrder)}" target="_blank" style="color:var(--gold-dark); font-weight:800;">${lastOrder} ↗</a>` : "—"}
           </td>
-          <td style="font-weight:700;">${lastAmt} (${c.lastOrderPieces || 0} pcs)</td>
+          <td style="font-weight:700;">${lastAmt} (${c.lastOrderPieces || 0} عدد)</td>
           <td style="text-align:right;">
-            ${cleanPhone ? `<a href="${waLink}" target="_blank" rel="noopener" class="adm-btn-xs">💬 Message Buyer</a>` : "—"}
+            ${cleanPhone ? `<a href="${waLink}" target="_blank" rel="noopener" class="adm-btn-xs">💬 پیام واتساپ</a>` : "—"}
           </td>
         </tr>
       `;
@@ -537,7 +804,6 @@ function bindOrdersAndCrmEvents() {
   document.getElementById("customers-search-input")?.addEventListener("input", renderCustomersTable);
   document.getElementById("btn-refresh-orders")?.addEventListener("click", loadOrdersAndCustomers);
 
-  // Order Status Inline Change
   document.getElementById("admin-orders-tbody")?.addEventListener("change", async (e) => {
     const sel = e.target.closest("[data-order-status-change]");
     if (!sel) return;
@@ -550,16 +816,15 @@ function bindOrdersAndCrmEvents() {
       });
       const ordObj = adminState.orders.find((o) => (o.orderCode || o.id) === orderCode);
       if (ordObj) ordObj.status = newStatus;
-      showAdminToast(`✓ Order ${orderCode} status updated to ${newStatus}`);
+      showAdminToast(`✓ وضعیت سفارش ${orderCode} بروزرسانی شد.`);
     } catch (err) {
-      showAdminToast(`Status update error: ${err.message}`);
+      showAdminToast(`خطا در تغییر وضعیت: ${err.message}`);
     }
   });
 
-  // Export Customers CSV
   document.getElementById("btn-export-customers-csv")?.addEventListener("click", () => {
     if (adminState.customers.length === 0) {
-      showAdminToast("No customer records to export.");
+      showAdminToast("لیست مشتریان خالی است.");
       return;
     }
     const headers = ["Name", "Country", "Phone", "LastOrderCode", "LastOrderAmount", "LastOrderPieces"];
@@ -575,10 +840,9 @@ function bindOrdersAndCrmEvents() {
     downloadFileBlob(csvContent, "paradise_b2b_customers.csv", "text/csv;charset=utf-8;");
   });
 
-  // Export Customers JSON
   document.getElementById("btn-export-customers-json")?.addEventListener("click", () => {
     if (adminState.customers.length === 0) {
-      showAdminToast("No customer records to export.");
+      showAdminToast("لیست مشتریان خالی است.");
       return;
     }
     const jsonStr = JSON.stringify(adminState.customers, null, 2);
@@ -599,19 +863,18 @@ function downloadFileBlob(content, filename, mimeType) {
 }
 
 /* ==========================================================================
-   7. WEBP CLIENT-SIDE IMAGE COMPRESSOR & FIREBASE STORAGE UPLOADER
+   8. WEBP IMAGE COMPRESSOR + FAST WATERMARK STAMPER & GEMINI ROTATOR
    ========================================================================== */
 /**
- * Converts any selected image file into a lightweight WebP Blob (max width 1200px, quality 0.84)
- * and extracts pure Base64 for Gemini Vision API.
+ * فشرده‌سازی عکس به WebP (حداکثر عرض 1200px) و حک کردن کد محصول/عمده‌فروش روی عکس (Watermark)
  */
-async function compressImageToWebP(file, maxWidth = 1200, quality = 0.84) {
+async function compressImageToWebP(file, maxWidth = 1200, quality = 0.84, watermarkText = "") {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onerror = () => reject(new Error("File read failed"));
+    reader.onerror = () => reject(new Error("خطا در خواندن فایل تصویر"));
     reader.onload = (ev) => {
       const img = new Image();
-      img.onerror = () => reject(new Error("Image decode failed"));
+      img.onerror = () => reject(new Error("فرمت تصویر معتبر نیست"));
       img.onload = () => {
         let width = img.naturalWidth || img.width;
         let height = img.naturalHeight || img.height;
@@ -627,17 +890,49 @@ async function compressImageToWebP(file, maxWidth = 1200, quality = 0.84) {
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, width, height);
 
+        // اگر تیک واترمارک روشن باشد، کد محصول و عمده‌فروش را شیک در گوشه پایین عکس حک کن
+        if (watermarkText) {
+          const fontSize = Math.max(15, Math.round(width * 0.024));
+          ctx.font = `800 ${fontSize}px sans-serif`;
+          const paddingX = Math.round(fontSize * 0.8);
+          const paddingY = Math.round(fontSize * 0.45);
+          const textMetrics = ctx.measureText(watermarkText);
+          const boxW = textMetrics.width + paddingX * 2;
+          const boxH = fontSize + paddingY * 2;
+          const posX = 16;
+          const posY = height - boxH - 16;
+
+          ctx.fillStyle = "rgba(9, 13, 22, 0.78)";
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(posX, posY, boxW, boxH, 8);
+          } else {
+            ctx.rect(posX, posY, boxW, boxH);
+          }
+          ctx.fill();
+
+          ctx.strokeStyle = "rgba(212, 175, 55, 0.85)";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          ctx.fillStyle = "#f8fafc";
+          ctx.textBaseline = "middle";
+          ctx.fillText(watermarkText, posX + paddingX, posY + boxH / 2);
+        }
+
         const dataUrl = canvas.toDataURL("image/webp", quality);
         const base64Data = dataUrl.split(",")[1] || "";
 
         canvas.toBlob(
           (blob) => {
             if (!blob) {
-              reject(new Error("WebP Canvas conversion failed"));
+              reject(new Error("تبدیل به WebP ناموفق بود"));
               return;
             }
             resolve({
               file,
+              fileName: file.name,
+              fingerprint: getFileFingerprint(file),
               blob,
               base64Data,
               mimeType: "image/webp",
@@ -658,8 +953,7 @@ async function compressImageToWebP(file, maxWidth = 1200, quality = 0.84) {
 }
 
 /**
- * Uploads compressed WebP Blob to Firebase Storage at `products/{dept}/{timestamp}_{code}.webp`
- * and returns the public download URL.
+ * آپلود تصویر WebP روی Firebase Storage
  */
 async function uploadWebPToFirebaseStorage(stagedItem, dept, skuCode, index = 0) {
   if (stagedItem.remoteUrl) return stagedItem.remoteUrl;
@@ -678,9 +972,25 @@ async function uploadWebPToFirebaseStorage(stagedItem, dept, skuCode, index = 0)
   return downloadUrl;
 }
 
-/* ==========================================================================
-   8. MULTI-KEY GEMINI AI ROTATOR ENGINE (gemini-2.5-flash + Failover)
-   ========================================================================== */
+/**
+ * آپلود فایل ویدیوی محصول (MP4/WebM) روی Firebase Storage
+ */
+async function uploadVideoFileToStorage(videoFile, dept, skuCode) {
+  if (!videoFile) return "";
+  const cleanCode = String(skuCode || "VID").replace(/[^a-zA-Z0-9_-]/g, "");
+  const ext = (videoFile.name.split(".").pop() || "mp4").toLowerCase();
+  const path = `products/${dept || "men"}/videos/${Date.now()}_${cleanCode}.${ext}`;
+  const fileRef = storageRef(storage, path);
+  await uploadBytes(fileRef, videoFile, {
+    contentType: videoFile.type || "video/mp4",
+    cacheControl: "public,max-age=31536000"
+  });
+  return await getDownloadURL(fileRef);
+}
+
+/**
+ * موتور چرخشی کلیدهای هوش مصنوعی جمنای (Multi-Key Rotator)
+ */
 function getActiveGeminiKeys() {
   const textareaVal = document.getElementById("cfg-gemini-keys")?.value || "";
   const fromDom = textareaVal
@@ -694,17 +1004,14 @@ function getActiveGeminiKeys() {
   return adminState.adminSecrets.geminiKeys;
 }
 
-/**
- * Executes a Gemini generateContent request with automatic Multi-Key Rotation
- * and automatic model fallback (`gemini-2.5-flash` -> `gemini-1.5-flash`).
- */
 async function callGeminiWithRotator(contentsPayload, expectJson = true) {
   const keys = getActiveGeminiKeys();
   if (keys.length === 0) {
-    throw new Error("No Gemini API keys configured! Please enter at least one Gemini API Key in Tab 6 (Global Live Settings).");
+    throw new Error("هیچ کلید Gemini API در تب ۶ وارد نشده است!");
   }
 
-  const preferredModel = document.getElementById("cfg-gemini-model")?.value || adminState.adminSecrets.geminiModel || "gemini-2.5-flash";
+  const preferredModel =
+    document.getElementById("cfg-gemini-model")?.value || adminState.adminSecrets.geminiModel || "gemini-2.5-flash";
   const modelsToTry = Array.from(new Set([preferredModel, "gemini-2.5-flash", "gemini-1.5-flash"]));
 
   let lastError = null;
@@ -732,24 +1039,22 @@ async function callGeminiWithRotator(contentsPayload, expectJson = true) {
         });
 
         if (res.status === 429 || res.status === 503) {
-          // Quota or rate limit reached on this key; rotate to next key
-          lastError = new Error(`Key #${keyIndex + 1} hit quota/rate-limit (HTTP ${res.status})`);
+          lastError = new Error(`کلید شماره ${keyIndex + 1} به سقف محدودیت رسید (HTTP ${res.status})`);
           break;
         }
 
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
           lastError = new Error(errData?.error?.message || `HTTP ${res.status} on ${modelName}`);
-          continue; // Try fallback model on same key
+          continue;
         }
 
         const data = await res.json();
         const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
         if (!rawText) {
-          throw new Error("Empty response from Gemini API.");
+          throw new Error("پاسخ خالی از سرور جمنای دریافت شد.");
         }
 
-        // Advance cursor for balanced load rotation on next call
         adminState.geminiKeyCursor = (keyIndex + 1) % keys.length;
 
         if (!expectJson) return rawText;
@@ -767,11 +1072,14 @@ async function callGeminiWithRotator(contentsPayload, expectJson = true) {
     }
   }
 
-  throw lastError || new Error("All Gemini API keys and fallback models failed.");
+  throw lastError || new Error("تمام کلیدهای جمنای با خطا مواجه شدند.");
 }
 
+/* === پایان بلوک ۱ از ۲ — بلوک ۲ را دقیقاً در خط زیر پیست کنید === */
+/* === شروع بلوک ۲ از ۲ — دقیقاً زیر بلوک ۱ پیست کنید === */
+
 /* ==========================================================================
-   9. TAB 2: AI PRODUCT UPLOADER & GEMINI VISION DUAL-TITLE ANALYZER
+   9. TAB 2: AI PRODUCT UPLOADER, BATCH ENGINE, DUPLICATE SHIELD & AI WORKER
    ========================================================================== */
 function populateSubcategoryDropdown(deptId, selectedSubId = "") {
   const subSelect = document.getElementById("prod-subcategory");
@@ -779,7 +1087,10 @@ function populateSubcategoryDropdown(deptId, selectedSubId = "") {
   const deptObj = DEPARTMENTS_TAXONOMY.find((d) => d.id === deptId) || DEPARTMENTS_TAXONOMY[0];
 
   subSelect.innerHTML = deptObj.subcategories
-    .map((sc) => `<option value="${escapeHtml(sc.id)}" ${sc.id === selectedSubId ? "selected" : ""}>${escapeHtml(sc.label)} (${escapeHtml(sc.id)})</option>`)
+    .map(
+      (sc) =>
+        `<option value="${escapeHtml(sc.id)}" ${sc.id === selectedSubId ? "selected" : ""}>${escapeHtml(sc.label)}</option>`
+    )
     .join("");
 }
 
@@ -789,23 +1100,21 @@ function updatePackMathDisplay() {
   const total = unitPrice * pcs;
   const displayEl = document.getElementById("prod-pack-total-display");
   if (displayEl) {
-    displayEl.value = `${formatMoney(total)} (${pcs} pcs)`;
+    displayEl.value = `${formatMoney(total)} (${pcs} عدد در پک)`;
   }
 }
 
+function getCleanVendorCode() {
+  const raw = (document.getElementById("prod-vendor-code")?.value || "PRD").trim().toUpperCase();
+  return raw.replace(/[^A-Z0-9]/g, "") || "PRD";
+}
+
 function generateAutoSku() {
-  const dept = document.getElementById("prod-department")?.value || "men";
-  const prefixMap = {
-    men: "PRD-M",
-    women: "PRD-W",
-    "kids-baby": "PRD-K",
-    shoes: "PRD-S",
-    "bags-accessories": "PRD-B"
-  };
-  const prefix = prefixMap[dept] || "PRD-TR";
-  const rand = Math.floor(100 + Math.random() * 900);
+  const vendorPrefix = getCleanVendorCode();
+  const rand = Math.floor(1000 + Math.random() * 9000);
   const skuInput = document.getElementById("prod-sku");
-  if (skuInput) skuInput.value = `${prefix}${rand}`;
+  if (skuInput) skuInput.value = `${vendorPrefix}-${rand}`;
+  return `${vendorPrefix}-${rand}`;
 }
 
 function renderStagedImagePreviews() {
@@ -815,6 +1124,7 @@ function renderStagedImagePreviews() {
 
   if (adminState.stagedImages.length === 0) {
     container.innerHTML = "";
+    if (badge) badge.textContent = "آماده دریافت و فشرده‌سازی WebP";
     return;
   }
 
@@ -825,9 +1135,10 @@ function renderStagedImagePreviews() {
     .map((item, idx) => {
       totalOrig += item.origSize || 0;
       totalWebp += item.webpSize || 0;
-      const kb = item.webpSize ? `${Math.round(item.webpSize / 1024)} KB WebP` : "Direct URL";
+      const kb = item.webpSize ? `${Math.round(item.webpSize / 1024)} KB` : "لینک مستقیم";
+      const fName = escapeHtml(item.fileName || `عکس ${idx + 1}`);
       return `
-        <div class="upload-preview-item">
+        <div class="upload-preview-item" title="${fName}">
           <img src="${escapeHtml(item.dataUrl || item.remoteUrl)}" alt="Preview ${idx + 1}" />
           <span class="webp-badge">⚡ ${escapeHtml(kb)}</span>
           <button type="button" data-remove-staged="${idx}" style="position:absolute; top:8px; right:8px; width:24px; height:24px; border-radius:50%; background:rgba(15,23,42,0.85); color:#fff; font-size:0.72rem; font-weight:800;">✕</button>
@@ -838,7 +1149,7 @@ function renderStagedImagePreviews() {
 
   if (badge && totalOrig > 0) {
     const savedPct = Math.max(0, Math.round((1 - totalWebp / totalOrig) * 100));
-    badge.textContent = `WebP Ready: ${Math.round(totalWebp / 1024)} KB (Saved ${savedPct}%)`;
+    badge.textContent = `${adminState.stagedImages.length} عکس آماده (${Math.round(totalWebp / 1024)} KB — کاهش حجم ${savedPct}%)`;
   }
 }
 
@@ -847,26 +1158,402 @@ async function handleFilesSelected(fileList) {
   if (files.length === 0) return;
 
   const statusEl = document.getElementById("ai-vision-status-text");
-  if (statusEl) statusEl.textContent = "Compressing image(s) to ultra-fast WebP...";
+  if (statusEl) statusEl.textContent = `در حال بررسی ${files.length} تصویر و تبدیل به فرمت پرسرعت WebP...`;
+
+  let duplicateSkippedInSelection = 0;
 
   for (const file of files) {
+    const fp = getFileFingerprint(file);
+    const alreadyStaged = adminState.stagedImages.some((s) => s.fingerprint && s.fingerprint === fp);
+    if (alreadyStaged) {
+      duplicateSkippedInSelection++;
+      continue;
+    }
     try {
-      const compressed = await compressImageToWebP(file, 1200, 0.84);
+      const compressed = await compressImageToWebP(file, 1200, 0.84, "");
       adminState.stagedImages.push(compressed);
     } catch (err) {
-      showAdminToast(`Image compression error: ${err.message}`);
+      showAdminToast(`خطا در خواندن عکس ${file.name}: ${err.message}`);
     }
   }
 
   renderStagedImagePreviews();
   if (statusEl) {
-    statusEl.textContent = `✓ ${adminState.stagedImages.length} WebP image(s) ready. Click "Analyze Image with Gemini Vision AI" to auto-fill all fields.`;
+    statusEl.textContent = `✓ ${adminState.stagedImages.length} عکس آماده آپلود است.${duplicateSkippedInSelection > 0 ? ` (${duplicateSkippedInSelection} عکس تکراری در انتخاب فعلی نادیده گرفته شد)` : ""}`;
   }
 }
 
 /**
- * Gemini Vision Dual-Title Analyzer
- * Analyzes staged product image(s) + admin hint and populates 3-language publicTitle, brandTitle, searchTags, and description.
+ * نمایش گزارش کامل آپلود دسته‌ای (موفق، تکراری، ناموفق) و مدیریت دکمه تلاش مجدد
+ */
+function renderBatchUploadReport() {
+  const box = document.getElementById("batch-upload-report-box");
+  if (!box) return;
+
+  const rep = adminState.lastUploadReport;
+  box.style.display = "block";
+
+  const setTxt = (id, v) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = String(v);
+  };
+
+  setTxt("rep-count-success", rep.successItems.length);
+  setTxt("rep-count-duplicate", rep.duplicateItems.length);
+  setTxt("rep-count-failed", rep.failedItems.length);
+
+  const retryBtn = document.getElementById("btn-retry-failed-uploads");
+  if (retryBtn) {
+    if (adminState.failedUploadQueue.length > 0) {
+      retryBtn.style.display = "inline-flex";
+      retryBtn.textContent = `🔄 تلاش مجدد برای عکس‌های ناموفق (${adminState.failedUploadQueue.length})`;
+    } else {
+      retryBtn.style.display = "none";
+    }
+  }
+
+  const logEl = document.getElementById("batch-report-details-log");
+  if (logEl) {
+    const lines = [];
+    rep.successItems.forEach((s) => {
+      lines.push(`<div style="color:#065f46;">✅ <strong>موفق:</strong> کد <code>${escapeHtml(s.sku)}</code> (${escapeHtml(s.fileName)}) — ذخیره و به صف هوش مصنوعی اضافه شد.</div>`);
+    });
+    rep.duplicateItems.forEach((d) => {
+      lines.push(`<div style="color:#92400e;">⚠️ <strong>تکراری (رد شد):</strong> فایل <code>${escapeHtml(d.fileName)}</code> قبلاً با کد <strong>${escapeHtml(d.existingSku)}</strong> آپلود شده است.</div>`);
+    });
+    rep.failedItems.forEach((f) => {
+      lines.push(`<div style="color:#991b1b;">❌ <strong>ناموفق:</strong> فایل <code>${escapeHtml(f.fileName)}</code> — علت: ${escapeHtml(f.error)}</div>`);
+    });
+    logEl.innerHTML = lines.join("") || "هیچ موردی ثبت نشد.";
+  }
+}
+
+/**
+ * آپلود دسته‌ای سریع (مثلاً ۱۰۰ تیشرت یکجا) + جلوگیری از تکراری + حک کد عمده‌فروش روی عکس + صف تلاش مجدد
+ */
+async function executeBatchUploadItems(itemsToProcess, isRetry = false) {
+  if (!itemsToProcess || itemsToProcess.length === 0) {
+    showAdminToast("ابتدا عکس‌های محصولات را انتخاب کنید.");
+    return;
+  }
+
+  const batchBtn = document.getElementById("btn-fast-batch-upload");
+  const retryBtn = document.getElementById("btn-retry-failed-uploads");
+  const department = document.getElementById("prod-department")?.value || "men";
+  const subcategory = document.getElementById("prod-subcategory")?.value || "men-tshirts";
+  const subStyle = document.getElementById("prod-substyle")?.value || "regular";
+  const unitPrice = parseFloat(document.getElementById("prod-unit-price")?.value) || 10;
+  const pcsPerPack = Math.max(1, parseInt(document.getElementById("prod-pcs-per-pack")?.value, 10) || 6);
+  const sizeRange = document.getElementById("prod-size-range")?.value.trim() || "S - M - L - XL";
+  const stockStatus = document.getElementById("prod-stock-status")?.value || "in_stock";
+  const isFeatured = Boolean(document.getElementById("prod-is-featured")?.checked);
+  const vendorCode = getCleanVendorCode();
+  const vendorName = (document.getElementById("prod-vendor-name")?.value || "").trim() || vendorCode;
+  const watermarkEnabled = Boolean(document.getElementById("prod-watermark-toggle")?.checked);
+  const youtubeRaw = (document.getElementById("prod-youtube-url")?.value || "").trim();
+  const youtubeId = extractYouTubeId(youtubeRaw);
+  const videoFileInput = document.getElementById("prod-video-file");
+  const sharedVideoFile = videoFileInput?.files?.[0] || null;
+
+  if (!isRetry) {
+    adminState.lastUploadReport = {
+      totalSelected: itemsToProcess.length,
+      successItems: [],
+      failedItems: [],
+      duplicateItems: []
+    };
+  } else {
+    adminState.lastUploadReport.failedItems = [];
+  }
+
+  const newFailedQueue = [];
+
+  if (batchBtn) batchBtn.disabled = true;
+  if (retryBtn) retryBtn.disabled = true;
+
+  let sharedUploadedVideoUrl = "";
+  if (sharedVideoFile) {
+    try {
+      sharedUploadedVideoUrl = await uploadVideoFileToStorage(sharedVideoFile, department, vendorCode);
+    } catch (e) {
+      console.warn("Shared video upload warning:", e.message);
+    }
+  }
+
+  for (let i = 0; i < itemsToProcess.length; i++) {
+    const item = itemsToProcess[i];
+    const fileName = item.fileName || item.file?.name || `Image_${i + 1}`;
+    const fp = item.fingerprint || getFileFingerprint(item.file);
+
+    if (batchBtn) {
+      batchBtn.textContent = `⏳ در حال آپلود (${i + 1} از ${itemsToProcess.length})...`;
+    }
+
+    // ۱. بررسی ضد تکراری در دیتابیس
+    const duplicateProd = findDuplicateProductByFingerprint(fp);
+    if (duplicateProd && !isRetry) {
+      adminState.lastUploadReport.duplicateItems.push({
+        fileName,
+        existingSku: duplicateProd.sku || duplicateProd.id
+      });
+      renderBatchUploadReport();
+      continue;
+    }
+
+    // ۲. تولید کد یکتا با پیشوند عمده‌فروش
+    const seqNum = Math.floor(1000 + Math.random() * 9000);
+    const sku = item.assignedSku || `${vendorCode}-${seqNum}`;
+    item.assignedSku = sku;
+
+    try {
+      // ۳. اگر تیک حک کد روی عکس روشن است و فایل اصلی را داریم، کد را روی عکس حک کن
+      let finalStaged = item;
+      if (watermarkEnabled && item.file) {
+        const stampText = `${sku} | ${pcsPerPack} Pcs`;
+        finalStaged = await compressImageToWebP(item.file, 1200, 0.84, stampText);
+      }
+
+      // ۴. آپلود در Firebase Storage
+      const remoteUrl = await uploadWebPToFirebaseStorage(finalStaged, department, sku, 0);
+
+      // ۵. ساخت عنوان اولیه موقت و قرار دادن در صف هوش مصنوعی پس‌زمینه (aiStatus: 'pending')
+      const subLabel = subcategory.replace(/^[a-z]+-/, "").replace(/-/g, " ");
+      const tempTitleEn = `Wholesale Turkish ${subLabel.toUpperCase()} (${sku})`;
+      const nowMillis = Date.now() + i;
+
+      const productPayload = {
+        id: sku,
+        code: sku,
+        sku,
+        vendorCode,
+        vendorName,
+        fileFingerprint: fp,
+        department,
+        subcategory,
+        subStyle,
+        unitPrice,
+        pcsPerPack,
+        packTotal: Number((unitPrice * pcsPerPack).toFixed(2)),
+        sizeRange,
+        stockStatus,
+        isFeatured,
+        aiStatus: "pending",
+        publicTitle: {
+          en: tempTitleEn,
+          it: `Ingrosso Abbigliamento Turco (${sku})`,
+          es: `Mayorista Ropa Turca (${sku})`
+        },
+        brandTitle: {
+          en: tempTitleEn,
+          it: tempTitleEn,
+          es: tempTitleEn
+        },
+        description: {
+          en: `Direct Istanbul wholesale pack (${pcsPerPack} pcs/pack). Code: ${sku}.`,
+          it: `Pacco serie ingrosso da Istanbul (${pcsPerPack} pz). Codice: ${sku}.`,
+          es: `Paquete serie al por mayor desde Estambul (${pcsPerPack} uds). Código: ${sku}.`
+        },
+        searchTags: [sku.toLowerCase(), vendorCode.toLowerCase(), department, subcategory],
+        imageUrl: remoteUrl,
+        images: [remoteUrl],
+        videoUrl: sharedUploadedVideoUrl || (youtubeId ? `https://www.youtube.com/watch?v=${youtubeId}` : ""),
+        youtubeId: youtubeId || "",
+        createdAtMillis: nowMillis,
+        updatedAtIso: new Date().toISOString(),
+        createdAt: serverTimestamp()
+      };
+
+      await setDoc(doc(db, "products", sku), productPayload, { merge: true });
+      adminState.products.unshift(productPayload);
+
+      adminState.lastUploadReport.successItems.push({ sku, fileName });
+    } catch (err) {
+      newFailedQueue.push(item);
+      adminState.lastUploadReport.failedItems.push({
+        fileName,
+        error: err.message || "خطای ارتباط با سرور"
+      });
+    }
+
+    renderBatchUploadReport();
+  }
+
+  adminState.failedUploadQueue = newFailedQueue;
+  adminState.stagedImages = [...newFailedQueue];
+
+  renderStagedImagePreviews();
+  renderBatchUploadReport();
+  await rebuildAllCatalogShards();
+  renderCatalogTable();
+  updateDashboardKPIs();
+  refreshVendorFilterDropdown();
+  updateAiQueueBadge();
+
+  if (batchBtn) {
+    batchBtn.disabled = false;
+    batchBtn.textContent = "🚀 شروع آپلود دسته‌ای سریع + ارسال به صف هوش مصنوعی";
+  }
+  if (retryBtn) {
+    retryBtn.disabled = false;
+  }
+
+  const succCount = adminState.lastUploadReport.successItems.length;
+  const failCount = adminState.failedUploadQueue.length;
+  const dupCount = adminState.lastUploadReport.duplicateItems.length;
+
+  showAdminToast(`آپلود پایان یافت: ${succCount} موفق | ${dupCount} تکراری | ${failCount} ناموفق`);
+
+  // شروع خودکار ربات هوش مصنوعی در پس‌زمینه اگر کلید جمنای فعال باشد
+  if (succCount > 0 && getActiveGeminiKeys().length > 0 && !adminState.aiWorkerRunning) {
+    startBackgroundAiWorker();
+  }
+}
+
+/**
+ * ربات تگ‌گذار خودکار در پس‌زمینه (Background AI Queue Worker)
+ * محصولات دارای aiStatus === "pending" را یکی‌یکی برمی‌دارد و با جمنای تکمیل می‌کند
+ */
+function updateAiQueueBadge() {
+  const pendingList = adminState.products.filter((p) => p.aiStatus === "pending");
+  const badge = document.getElementById("ai-queue-remaining-badge");
+  if (badge) {
+    badge.textContent = `در صف انتظار AI: ${pendingList.length} محصول`;
+  }
+}
+
+async function fetchImageAsBase64(imageUrl) {
+  const res = await fetch(imageUrl);
+  const blob = await res.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Image read failed"));
+    reader.onload = () => {
+      const dataUrl = String(reader.result || "");
+      resolve({
+        mimeType: blob.type || "image/webp",
+        base64Data: dataUrl.split(",")[1] || ""
+      });
+    };
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function startBackgroundAiWorker() {
+  if (adminState.aiWorkerRunning) return;
+  if (getActiveGeminiKeys().length === 0) {
+    showAdminToast("برای تگ‌گذاری خودکار، ابتدا کلید Gemini API را در تب ۶ وارد کنید.");
+    return;
+  }
+
+  adminState.aiWorkerRunning = true;
+  adminState.aiWorkerStopRequested = false;
+
+  const statusLbl = document.getElementById("ai-worker-status-label");
+  const startBtn = document.getElementById("btn-start-ai-worker");
+  const stopBtn = document.getElementById("btn-stop-ai-worker");
+
+  if (startBtn) startBtn.style.display = "none";
+  if (stopBtn) stopBtn.style.display = "inline-flex";
+
+  const validTaxonomyJson = JSON.stringify(
+    DEPARTMENTS_TAXONOMY.map((d) => ({
+      dept: d.id,
+      subcategories: d.subcategories.map((s) => s.id)
+    }))
+  );
+
+  let processedCount = 0;
+
+  while (!adminState.aiWorkerStopRequested) {
+    const nextProd = adminState.products.find((p) => p.aiStatus === "pending");
+    if (!nextProd) break;
+
+    updateAiQueueBadge();
+    if (statusLbl) {
+      statusLbl.textContent = `⏳ در حال آنالیز و تگ‌گذاری ۳ زبانه محصول ${nextProd.sku} در پس‌زمینه...`;
+    }
+
+    try {
+      const imgData = await fetchImageAsBase64(nextProd.imageUrl);
+      const prompt = `
+Analyze this wholesale product image (Code: ${nextProd.sku}, Category: ${nextProd.subcategory}).
+Generate:
+1. "publicTitle" (en, it, es): Luxury B2B wholesale title describing fabric, cut, and style WITHOUT any trademarked brand names (100% Google Ads safe).
+2. "brandTitle" (en, it, es): Real brand-inspired title recognizing any visible logo or fashion house style for internal site search.
+3. "searchTags": Array of 12 lowercase keywords in English, Italian, Spanish, and Persian (including detected brand name and garment type).
+4. "description" (en, it, es): 2-sentence B2B wholesale description highlighting Turkish master quality, pack of ${nextProd.pcsPerPack} pcs, and express shipping from Istanbul.
+Taxonomy list: ${validTaxonomyJson}
+Return ONLY valid JSON:
+{
+  "publicTitle": { "en": "...", "it": "...", "es": "..." },
+  "brandTitle": { "en": "...", "it": "...", "es": "..." },
+  "searchTags": ["..."],
+  "description": { "en": "...", "it": "...", "es": "..." }
+}`.trim();
+
+      const aiRes = await callGeminiWithRotator(
+        [
+          {
+            role: "user",
+            parts: [
+              { inlineData: { mimeType: imgData.mimeType, data: imgData.base64Data } },
+              { text: prompt }
+            ]
+          }
+        ],
+        true
+      );
+
+      const mergedTags = Array.from(
+        new Set([
+          ...(Array.isArray(nextProd.searchTags) ? nextProd.searchTags : []),
+          ...(Array.isArray(aiRes.searchTags) ? aiRes.searchTags.map((t) => String(t).toLowerCase()) : [])
+        ])
+      );
+
+      const updates = {
+        publicTitle: aiRes.publicTitle || nextProd.publicTitle,
+        brandTitle: aiRes.brandTitle || aiRes.publicTitle || nextProd.brandTitle,
+        description: aiRes.description || nextProd.description,
+        searchTags: mergedTags,
+        aiStatus: "completed",
+        updatedAtIso: new Date().toISOString()
+      };
+
+      await updateDoc(doc(db, "products", nextProd.id), updates);
+      Object.assign(nextProd, updates);
+      processedCount++;
+      updateAiQueueBadge();
+      renderCatalogTable();
+
+      // مکث کوتاه ۲ ثانیه‌ای بین هر درخواست برای جلوگیری از بلاک شدن کلید رایگان
+      await new Promise((r) => setTimeout(r, 2000));
+    } catch (err) {
+      console.warn(`Background AI error on ${nextProd.sku}:`, err.message);
+      nextProd.aiStatus = "error";
+      await updateDoc(doc(db, "products", nextProd.id), { aiStatus: "error" }).catch(() => {});
+      await new Promise((r) => setTimeout(r, 3000));
+    }
+  }
+
+  adminState.aiWorkerRunning = false;
+  if (startBtn) startBtn.style.display = "inline-flex";
+  if (stopBtn) stopBtn.style.display = "none";
+  updateAiQueueBadge();
+
+  if (processedCount > 0) {
+    await rebuildAllCatalogShards();
+  }
+
+  if (statusLbl) {
+    statusLbl.textContent = adminState.aiWorkerStopRequested
+      ? `⏸ ربات متوقف شد (${processedCount} محصول تکمیل گردید).`
+      : `✅ تمام محصولات صف هوش مصنوعی (${processedCount} مورد) با موفقیت تگ‌گذاری و ۳ زبانه شدند!`;
+  }
+}
+
+/**
+ * آنالیز تکی با هوش مصنوعی جمنای (وقتی ادمین می‌خواهد ۱ محصول را قبل از ذخیره در فرم ببیند)
  */
 async function runGeminiVisionProductAnalyzer() {
   const btn = document.getElementById("btn-analyze-gemini-vision");
@@ -881,8 +1568,6 @@ async function runGeminiVisionProductAnalyzer() {
   );
 
   const parts = [];
-
-  // Attach up to 3 staged images with base64Data for multi-angle / label inspection
   const base64Items = adminState.stagedImages.filter((i) => i.base64Data).slice(0, 3);
   base64Items.forEach((item) => {
     parts.push({
@@ -894,52 +1579,45 @@ async function runGeminiVisionProductAnalyzer() {
   });
 
   if (parts.length === 0 && !adminHint) {
-    showAdminToast("Please select a product photo or enter a product hint first.");
+    showAdminToast("لطفاً ابتدا یک عکس انتخاب کنید یا در کادر راهنما توضیح بنویسید.");
     return;
   }
 
   const visionPrompt = `
-You are the Executive B2B Fashion Catalog Director for "Paradise Wholesale Clothing" (Istanbul, Turkey - [https://paradisewholesaler.com](https://paradisewholesaler.com)).
-Analyze the attached garment/footwear/bag image(s) and optional admin hint: "${adminHint || "None"}".
-
-CRITICAL DUAL-TITLE ARCHITECTURE:
-1. "publicTitle" (en, it, es): Luxury, high-converting B2B wholesale title describing fabric weight (e.g. 320 GSM Combed Turkish Cotton), cut, texture, or silhouette WITHOUT mentioning any trademarked luxury brand names (100% safe for Google Ads & SEO).
-2. "brandTitle" (en, it, es): The exact, real brand-inspired model title recognizing any visible logo, monogram, crest, or fashion house style (e.g. Gucci, Louis Vuitton, Prada, Balenciaga, Dior, Amiri, Balmain, Chanel, YSL, Fendi, Moncler, Hermes, Zara, etc.) for internal buyer search results.
-3. "searchTags": Array of 12 to 18 lowercase search keywords including the detected brand name and garment type in English, Italian, Spanish, AND Persian (e.g. ["gucci", "oversize tshirt", "maglietta gucci", "camiseta gucci", "گوچی", "تیشرت گوچی", "عمده پوشاک ترک"]).
-4. "description" (en, it, es): Professional 2-3 sentence B2B wholesale description highlighting Turkish master quality, fabric/stitching excellence, flexible MOQ (order from 1 serie pack, best factory rate for 25+ pcs), and 3-5 day express DHL/UPS air cargo from Istanbul to Italy, Spain, UK, and USA.
-
-Choose "dept" and "cat" ONLY from this exact taxonomy list:
-${validTaxonomyJson}
-
+You are the B2B Fashion Catalog Director for "Paradise Wholesale Clothing" (Istanbul, Turkey - https://paradisewholesaler.com).
+Analyze the attached image(s) and hint: "${adminHint || "None"}".
+Generate:
+1. "publicTitle" (en, it, es): Luxury B2B wholesale title WITHOUT mentioning any trademarked luxury brand names (100% Google Ads safe).
+2. "brandTitle" (en, it, es): Real brand-inspired model title recognizing any visible logo or brand style for internal search results.
+3. "searchTags": Array of 15 lowercase keywords including brand name and garment type in English, Italian, Spanish, AND Persian.
+4. "description" (en, it, es): 2-3 sentence B2B wholesale description highlighting Turkish master quality and express shipping from Istanbul.
+Choose "dept" and "cat" ONLY from: ${validTaxonomyJson}
 Choose "sub" from: ["oversize", "regular", "monogram", "heavyweight", "leather"].
-
-Return ONLY a valid JSON object matching this exact structure:
+Return ONLY valid JSON:
 {
   "dept": "men|women|kids-baby|shoes|bags-accessories",
-  "cat": "exact_subcategory_id_from_list",
+  "cat": "exact_subcategory_id",
   "sub": "oversize|regular|monogram|heavyweight|leather",
-  "suggestedUnitPrice": 16.5,
+  "suggestedUnitPrice": 15,
   "suggestedPcsPerPack": 6,
   "suggestedSizeRange": "S - M - L - XL - XXL",
   "publicTitle": { "en": "...", "it": "...", "es": "..." },
   "brandTitle": { "en": "...", "it": "...", "es": "..." },
-  "searchTags": ["...", "..."],
+  "searchTags": ["..."],
   "description": { "en": "...", "it": "...", "es": "..." }
-}
-`.trim();
+}`.trim();
 
   parts.push({ text: visionPrompt });
 
   if (btn) {
     btn.disabled = true;
-    btn.textContent = "🧠 Gemini Vision Analyzing Fabric, Brand & 3 Languages...";
+    btn.textContent = "🧠 در حال آنالیز تصویر و ساخت عناوین ۳ زبانه...";
   }
-  if (statusEl) statusEl.textContent = "Calling Gemini Vision AI via Multi-Key Rotator...";
+  if (statusEl) statusEl.textContent = "در حال ارتباط با هوش مصنوعی جمنای...";
 
   try {
     const result = await callGeminiWithRotator([{ role: "user", parts }], true);
 
-    // Populate Taxonomy
     const deptEl = document.getElementById("prod-department");
     if (deptEl && result.dept) {
       deptEl.value = result.dept;
@@ -948,33 +1626,22 @@ Return ONLY a valid JSON object matching this exact structure:
     const subStyleEl = document.getElementById("prod-substyle");
     if (subStyleEl && result.sub) subStyleEl.value = result.sub;
 
-    // Populate Pack Math if new item
-    if (result.suggestedUnitPrice) {
-      document.getElementById("prod-unit-price").value = result.suggestedUnitPrice;
-    }
-    if (result.suggestedPcsPerPack) {
-      document.getElementById("prod-pcs-per-pack").value = result.suggestedPcsPerPack;
-    }
-    if (result.suggestedSizeRange) {
-      document.getElementById("prod-size-range").value = result.suggestedSizeRange;
-    }
+    if (result.suggestedUnitPrice) document.getElementById("prod-unit-price").value = result.suggestedUnitPrice;
+    if (result.suggestedPcsPerPack) document.getElementById("prod-pcs-per-pack").value = result.suggestedPcsPerPack;
+    if (result.suggestedSizeRange) document.getElementById("prod-size-range").value = result.suggestedSizeRange;
     updatePackMathDisplay();
 
-    // Populate Dual Titles (Public Safe)
     document.getElementById("prod-public-en").value = result.publicTitle?.en || "";
     document.getElementById("prod-public-it").value = result.publicTitle?.it || "";
     document.getElementById("prod-public-es").value = result.publicTitle?.es || "";
 
-    // Populate Dual Titles (Real Brand for Search)
     document.getElementById("prod-brand-en").value = result.brandTitle?.en || "";
     document.getElementById("prod-brand-it").value = result.brandTitle?.it || "";
     document.getElementById("prod-brand-es").value = result.brandTitle?.es || "";
 
-    // Populate Search Tags
     const tagsArr = Array.isArray(result.searchTags) ? result.searchTags : [];
     document.getElementById("prod-search-tags").value = tagsArr.join(", ");
 
-    // Populate 3-Language Descriptions
     document.getElementById("prod-desc-en").value = result.description?.en || "";
     document.getElementById("prod-desc-it").value = result.description?.it || "";
     document.getElementById("prod-desc-es").value = result.description?.es || "";
@@ -983,29 +1650,37 @@ Return ONLY a valid JSON object matching this exact structure:
       generateAutoSku();
     }
 
-    if (statusEl) {
-      statusEl.textContent = "✓ Gemini Vision completed! Review the Dual-Title fields below and click Save.";
-    }
-    showAdminToast("✨ Gemini Vision populated all 3 languages & Dual-Title Shield!");
+    if (statusEl) statusEl.textContent = "✓ آنالیز تکمیل شد! فیلدها پر شدند.";
+    showAdminToast("✨ عناوین دوگانه و تگ‌ها به ۳ زبان پر شدند!");
   } catch (err) {
-    if (statusEl) statusEl.textContent = `AI Analysis Error: ${err.message}`;
-    showAdminToast(`Gemini Vision Error: ${err.message}`);
+    if (statusEl) statusEl.textContent = `خطای هوش مصنوعی: ${err.message}`;
+    showAdminToast(`خطا: ${err.message}`);
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = "🧠 Analyze Image with Gemini Vision AI (3 Languages)";
+      btn.textContent = "🧠 آنالیز تکی عکس با جمنای (۳ زبانه)";
     }
   }
 }
 
 /* ==========================================================================
-   10. SAVE PRODUCT & 1-READ CATALOG SHARD SYNC ENGINE
+   10. SAVE SINGLE PRODUCT & CHUNKED 100-ITEM SHARD ENGINE (10,000+ PRODUCTS)
    ========================================================================== */
 async function handleSaveProductForm(e) {
   e.preventDefault();
-  const submitBtn = document.getElementById("btn-save-product-submit");
+
+  // اگر حالت آپلود دسته‌ای انتخاب شده و بیش از ۱ عکس در لیست است و در حالت ویرایش نیستیم، با موتور دسته‌ای آپلود کن
+  const batchMode = document.getElementById("batch-upload-mode")?.value || "batch_separate";
   const existingDocId = document.getElementById("prod-doc-id").value.trim();
-  const sku = document.getElementById("prod-sku").value.trim().toUpperCase() || `PRD-${Date.now().toString().slice(-4)}`;
+  if (!existingDocId && batchMode === "batch_separate" && adminState.stagedImages.length > 1) {
+    await executeBatchUploadItems([...adminState.stagedImages], false);
+    return;
+  }
+
+  const submitBtn = document.getElementById("btn-save-product-submit");
+  const vendorCode = getCleanVendorCode();
+  const vendorName = (document.getElementById("prod-vendor-name")?.value || "").trim() || vendorCode;
+  const sku = document.getElementById("prod-sku").value.trim().toUpperCase() || generateAutoSku();
   const docId = existingDocId || sku;
 
   const department = document.getElementById("prod-department").value;
@@ -1016,9 +1691,23 @@ async function handleSaveProductForm(e) {
   const sizeRange = document.getElementById("prod-size-range").value.trim() || "S - M - L - XL";
   const stockStatus = document.getElementById("prod-stock-status").value || "in_stock";
   const isFeatured = document.getElementById("prod-is-featured").checked;
+  const watermarkEnabled = Boolean(document.getElementById("prod-watermark-toggle")?.checked);
+
+  const youtubeRaw = (document.getElementById("prod-youtube-url")?.value || "").trim();
+  const youtubeId = extractYouTubeId(youtubeRaw);
+  const videoFile = document.getElementById("prod-video-file")?.files?.[0] || null;
+
+  // بررسی تکراری نبودن عکس در ثبت جدید
+  if (!existingDocId && adminState.stagedImages[0]?.fingerprint) {
+    const dup = findDuplicateProductByFingerprint(adminState.stagedImages[0].fingerprint);
+    if (dup) {
+      showAdminToast(`⚠️ این عکس تکراری است و قبلاً با کد ${dup.sku} ثبت شده است!`);
+      return;
+    }
+  }
 
   const publicTitle = {
-    en: document.getElementById("prod-public-en").value.trim(),
+    en: document.getElementById("prod-public-en").value.trim() || `Wholesale Garment (${sku})`,
     it: document.getElementById("prod-public-it").value.trim() || document.getElementById("prod-public-en").value.trim(),
     es: document.getElementById("prod-public-es").value.trim() || document.getElementById("prod-public-en").value.trim()
   };
@@ -1043,24 +1732,25 @@ async function handleSaveProductForm(e) {
 
   if (submitBtn) {
     submitBtn.disabled = true;
-    submitBtn.textContent = "Uploading WebP to Storage & Syncing Shards...";
+    submitBtn.textContent = "در حال آپلود رسانه و ذخیره محصول...";
   }
 
   try {
-    // 1. Upload any staged WebP blobs to Firebase Storage
     const uploadedUrls = [];
+    const fingerprints = [];
+
     for (let i = 0; i < adminState.stagedImages.length; i++) {
-      const staged = adminState.stagedImages[i];
+      let staged = adminState.stagedImages[i];
+      if (staged.fingerprint) fingerprints.push(staged.fingerprint);
+
       if (staged.remoteUrl) {
         uploadedUrls.push(staged.remoteUrl);
       } else if (staged.blob) {
-        try {
-          const url = await uploadWebPToFirebaseStorage(staged, department, sku, i);
-          uploadedUrls.push(url);
-        } catch (storageErr) {
-          console.warn("Storage upload fallback to inline WebP dataUrl:", storageErr.message);
-          uploadedUrls.push(staged.dataUrl);
+        if (watermarkEnabled && staged.file) {
+          staged = await compressImageToWebP(staged.file, 1200, 0.84, `${sku} | ${pcsPerPack} Pcs`);
         }
+        const url = await uploadWebPToFirebaseStorage(staged, department, sku, i);
+        uploadedUrls.push(url);
       }
     }
 
@@ -1069,15 +1759,24 @@ async function handleSaveProductForm(e) {
       uploadedUrls.push(manualUrl);
     }
 
+    let finalVideoUrl = youtubeId ? `https://www.youtube.com/watch?v=${youtubeId}` : "";
+    if (videoFile) {
+      finalVideoUrl = await uploadVideoFileToStorage(videoFile, department, sku);
+    }
+
     const primaryImageUrl =
       uploadedUrls[0] ||
-      "[https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=700&q=80](https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=700&q=80)";
+      (youtubeId ? `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg` : "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=700&q=80");
 
     const nowMillis = Date.now();
     const productPayload = {
       id: docId,
       code: sku,
       sku,
+      vendorCode,
+      vendorName,
+      fileFingerprint: fingerprints[0] || "",
+      fileFingerprints: fingerprints,
       department,
       subcategory,
       subStyle,
@@ -1087,21 +1786,22 @@ async function handleSaveProductForm(e) {
       sizeRange,
       stockStatus,
       isFeatured,
+      aiStatus: document.getElementById("prod-brand-en").value.trim() ? "completed" : "pending",
       publicTitle,
       brandTitle,
       description,
       searchTags,
       imageUrl: primaryImageUrl,
       images: uploadedUrls.length > 0 ? uploadedUrls : [primaryImageUrl],
+      videoUrl: finalVideoUrl,
+      youtubeId: youtubeId || "",
       createdAtMillis: nowMillis,
       updatedAtIso: new Date().toISOString(),
       createdAt: serverTimestamp()
     };
 
-    // 2. Save to Firestore `products/{docId}`
     await setDoc(doc(db, "products", docId), productPayload, { merge: true });
 
-    // Update in-memory list
     const existingIdx = adminState.products.findIndex((p) => p.id === docId);
     if (existingIdx > -1) {
       adminState.products[existingIdx] = productPayload;
@@ -1109,32 +1809,33 @@ async function handleSaveProductForm(e) {
       adminState.products.unshift(productPayload);
     }
 
-    // 3. Rebuild 1-Read Catalog Shards immediately
     await rebuildAllCatalogShards();
-
     renderCatalogTable();
     updateDashboardKPIs();
+    refreshVendorFilterDropdown();
+    updateAiQueueBadge();
     resetProductForm();
-    showAdminToast(`✓ Product ${sku} saved & 1-Read Catalog Shards synced!`);
+    showAdminToast(`✓ محصول ${sku} با موفقیت ذخیره و در سایت منتشر شد!`);
   } catch (err) {
-    showAdminToast(`Save Product Error: ${err.message}`);
+    showAdminToast(`خطا در ذخیره محصول: ${err.message}`);
   } finally {
     if (submitBtn) {
       submitBtn.disabled = false;
-      submitBtn.textContent = "💾 Save Product to Firestore & Sync Catalog Shard";
+      submitBtn.textContent = "💾 ذخیره محصول و بروزرسانی کاتالوگ";
     }
   }
 }
 
 /**
- * Rebuilds `catalog_shards/master_catalog`, `catalog_shards/latest`, and per-department shards (`catalog_shards/{dept}`)
- * so `index.html` and `category.html` load all products in 1 single document read.
+ * معماری شاردهای بسته‌بندی شده ۱۰۰تایی (Chunked Shards)
+ * هم با نسخه فعلی core.js سازگار است و هم برای ۱۰,۰۰۰+ محصول به ارور ۱ مگابایت فایربیس نمی‌خورد
  */
 async function rebuildAllCatalogShards() {
   try {
     const items = adminState.products.map((p) => ({
       id: p.id || p.sku,
       sku: p.sku || p.code || p.id,
+      vendorCode: p.vendorCode || "PRD",
       department: p.department || "men",
       subcategory: p.subcategory || "men-tshirts",
       subStyle: p.subStyle || "regular",
@@ -1147,48 +1848,72 @@ async function rebuildAllCatalogShards() {
       brandTitle: p.brandTitle || p.publicTitle || { en: "Wholesale Garment" },
       searchTags: Array.isArray(p.searchTags) ? p.searchTags : [],
       imageUrl: p.imageUrl || "",
+      videoUrl: p.videoUrl || "",
+      youtubeId: p.youtubeId || "",
       createdAtMillis: p.createdAtMillis || Date.now()
     }));
 
-    // 1. Master Catalog Shard
-    await setDoc(doc(db, "catalog_shards", "master_catalog"), {
-      updatedAtIso: new Date().toISOString(),
-      totalCount: items.length,
-      items
-    });
-
-    // 2. Latest Arrivals Shard (Top 24)
+    // ۱. شارد جدیدترین محصولات برای صفحه اول (۲۴ محصول آخر)
     await setDoc(doc(db, "catalog_shards", "latest"), {
       updatedAtIso: new Date().toISOString(),
       items: items.slice(0, 24)
     });
 
-    // 3. Per-Department Shards
+    // ۲. شارد اصلی (حداکثر ۲۰۰ محصول اول برای جلوگیری از رد شدن سقف ۱ مگابایت فایربیس) + صفحات ۱۰۰تایی
+    const masterTotalPages = Math.max(1, Math.ceil(items.length / SHARD_CHUNK_SIZE));
+    await setDoc(doc(db, "catalog_shards", "master_catalog"), {
+      updatedAtIso: new Date().toISOString(),
+      totalCount: items.length,
+      totalPages: masterTotalPages,
+      chunkSize: SHARD_CHUNK_SIZE,
+      items: items.slice(0, 200)
+    });
+
+    // ۳. شارد هر دپارتمان در بسته‌های ۱۰۰تایی (مثلاً men, men_p2, men_p3...)
     for (const deptObj of DEPARTMENTS_TAXONOMY) {
       const deptItems = items.filter((i) => i.department === deptObj.id);
+      const totalPages = Math.max(1, Math.ceil(deptItems.length / SHARD_CHUNK_SIZE));
+
+      // صفحه اول در نام اصلی دپارتمان ذخیره می‌شود تا core.js فعلی با ۱ بار خوانش آن را باز کند
       await setDoc(doc(db, "catalog_shards", deptObj.id), {
         department: deptObj.id,
         updatedAtIso: new Date().toISOString(),
         totalCount: deptItems.length,
-        items: deptItems
+        totalPages,
+        page: 1,
+        items: deptItems.slice(0, SHARD_CHUNK_SIZE)
       });
+
+      // صفحات بعدی (برای زمانی که بیش از ۱۰۰ محصول در یک دپارتمان باشد)
+      for (let page = 2; page <= totalPages; page++) {
+        const chunk = deptItems.slice((page - 1) * SHARD_CHUNK_SIZE, page * SHARD_CHUNK_SIZE);
+        await setDoc(doc(db, "catalog_shards", `${deptObj.id}_p${page}`), {
+          department: deptObj.id,
+          updatedAtIso: new Date().toISOString(),
+          page,
+          totalPages,
+          items: chunk
+        });
+      }
     }
 
     const syncStatusEl = document.getElementById("topbar-sync-status");
     if (syncStatusEl) {
-      syncStatusEl.textContent = `✓ All 1-Read Catalog Shards Synced (${items.length} products) at ${new Date().toLocaleTimeString()}`;
+      syncStatusEl.textContent = `✓ کاتالوگ سایت همگام‌سازی شد (${items.length} محصول در بسته‌های ۱۰۰تایی) — ساعت ${new Date().toLocaleTimeString("fa-IR")}`;
     }
-    showAdminToast(`⚡ Synced ${items.length} products across all 1-Read Firestore Shards!`);
   } catch (err) {
-    showAdminToast(`Shard sync error: ${err.message}`);
+    showAdminToast(`خطا در همگام‌سازی شاردها: ${err.message}`);
   }
 }
 
 function resetProductForm() {
   document.getElementById("admin-product-form")?.reset();
   document.getElementById("prod-doc-id").value = "";
-  document.getElementById("product-form-mode-title").textContent =
-    "Step 2: B2B Serie Pack Specs & Dual-Title Brand Protection";
+  const ytInput = document.getElementById("prod-youtube-url");
+  if (ytInput) ytInput.value = "";
+  const vidInput = document.getElementById("prod-video-file");
+  if (vidInput) vidInput.value = "";
+  document.getElementById("product-form-mode-title").textContent = "مشخصات پک عمده و عناوین دوگانه";
   adminState.stagedImages = [];
   renderStagedImagePreviews();
   populateSubcategoryDropdown("men");
@@ -1208,6 +1933,12 @@ function bindProductUploaderEvents() {
     });
   }
 
+  document.getElementById("prod-vendor-code")?.addEventListener("input", () => {
+    if (!document.getElementById("prod-doc-id").value) {
+      generateAutoSku();
+    }
+  });
+
   generateAutoSku();
   updatePackMathDisplay();
 
@@ -1223,7 +1954,6 @@ function bindProductUploaderEvents() {
     });
   });
 
-  // Dropzone events
   const dropzone = document.getElementById("product-upload-dropzone");
   const fileInput = document.getElementById("product-file-input");
 
@@ -1243,7 +1973,6 @@ function bindProductUploaderEvents() {
     fileInput.value = "";
   });
 
-  // Remove staged image
   document.getElementById("product-upload-previews")?.addEventListener("click", (e) => {
     const rmBtn = e.target.closest("[data-remove-staged]");
     if (!rmBtn) return;
@@ -1252,7 +1981,6 @@ function bindProductUploaderEvents() {
     renderStagedImagePreviews();
   });
 
-  // Add manual image URL to preview
   document.getElementById("btn-add-manual-image")?.addEventListener("click", () => {
     const urlInput = document.getElementById("prod-manual-image-url");
     const url = urlInput?.value.trim();
@@ -1266,17 +1994,34 @@ function bindProductUploaderEvents() {
     renderStagedImagePreviews();
   });
 
+  // دکمه آپلود دسته‌ای سریع
+  document.getElementById("btn-fast-batch-upload")?.addEventListener("click", async () => {
+    await executeBatchUploadItems([...adminState.stagedImages], false);
+  });
+
+  // دکمه تلاش مجدد برای عکس‌های ناموفق
+  document.getElementById("btn-retry-failed-uploads")?.addEventListener("click", async () => {
+    if (adminState.failedUploadQueue.length === 0) return;
+    await executeBatchUploadItems([...adminState.failedUploadQueue], true);
+  });
+
+  // کنترل ربات هوش مصنوعی پس‌زمینه
+  document.getElementById("btn-start-ai-worker")?.addEventListener("click", startBackgroundAiWorker);
+  document.getElementById("btn-stop-ai-worker")?.addEventListener("click", () => {
+    adminState.aiWorkerStopRequested = true;
+  });
+
   document.getElementById("btn-analyze-gemini-vision")?.addEventListener("click", runGeminiVisionProductAnalyzer);
   document.getElementById("btn-reset-product-form")?.addEventListener("click", resetProductForm);
   document.getElementById("admin-product-form")?.addEventListener("submit", handleSaveProductForm);
 }
 
 /* ==========================================================================
-   11. TAB 3: CATALOG & SHARD MANAGER
+   11. TAB 3: CATALOG MANAGER, VENDOR FILTER & BULK DELETE BY VENDOR/SUBCAT
    ========================================================================== */
 async function loadProductsCatalog() {
   try {
-    const q = query(collection(db, "products"), orderBy("createdAtMillis", "desc"), limit(200));
+    const q = query(collection(db, "products"), orderBy("createdAtMillis", "desc"), limit(5000));
     const snap = await getDocs(q);
     const list = [];
     snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
@@ -1291,8 +2036,53 @@ async function loadProductsCatalog() {
       console.warn("Catalog load warning:", e.message);
     }
   }
+  refreshVendorFilterDropdown();
   renderCatalogTable();
   updateDashboardKPIs();
+  updateAiQueueBadge();
+}
+
+function refreshVendorFilterDropdown() {
+  const vendorSelect = document.getElementById("catalog-filter-vendor");
+  if (!vendorSelect) return;
+  const currentVal = vendorSelect.value || "all";
+
+  const vendorMap = new Map();
+  adminState.products.forEach((p) => {
+    const code = (p.vendorCode || String(p.sku || "").split("-")[0] || "PRD").toUpperCase();
+    const name = p.vendorName || code;
+    vendorMap.set(code, { code, name, count: (vendorMap.get(code)?.count || 0) + 1 });
+  });
+
+  let html = `<option value="all">همه عمده‌فروش‌ها (${adminState.products.length})</option>`;
+  vendorMap.forEach((v) => {
+    html += `<option value="${escapeHtml(v.code)}" ${v.code === currentVal ? "selected" : ""}>عمده‌فروش: ${escapeHtml(v.code)} - ${escapeHtml(v.name)} (${v.count})</option>`;
+  });
+  vendorSelect.innerHTML = html;
+}
+
+function getFilteredCatalogProducts() {
+  const deptFilter = document.getElementById("catalog-filter-dept")?.value || "all";
+  const subcatFilter = document.getElementById("catalog-filter-subcat")?.value || "all";
+  const vendorFilter = document.getElementById("catalog-filter-vendor")?.value || "all";
+  const stockFilter = document.getElementById("catalog-filter-stock")?.value || "all";
+  const searchQ = (document.getElementById("catalog-search-input")?.value || "").trim().toLowerCase();
+
+  return adminState.products.filter((p) => {
+    if (deptFilter !== "all" && p.department !== deptFilter) return false;
+    if (subcatFilter !== "all" && p.subcategory !== subcatFilter) return false;
+    const pVendor = (p.vendorCode || String(p.sku || "").split("-")[0] || "PRD").toUpperCase();
+    if (vendorFilter !== "all" && pVendor !== vendorFilter) return false;
+    if (stockFilter !== "all" && (p.stockStatus || "in_stock") !== stockFilter) return false;
+    if (searchQ) {
+      const pubEn = p.publicTitle?.en || p.publicTitle || "";
+      const brdEn = p.brandTitle?.en || p.brandTitle || "";
+      const tags = Array.isArray(p.searchTags) ? p.searchTags.join(" ") : "";
+      const hay = `${p.sku || ""} ${pVendor} ${p.vendorName || ""} ${pubEn} ${brdEn} ${tags}`.toLowerCase();
+      if (!hay.includes(searchQ)) return false;
+    }
+    return true;
+  });
 }
 
 function renderCatalogTable() {
@@ -1300,35 +2090,21 @@ function renderCatalogTable() {
   const countEl = document.getElementById("catalog-showing-count");
   if (!tbody) return;
 
-  const deptFilter = document.getElementById("catalog-filter-dept")?.value || "all";
-  const stockFilter = document.getElementById("catalog-filter-stock")?.value || "all";
-  const searchQ = (document.getElementById("catalog-search-input")?.value || "").trim().toLowerCase();
-
-  const filtered = adminState.products.filter((p) => {
-    if (deptFilter !== "all" && p.department !== deptFilter) return false;
-    if (stockFilter !== "all" && (p.stockStatus || "in_stock") !== stockFilter) return false;
-    if (searchQ) {
-      const pubEn = p.publicTitle?.en || p.publicTitle || "";
-      const brdEn = p.brandTitle?.en || p.brandTitle || "";
-      const tags = Array.isArray(p.searchTags) ? p.searchTags.join(" ") : "";
-      const hay = `${p.sku || ""} ${pubEn} ${brdEn} ${tags}`.toLowerCase();
-      if (!hay.includes(searchQ)) return false;
-    }
-    return true;
-  });
-
+  const filtered = getFilteredCatalogProducts();
   if (countEl) countEl.textContent = String(filtered.length);
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:26px; color:var(--text-muted);">No products match your filter criteria.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:26px; color:var(--text-muted);">محصولی با این فیلتر یافت نشد.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = filtered
+    .slice(0, 300) // نمایش ۳۰۰ ردیف اول در جدول برای سرعت بالای مرورگر
     .map((p) => {
       const id = escapeHtml(p.id || p.sku);
       const sku = escapeHtml(p.sku || p.id);
-      const dept = escapeHtml((p.department || "men").toUpperCase());
+      const vCode = escapeHtml(p.vendorCode || String(p.sku || "").split("-")[0] || "PRD");
+      const subcat = escapeHtml(p.subcategory || p.department || "men");
       const pubEn = escapeHtml(typeof p.publicTitle === "object" ? p.publicTitle.en : p.publicTitle || "");
       const brdEn = escapeHtml(typeof p.brandTitle === "object" ? p.brandTitle.en : p.brandTitle || "");
       const unitPrice = Number(p.unitPrice) || 0;
@@ -1336,38 +2112,45 @@ function renderCatalogTable() {
       const packTotal = formatMoney(unitPrice * pcs);
       const stock = p.stockStatus || "in_stock";
       const img = escapeHtml(p.imageUrl || "");
+      const hasVideo = Boolean(p.videoUrl || p.youtubeId);
+      const aiBadge =
+        p.aiStatus === "pending"
+          ? `<span style="font-size:0.68rem; background:#fef3c7; color:#92400e; padding:2px 6px; border-radius:4px;">⏳ در صف AI</span>`
+          : `<span style="font-size:0.68rem; background:#ecfdf5; color:#065f46; padding:2px 6px; border-radius:4px;">✓ AI</span>`;
 
       return `
         <tr data-catalog-row="${id}">
           <td>
-            <img src="${img}" alt="${sku}" style="width:46px; height:60px; object-fit:cover; border-radius:6px; border:1px solid var(--adm-border);" loading="lazy" />
+            <img src="${img}" alt="${sku}" style="width:48px; height:62px; object-fit:cover; border-radius:6px; border:1px solid var(--adm-border);" loading="lazy" />
           </td>
           <td>
             <strong style="color:var(--gold-dark); display:block;">${sku}</strong>
-            <span style="font-size:0.72rem; color:var(--text-muted);">${dept}</span>
+            <span style="font-size:0.72rem; color:var(--text-muted);">عمده‌فروش: <strong>${vCode}</strong> | ${subcat}</span>
+            <div style="margin-top:3px;">${aiBadge} ${hasVideo ? `<span style="font-size:0.68rem; background:#dbeafe; color:#1e40af; padding:2px 6px; border-radius:4px;">🎬 ویدیودار</span>` : ""}</div>
           </td>
           <td>
-            <div style="font-weight:700; color:var(--charcoal); font-size:0.84rem;">🟢 ${pubEn}</div>
-            <div style="font-size:0.75rem; color:var(--gold-dark); font-weight:700; margin-top:2px;">🟡 ${brdEn}</div>
+            <div style="font-weight:700; color:var(--charcoal); font-size:0.82rem;">🟢 ${pubEn}</div>
+            <div style="font-size:0.74rem; color:var(--gold-dark); font-weight:700; margin-top:2px;">🟡 ${brdEn}</div>
           </td>
           <td>
-            <input type="number" step="0.5" class="adm-input" data-inline-price="${id}" value="${unitPrice}" style="width:88px; padding:6px 8px;" />
+            <input type="number" step="0.5" class="adm-input" data-inline-price="${id}" value="${unitPrice}" style="width:84px; padding:6px 8px;" />
           </td>
           <td>
-            <input type="number" step="1" min="1" class="adm-input" data-inline-pcs="${id}" value="${pcs}" style="width:74px; padding:6px 8px;" />
+            <input type="number" step="1" min="1" class="adm-input" data-inline-pcs="${id}" value="${pcs}" style="width:70px; padding:6px 8px;" />
           </td>
           <td style="font-weight:800; color:var(--charcoal);">${packTotal}</td>
           <td>
-            <select class="adm-select" data-inline-stock="${id}" style="width:135px; padding:6px 8px; font-size:0.75rem;">
-              <option value="in_stock" ${stock === "in_stock" ? "selected" : ""}>🟢 In Stock</option>
-              <option value="low_stock" ${stock === "low_stock" ? "selected" : ""}>🟡 Low Stock</option>
-              <option value="out_of_stock" ${stock === "out_of_stock" ? "selected" : ""}>🔴 Out of Stock</option>
+            <select class="adm-select" data-inline-stock="${id}" style="width:130px; padding:6px 8px; font-size:0.75rem;">
+              <option value="in_stock" ${stock === "in_stock" ? "selected" : ""}>🟢 موجود</option>
+              <option value="low_stock" ${stock === "low_stock" ? "selected" : ""}>🟡 رو به اتمام</option>
+              <option value="out_of_stock" ${stock === "out_of_stock" ? "selected" : ""}>🔴 ناموجود</option>
             </select>
           </td>
           <td style="text-align:right; white-space:nowrap;">
-            <button type="button" class="adm-btn-xs" data-save-inline="${id}" title="Save Quick Edits">💾 Save</button>
-            <button type="button" class="adm-btn-xs" data-edit-full="${id}" title="Load into AI Form">✏️ Edit</button>
-            <button type="button" class="adm-btn-xs danger" data-delete-prod="${id}" title="Delete Product">🗑</button>
+            <button type="button" class="adm-btn-xs" data-save-inline="${id}" title="ذخیره سریع قیمت و موجودی">💾</button>
+            <button type="button" class="adm-btn-xs" data-quick-video="${id}" title="افزودن یا تغییر لینک ویدیوی محصول">🎬 ویدیو</button>
+            <button type="button" class="adm-btn-xs" data-edit-full="${id}" title="ویرایش کامل">✏️</button>
+            <button type="button" class="adm-btn-xs danger" data-delete-prod="${id}" title="حذف محصول">🗑</button>
           </td>
         </tr>
       `;
@@ -1375,16 +2158,71 @@ function renderCatalogTable() {
     .join("");
 }
 
+/**
+ * حذف یکجای محصولات بر اساس عمده‌فروش و شاخه انتخاب شده
+ */
+async function handleBulkDeleteFilteredProducts() {
+  const vendorFilter = document.getElementById("catalog-filter-vendor")?.value || "all";
+  const subcatFilter = document.getElementById("catalog-filter-subcat")?.value || "all";
+  const deptFilter = document.getElementById("catalog-filter-dept")?.value || "all";
+
+  if (vendorFilter === "all" && subcatFilter === "all" && deptFilter === "all") {
+    showAdminToast("⚠️ برای ایمنی، ابتدا حداقل یک «عمده‌فروش» یا «شاخه» را از فیلتر بالا انتخاب کنید.");
+    return;
+  }
+
+  const targets = getFilteredCatalogProducts();
+  if (targets.length === 0) {
+    showAdminToast("هیچ محصولی در این فیلتر وجود ندارد.");
+    return;
+  }
+
+  const msg = `آیا مطمئن هستید که می‌خواهید ${targets.length} محصول فیلتر شده (عمده‌فروش: ${vendorFilter} | شاخه: ${subcatFilter}) را به صورت یکجا حذف کنید؟`;
+  if (!confirm(msg)) return;
+
+  const delBtn = document.getElementById("btn-bulk-delete-filtered");
+  if (delBtn) {
+    delBtn.disabled = true;
+    delBtn.textContent = `⏳ در حال حذف ${targets.length} محصول...`;
+  }
+
+  try {
+    const deletedIds = new Set();
+    for (const prod of targets) {
+      await deleteDoc(doc(db, "products", prod.id));
+      deletedIds.add(prod.id);
+    }
+
+    adminState.products = adminState.products.filter((p) => !deletedIds.has(p.id));
+    await rebuildAllCatalogShards();
+    refreshVendorFilterDropdown();
+    renderCatalogTable();
+    updateDashboardKPIs();
+    updateAiQueueBadge();
+    showAdminToast(`✓ تعداد ${deletedIds.size} محصول با موفقیت حذف شد و کاتالوگ بروز گردید.`);
+  } catch (err) {
+    showAdminToast(`خطا در حذف دسته‌جمعی: ${err.message}`);
+  } finally {
+    if (delBtn) {
+      delBtn.disabled = false;
+      delBtn.textContent = "🗑️ حذف یکجای محصولات فیلتر شده";
+    }
+  }
+}
+
 function bindCatalogManagerEvents() {
   document.getElementById("catalog-filter-dept")?.addEventListener("change", renderCatalogTable);
+  document.getElementById("catalog-filter-subcat")?.addEventListener("change", renderCatalogTable);
+  document.getElementById("catalog-filter-vendor")?.addEventListener("change", renderCatalogTable);
   document.getElementById("catalog-filter-stock")?.addEventListener("change", renderCatalogTable);
   document.getElementById("catalog-search-input")?.addEventListener("input", renderCatalogTable);
   document.getElementById("btn-rebuild-all-shards")?.addEventListener("click", rebuildAllCatalogShards);
+  document.getElementById("btn-bulk-delete-filtered")?.addEventListener("click", handleBulkDeleteFilteredProducts);
 
   document.getElementById("admin-catalog-tbody")?.addEventListener("click", async (e) => {
     const target = e.target;
 
-    // 1. Save Inline Price / Pack / Stock Changes
+    // ۱. ذخیره سریع قیمت، تعداد پک و موجودی
     const saveBtn = target.closest("[data-save-inline]");
     if (saveBtn) {
       const id = saveBtn.getAttribute("data-save-inline");
@@ -1409,13 +2247,49 @@ function bindCatalogManagerEvents() {
         }
         await rebuildAllCatalogShards();
         renderCatalogTable();
+        showAdminToast(`✓ تغییرات محصول ${id} ذخیره شد.`);
       } catch (err) {
-        showAdminToast(`Inline update error: ${err.message}`);
+        showAdminToast(`خطا: ${err.message}`);
       }
       return;
     }
 
-    // 2. Load Product into Tab 2 Full Editor
+    // ۲. افزودن یا ویرایش سریع لینک ویدیو / یوتیوب برای هر محصول در هر زمان
+    const vidBtn = target.closest("[data-quick-video]");
+    if (vidBtn) {
+      const id = vidBtn.getAttribute("data-quick-video");
+      const prod = adminState.products.find((p) => p.id === id);
+      if (!prod) return;
+
+      const currentVid = prod.videoUrl || (prod.youtubeId ? `https://youtu.be/${prod.youtubeId}` : "");
+      const inputUrl = prompt(
+        `لینک ویدیوی یوتیوب / Shorts یا لینک مستقیم MP4 را برای محصول ${prod.sku} وارد کنید (برای حذف ویدیو خالی بگذارید):`,
+        currentVid
+      );
+      if (inputUrl === null) return;
+
+      const trimmed = inputUrl.trim();
+      const ytId = extractYouTubeId(trimmed);
+      const videoUrl = trimmed;
+
+      try {
+        await updateDoc(doc(db, "products", id), {
+          videoUrl,
+          youtubeId: ytId || "",
+          updatedAtIso: new Date().toISOString()
+        });
+        prod.videoUrl = videoUrl;
+        prod.youtubeId = ytId || "";
+        await rebuildAllCatalogShards();
+        renderCatalogTable();
+        showAdminToast(trimmed ? `🎬 ویدیو به محصول ${prod.sku} اضافه شد!` : `ویدیوی محصول ${prod.sku} حذف شد.`);
+      } catch (err) {
+        showAdminToast(`خطا در ثبت ویدیو: ${err.message}`);
+      }
+      return;
+    }
+
+    // ۳. بارگذاری محصول در تب ۲ برای ویرایش کامل
     const editBtn = target.closest("[data-edit-full]");
     if (editBtn) {
       const id = editBtn.getAttribute("data-edit-full");
@@ -1427,6 +2301,15 @@ function bindCatalogManagerEvents() {
       populateSubcategoryDropdown(prod.department || "men", prod.subcategory);
       document.getElementById("prod-substyle").value = prod.subStyle || "regular";
       document.getElementById("prod-sku").value = prod.sku || prod.id;
+      if (document.getElementById("prod-vendor-code")) {
+        document.getElementById("prod-vendor-code").value = prod.vendorCode || "PRD";
+      }
+      if (document.getElementById("prod-vendor-name")) {
+        document.getElementById("prod-vendor-name").value = prod.vendorName || "";
+      }
+      if (document.getElementById("prod-youtube-url")) {
+        document.getElementById("prod-youtube-url").value = prod.videoUrl || prod.youtubeId || "";
+      }
       document.getElementById("prod-unit-price").value = prod.unitPrice || 15;
       document.getElementById("prod-pcs-per-pack").value = prod.pcsPerPack || 6;
       document.getElementById("prod-size-range").value = prod.sizeRange || "S-XL";
@@ -1455,25 +2338,28 @@ function bindCatalogManagerEvents() {
       }));
       renderStagedImagePreviews();
 
-      document.getElementById("product-form-mode-title").textContent = `Editing Product: ${prod.sku || prod.id}`;
+      document.getElementById("product-form-mode-title").textContent = `در حال ویرایش محصول: ${prod.sku || prod.id}`;
       document.querySelector('[data-admin-tab="ai-uploader"]')?.click();
-      showAdminToast(`Loaded ${prod.sku} into editor.`);
+      showAdminToast(`محصول ${prod.sku} جهت ویرایش بارگذاری شد.`);
       return;
     }
 
-    // 3. Delete Product
+    // ۴. حذف تکی محصول
     const delBtn = target.closest("[data-delete-prod]");
     if (delBtn) {
       const id = delBtn.getAttribute("data-delete-prod");
-      if (!confirm(`Delete product ${id} permanently from catalog?`)) return;
+      if (!confirm(`آیا محصول ${id} برای همیشه حذف شود؟`)) return;
       try {
         await deleteDoc(doc(db, "products", id));
         adminState.products = adminState.products.filter((p) => p.id !== id);
         await rebuildAllCatalogShards();
+        refreshVendorFilterDropdown();
         renderCatalogTable();
         updateDashboardKPIs();
+        updateAiQueueBadge();
+        showAdminToast(`محصول ${id} حذف شد.`);
       } catch (err) {
-        showAdminToast(`Delete error: ${err.message}`);
+        showAdminToast(`خطا در حذف: ${err.message}`);
       }
     }
   });
@@ -1484,7 +2370,7 @@ function bindCatalogManagerEvents() {
    ========================================================================== */
 async function loadPublishedBlogs() {
   try {
-    const q = query(collection(db, "blogs"), orderBy("createdAtIso", "desc"), limit(50));
+    const q = query(collection(db, "blogs"), orderBy("createdAtIso", "desc"), limit(100));
     const snap = await getDocs(q);
     const list = [];
     snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
@@ -1506,7 +2392,7 @@ function renderPublishedBlogsTable() {
   if (!tbody) return;
 
   if (adminState.blogs.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:24px; color:var(--text-muted);">No blog articles published yet. Use Gemini Studio above to generate your first 3-language SEO guide.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:24px; color:var(--text-muted);">هنوز مقاله‌ای منتشر نشده است. موضوع مقاله را در کادر بالا به فارسی بنویسید تا جمنای به ۳ زبان تولید کند.</td></tr>`;
     return;
   }
 
@@ -1535,8 +2421,8 @@ function renderPublishedBlogsTable() {
           <td><span class="top-bar-badge">${cat}</span></td>
           <td>${escapeHtml(dateStr)}</td>
           <td style="text-align:right; white-space:nowrap;">
-            <button type="button" class="adm-btn-xs" data-edit-blog="${id}">✏️ Edit</button>
-            <button type="button" class="adm-btn-xs danger" data-delete-blog="${id}">🗑 Delete</button>
+            <button type="button" class="adm-btn-xs" data-edit-blog="${id}">✏️ ویرایش</button>
+            <button type="button" class="adm-btn-xs danger" data-delete-blog="${id}">🗑 حذف</button>
           </td>
         </tr>
       `;
@@ -1547,76 +2433,37 @@ function renderPublishedBlogsTable() {
 async function generate3LanguageBlogWithGemini() {
   const promptInput = document.getElementById("blog-ai-prompt")?.value.trim();
   if (!promptInput) {
-    showAdminToast("Please enter an article topic in Persian or English first.");
+    showAdminToast("لطفاً ابتدا موضوع مقاله را به فارسی یا انگلیسی وارد کنید.");
     return;
   }
 
   const category = document.getElementById("blog-category-select")?.value || "logistics";
   const selectedDepts = Array.from(document.querySelectorAll(".blog-silo-dept:checked")).map((cb) => cb.value);
-  const siloLinksText = selectedDepts
-    .map((d) => `${SITE_DOMAIN}/category.html?dept=${d}`)
-    .join(", ");
+  const siloLinksText = selectedDepts.map((d) => `${SITE_DOMAIN}/category.html?dept=${d}`).join(", ");
 
   const btn = document.getElementById("btn-generate-3lang-blog");
   const statusEl = document.getElementById("blog-ai-status");
 
   if (btn) {
     btn.disabled = true;
-    btn.textContent = "🤖 Gemini Writing Native EN, IT & ES SEO Articles...";
+    btn.textContent = "🤖 جمنای در حال نگارش مقاله به انگلیسی، ایتالیایی و اسپانیایی...";
   }
-  if (statusEl) statusEl.textContent = "Generating comprehensive 3-language HTML & FAQ schema...";
+  if (statusEl) statusEl.textContent = "در حال تولید متن کامل HTML و سوالات متداول سئو...";
 
   const blogPrompt = `
-You are the Chief B2B SEO Content Strategist for "Paradise Wholesale Clothing" (Paradise Turkey Wholesale — [https://paradisewholesaler.com](https://paradisewholesaler.com), located in Istanbul Merter).
-Write an authoritative, high-converting, long-form B2B wholesale article based on this topic:
+You are the Chief B2B SEO Content Strategist for "Paradise Wholesale Clothing" (${SITE_DOMAIN}, Istanbul Merter).
+Write an authoritative, high-converting B2B wholesale article based on this topic:
 "${promptInput}"
-
 Category: ${category}
-Must naturally include clickable HTML internal silo links (<a href="...">...</a>) to these wholesale departments: ${siloLinksText || "[https://paradisewholesaler.com/category.html](https://paradisewholesaler.com/category.html)"}.
-Must highlight our core B2B USPs:
-- Direct Istanbul factory supply (heavyweight combed cotton, luxury streetwear, boutique women's sets, handcrafted leather shoes & bags).
-- Flexible MOQ: Order starting from 1 Serie Pack to test quality, and unlock Best Factory Wholesale Tier Rate for 25+ pieces.
-- Fast 3–5 day express DHL/UPS air cargo to Italy, Spain, UK, USA & worldwide.
-- Do NOT mention copyrighted luxury brand names in the article text (keep 100% Google Ads & SEO safe).
-
-Return ONLY a valid JSON object with native, fluent English ("en"), Italian ("it"), and Spanish ("es") versions matching this exact schema:
+Naturally include clickable HTML internal silo links (<a href="...">...</a>) to: ${siloLinksText || `${SITE_DOMAIN}/category.html`}.
+Highlight direct Istanbul factory supply, flexible MOQ from 1 pack (best rate at 25+ pcs), and 3-5 day express air cargo to Europe & USA. Do NOT mention copyrighted luxury brand names.
+Return ONLY valid JSON with native English ("en"), Italian ("it"), and Spanish ("es") versions:
 {
   "readingMinutes": 5,
-  "en": {
-    "title": "...",
-    "slug": "seo-friendly-english-slug",
-    "metaTitle": "...",
-    "metaDescription": "...",
-    "htmlContent": "<h2>...</h2><p>...</p><h3>...</h3><ul><li>...</li></ul>...",
-    "faq": [
-      { "question": "...", "answer": "..." },
-      { "question": "...", "answer": "..." }
-    ]
-  },
-  "it": {
-    "title": "...",
-    "slug": "slug-italiano-seo",
-    "metaTitle": "...",
-    "metaDescription": "...",
-    "htmlContent": "<h2>...</h2><p>...</p>...",
-    "faq": [
-      { "question": "...", "answer": "..." },
-      { "question": "...", "answer": "..." }
-    ]
-  },
-  "es": {
-    "title": "...",
-    "slug": "slug-espanol-seo",
-    "metaTitle": "...",
-    "metaDescription": "...",
-    "htmlContent": "<h2>...</h2><p>...</p>...",
-    "faq": [
-      { "question": "...", "answer": "..." },
-      { "question": "...", "answer": "..." }
-    ]
-  }
-}
-`.trim();
+  "en": { "title": "...", "slug": "...", "metaTitle": "...", "metaDescription": "...", "htmlContent": "<h2>...</h2><p>...</p>", "faq": [{ "question": "...", "answer": "..." }] },
+  "it": { "title": "...", "slug": "...", "metaTitle": "...", "metaDescription": "...", "htmlContent": "<h2>...</h2><p>...</p>", "faq": [{ "question": "...", "answer": "..." }] },
+  "es": { "title": "...", "slug": "...", "metaTitle": "...", "metaDescription": "...", "htmlContent": "<h2>...</h2><p>...</p>", "faq": [{ "question": "...", "answer": "..." }] }
+}`.trim();
 
   try {
     const data = await callGeminiWithRotator([{ role: "user", parts: [{ text: blogPrompt }] }], true);
@@ -1631,24 +2478,19 @@ Return ONLY a valid JSON object with native, fluent English ("en"), Italian ("it
       document.getElementById(`blog-faq-${lang}`).value = JSON.stringify(block.faq || [], null, 2);
     });
 
-    if (statusEl) {
-      statusEl.textContent = "✓ 3-Language SEO Article generated! Review EN / IT / ES tabs below and click Publish.";
-    }
-    showAdminToast("✨ 3-Language SEO Article & FAQ Schema Ready!");
+    if (statusEl) statusEl.textContent = "✓ مقاله ۳ زبانه آماده شد! اکنون دکمه انتشار را بزنید.";
+    showAdminToast("✨ مقاله سئو شده به ۳ زبان تولید شد!");
   } catch (err) {
-    if (statusEl) statusEl.textContent = `Blog Generation Error: ${err.message}`;
-    showAdminToast(`Gemini Blog Error: ${err.message}`);
+    if (statusEl) statusEl.textContent = `خطا: ${err.message}`;
+    showAdminToast(`خطا در تولید مقاله: ${err.message}`);
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = "✨ Generate Native 3-Language SEO Article with Gemini";
+      btn.textContent = "✨ تولید خودکار مقاله ۳ زبانه با جمنای";
     }
   }
 }
 
-/**
- * Generates standalone, 100% crawlable static HTML for `/en/blog/{slug}/index.html`, `/it/blog/{slug}/index.html`, `/es/blog/{slug}/index.html`
- */
 function buildStaticBlogHtmlPage(articlePayload, lang) {
   const title = articlePayload.title[lang] || articlePayload.title.en;
   const metaTitle = articlePayload.metaTitle[lang] || `${title} | Paradise Wholesale Istanbul`;
@@ -1678,24 +2520,8 @@ function buildStaticBlogHtmlPage(articlePayload, lang) {
       datePublished: articlePayload.createdAtIso,
       dateModified: articlePayload.updatedAtIso,
       inLanguage: lang,
-      author: {
-        "@type": "Organization",
-        name: "Paradise Wholesale Clothing Istanbul",
-        url: `${SITE_DOMAIN}/`
-      },
-      publisher: {
-        "@type": "Organization",
-        name: "Paradise Wholesale Clothing",
-        url: `${SITE_DOMAIN}/`
-      }
-    },
-    {
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_DOMAIN}/` },
-        { "@type": "ListItem", position: 2, name: "B2B Blog", item: `${SITE_DOMAIN}/blog.html` },
-        { "@type": "ListItem", position: 3, name: title, item: canonicalUrl }
-      ]
+      author: { "@type": "Organization", name: "Paradise Wholesale Clothing Istanbul", url: `${SITE_DOMAIN}/` },
+      publisher: { "@type": "Organization", name: "Paradise Wholesale Clothing", url: `${SITE_DOMAIN}/` }
     }
   ];
 
@@ -1713,7 +2539,7 @@ function buildStaticBlogHtmlPage(articlePayload, lang) {
   const faqHtml =
     faqs.length > 0
       ? `<section style="margin-top:32px;">
-          <h2 style="font-family:'Playfair Display',serif; font-size:1.45rem; margin-bottom:14px;">Frequently Asked Questions</h2>
+          <h2 style="font-family:'Playfair Display',serif; font-size:1.45rem; margin-bottom:14px;">FAQ</h2>
           <div class="faq-list">
             ${faqs
               .map(
@@ -1746,21 +2572,13 @@ function buildStaticBlogHtmlPage(articlePayload, lang) {
   <meta property="og:description" content="${escapeHtml(metaDesc)}" />
   <meta property="og:url" content="${canonicalUrl}" />
   <meta property="og:image" content="${escapeHtml(cover)}" />
-  <link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)" />
-  <link rel="preconnect" href="[https://fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin />
-  <link href="[https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap](https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap)" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/style.css" />
-  <script type="application/ld+json">${JSON.stringify({ "@context": "[https://schema.org](https://schema.org)", "@graph": schemaGraph })}</script>
+  <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": schemaGraph })}</script>
 </head>
 <body>
-  <div class="top-bar">
-    <div class="container top-bar-inner">
-      <div class="top-bar-message">
-        <span class="top-bar-badge">ISTANBUL FACTORY DIRECT</span>
-        <span>Flexible MOQ from 1 Pack • Best Wholesale Rate for 25+ pcs • Express DHL/UPS Worldwide</span>
-      </div>
-    </div>
-  </div>
   <header class="site-header">
     <div class="container header-inner">
       <a href="/index.html" class="brand-logo">
@@ -1782,23 +2600,10 @@ function buildStaticBlogHtmlPage(articlePayload, lang) {
   <main class="section-block">
     <div class="container" style="max-width:920px;">
       <article style="background:#fff; padding:36px; border-radius:20px; border:1px solid var(--border-color);">
-        <span class="top-bar-badge" style="margin-bottom:12px;">${escapeHtml(articlePayload.category.toUpperCase())}</span>
         <h1 class="section-title" style="margin-bottom:18px;">${escapeHtml(title)}</h1>
         <img src="${escapeHtml(cover)}" alt="${escapeHtml(title)}" style="width:100%; border-radius:14px; margin-bottom:24px; aspect-ratio:16/9; object-fit:cover;" />
-        <div class="article-prose" style="line-height:1.85;">
-          ${htmlContent}
-        </div>
+        <div class="article-prose" style="line-height:1.85;">${htmlContent}</div>
         ${faqHtml}
-        <div style="margin-top:36px; padding:28px; border-radius:14px; background:var(--charcoal); color:#fff; border:1.5px solid var(--gold);">
-          <span class="top-bar-badge" style="margin-bottom:8px;">Direct Istanbul Wholesale • Flexible MOQ (From 1 Pack / Best Rate 25+ pcs)</span>
-          <h3 style="font-family:'Playfair Display',serif; font-size:1.35rem; margin-bottom:10px;">Order Direct from Paradise Wholesale Istanbul</h3>
-          <div style="display:flex; flex-wrap:wrap; gap:12px; margin-top:14px;">
-            <button type="button" class="btn btn-whatsapp" data-whatsapp-trigger="static_blog_cta" data-whatsapp-message="Hello Paradise Wholesale Istanbul! I read your guide (${escapeHtml(title)}) and want to request your VIP catalog.">
-              Chat with Wholesale Desk on WhatsApp
-            </button>
-            <a href="/category.html" class="btn btn-gold">Explore Wholesale Serie Packs →</a>
-          </div>
-        </div>
       </article>
     </div>
   </main>
@@ -1807,27 +2612,23 @@ function buildStaticBlogHtmlPage(articlePayload, lang) {
 </html>`;
 }
 
-/**
- * Commits a file to GitHub Repository via REST API (`PUT /repos/{owner}/{repo}/contents/{path}`)
- */
 async function commitFileToGitHub(filePath, contentString, commitMessage) {
   const token = (document.getElementById("cfg-github-token")?.value || adminState.adminSecrets.githubToken || "").trim();
   const repo = (document.getElementById("cfg-github-repo")?.value || adminState.adminSecrets.githubRepo || "").trim();
   const branch = (document.getElementById("cfg-github-branch")?.value || adminState.adminSecrets.githubBranch || "main").trim();
 
   if (!token || !repo) {
-    throw new Error("GitHub Token or Repository (owner/repo) is not configured in Tab 6.");
+    throw new Error("توکن یا نام ریپازیتوری گیت‌هاب در تب ۶ وارد نشده است.");
   }
 
   const cleanPath = filePath.replace(/^\/+/, "");
-  const apiUrl = `[https://api.github.com/repos/$](https://api.github.com/repos/$){repo}/contents/${cleanPath}`;
+  const apiUrl = `https://api.github.com/repos/${repo}/contents/${cleanPath}`;
   const headers = {
     Authorization: `Bearer ${token}`,
     Accept: "application/vnd.github+json",
     "Content-Type": "application/json"
   };
 
-  // Check if file exists to get current `sha`
   let existingSha = null;
   try {
     const getRes = await fetch(`${apiUrl}?ref=${encodeURIComponent(branch)}`, { headers });
@@ -1906,19 +2707,6 @@ async function handlePublishBlogAndGitHub(e) {
     es: parseFaqSafe("blog-faq-es")
   };
 
-  const combinedFaqs = faqsByLang.en.map((item, idx) => ({
-    question: {
-      en: item.question || "",
-      it: faqsByLang.it[idx]?.question || item.question || "",
-      es: faqsByLang.es[idx]?.question || item.question || ""
-    },
-    answer: {
-      en: item.answer || "",
-      it: faqsByLang.it[idx]?.answer || item.answer || "",
-      es: faqsByLang.es[idx]?.answer || item.answer || ""
-    }
-  }));
-
   const docId = document.getElementById("blog-doc-id").value.trim() || slugs.en;
   const nowIso = new Date().toISOString();
 
@@ -1929,13 +2717,12 @@ async function handlePublishBlogAndGitHub(e) {
     category: document.getElementById("blog-category-select")?.value || "logistics",
     coverImage:
       document.getElementById("blog-cover-url")?.value.trim() ||
-      "[https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=85](https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=85)",
+      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=85",
     title,
     metaTitle,
     metaDescription,
     excerpt: metaDescription,
     content,
-    faqs: combinedFaqs,
     faqsByLang,
     readingTime: "5 min read",
     publishedAt: nowIso.slice(0, 10),
@@ -1946,11 +2733,10 @@ async function handlePublishBlogAndGitHub(e) {
 
   if (btn) {
     btn.disabled = true;
-    btn.textContent = "Publishing to Firestore & Building Static GitHub Pages...";
+    btn.textContent = "در حال انتشار در دیتابیس و گیت‌هاب...";
   }
 
   try {
-    // 1. Save full article in `blogs/{docId}`
     await setDoc(doc(db, "blogs", docId), articlePayload, { merge: true });
 
     const existingIdx = adminState.blogs.findIndex((b) => b.id === docId);
@@ -1960,10 +2746,8 @@ async function handlePublishBlogAndGitHub(e) {
       adminState.blogs.unshift(articlePayload);
     }
 
-    // 2. Sync lightweight 1-Read `settings/blog_index`
     await syncBlogIndexDocument();
 
-    // 3. If GitHub token is configured, push `/en/blog/{slug}/index.html`, `/it/blog/{slug}/index.html`, `/es/blog/{slug}/index.html` + `sitemap.xml`
     const ghToken = (document.getElementById("cfg-github-token")?.value || adminState.adminSecrets.githubToken || "").trim();
     const ghRepo = (document.getElementById("cfg-github-repo")?.value || adminState.adminSecrets.githubRepo || "").trim();
 
@@ -1974,19 +2758,19 @@ async function handlePublishBlogAndGitHub(e) {
         await commitFileToGitHub(targetPath, htmlPage, `SEO Static Blog [${lang.toUpperCase()}]: ${title[lang]}`);
       }
       await buildAndPushSitemapAndRobots();
-      showAdminToast("🚀 Published to Firestore + 3 Static HTML Pages & Sitemap pushed to GitHub!");
+      showAdminToast("🚀 مقاله در فایربیس ذخیره شد و ۳ صفحه HTML مجزا در گیت‌هاب ساخته شد!");
     } else {
-      showAdminToast("✓ Published to Firestore (`blogs` & `settings/blog_index`)!");
+      showAdminToast("✓ مقاله با موفقیت در دیتابیس منتشر شد!");
     }
 
     renderPublishedBlogsTable();
     updateDashboardKPIs();
   } catch (err) {
-    showAdminToast(`Publish Error: ${err.message}`);
+    showAdminToast(`خطا در انتشار مقاله: ${err.message}`);
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = "🌍 Publish to Firestore & Push Static HTML Pages to GitHub";
+      btn.textContent = "🌍 انتشار مقاله در سایت و ساخت صفحات سئو در گیت‌هاب";
     }
   }
 }
@@ -2011,10 +2795,6 @@ async function syncBlogIndexDocument() {
   });
 }
 
-/**
- * Generates `sitemap.xml` (Home, all 5 Departments & Subcategories, all 3-language Blog URLs)
- * and `robots.txt` (Disallowing admin.html, order.html, and search queries) and commits to GitHub.
- */
 async function buildAndPushSitemapAndRobots() {
   const today = new Date().toISOString().slice(0, 10);
   const urls = [
@@ -2024,17 +2804,9 @@ async function buildAndPushSitemapAndRobots() {
   ];
 
   DEPARTMENTS_TAXONOMY.forEach((dept) => {
-    urls.push({
-      loc: `${SITE_DOMAIN}/category.html?dept=${dept.id}`,
-      priority: "0.85",
-      changefreq: "daily"
-    });
+    urls.push({ loc: `${SITE_DOMAIN}/category.html?dept=${dept.id}`, priority: "0.85", changefreq: "daily" });
     dept.subcategories.forEach((sc) => {
-      urls.push({
-        loc: `${SITE_DOMAIN}/category.html?dept=${dept.id}&cat=${sc.id}`,
-        priority: "0.75",
-        changefreq: "weekly"
-      });
+      urls.push({ loc: `${SITE_DOMAIN}/category.html?dept=${dept.id}&cat=${sc.id}`, priority: "0.75", changefreq: "weekly" });
     });
   });
 
@@ -2048,7 +2820,7 @@ async function buildAndPushSitemapAndRobots() {
   });
 
   const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="[http://www.sitemaps.org/schemas/sitemap/0.9](http://www.sitemaps.org/schemas/sitemap/0.9)">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls
   .map(
     (u) => `  <url>
@@ -2076,7 +2848,6 @@ Sitemap: ${SITE_DOMAIN}/sitemap.xml
 }
 
 function bindBlogStudioEvents() {
-  // Language Editor Sub-tabs
   document.getElementById("blog-editor-lang-tabs")?.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-editor-lang]");
     if (!btn) return;
@@ -2116,30 +2887,30 @@ function bindBlogStudioEvents() {
         document.getElementById(`blog-html-${lang}`).value = art.content?.[lang] || "";
         document.getElementById(`blog-faq-${lang}`).value = JSON.stringify(art.faqsByLang?.[lang] || [], null, 2);
       });
-      showAdminToast(`Loaded article "${art.title?.en || id}" into editor.`);
+      showAdminToast(`مقاله جهت ویرایش بارگذاری شد.`);
       return;
     }
 
     const delBtn = e.target.closest("[data-delete-blog]");
     if (delBtn) {
       const id = delBtn.getAttribute("data-delete-blog");
-      if (!confirm(`Delete article ${id}?`)) return;
+      if (!confirm(`آیا مقاله ${id} حذف شود؟`)) return;
       try {
         await deleteDoc(doc(db, "blogs", id));
         adminState.blogs = adminState.blogs.filter((b) => b.id !== id);
         await syncBlogIndexDocument();
         renderPublishedBlogsTable();
         updateDashboardKPIs();
-        showAdminToast("Article deleted.");
+        showAdminToast("مقاله حذف شد.");
       } catch (err) {
-        showAdminToast(`Delete error: ${err.message}`);
+        showAdminToast(`خطا: ${err.message}`);
       }
     }
   });
 }
 
 /* ==========================================================================
-   13. TAB 5: VIDEOS & MEDIA MANAGER (HERO YOUTUBE/SHORTS & CARGO CAROUSEL)
+   13. TAB 5: VIDEOS & MEDIA MANAGER (HERO, CARGO REVIEWS & SHOWROOM VIDEOS)
    ========================================================================== */
 function renderCargoVideosTable() {
   const tbody = document.getElementById("admin-cargo-videos-tbody");
@@ -2147,14 +2918,14 @@ function renderCargoVideosTable() {
 
   const list = Array.isArray(adminState.publicConfig.cargoVideos) ? adminState.publicConfig.cargoVideos : [];
   if (list.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-muted);">No custom cargo videos added yet (default showcase active). Add a YouTube or Shorts link above.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-muted);">هنوز ویدیوی ارسال بار و رضایت مشتری اضافه نشده است.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = list
     .map((v, idx) => {
       const ytId = escapeHtml(v.ytId || "");
-      const thumb = escapeHtml(v.thumb || `[https://i.ytimg.com/vi/$](https://i.ytimg.com/vi/$){ytId}/hqdefault.jpg`);
+      const thumb = escapeHtml(v.thumb || `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`);
       return `
         <tr>
           <td><img src="${thumb}" alt="Video" style="width:54px; height:72px; object-fit:cover; border-radius:6px;" /></td>
@@ -2162,7 +2933,36 @@ function renderCargoVideosTable() {
           <td><strong>${escapeHtml(v.title || "")}</strong></td>
           <td><code>${ytId}</code></td>
           <td style="text-align:right;">
-            <button type="button" class="adm-btn-xs danger" data-remove-cargo-vid="${idx}">🗑 Remove</button>
+            <button type="button" class="adm-btn-xs danger" data-remove-cargo-vid="${idx}">🗑 حذف</button>
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
+}
+
+function renderShowroomVideosTable() {
+  const tbody = document.getElementById("admin-showroom-videos-tbody");
+  if (!tbody) return;
+
+  const list = Array.isArray(adminState.publicConfig.showroomVideos) ? adminState.publicConfig.showroomVideos : [];
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-muted);">هنوز ویدیویی در ویترین نمایش محصولات ثبت نشده است.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list
+    .map((v, idx) => {
+      const ytId = escapeHtml(v.ytId || "");
+      const thumb = escapeHtml(v.thumb || (ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : ""));
+      return `
+        <tr>
+          <td>${thumb ? `<img src="${thumb}" alt="Showroom" style="width:54px; height:72px; object-fit:cover; border-radius:6px;" />` : "🎬"}</td>
+          <td><strong>${escapeHtml(v.title || "")}</strong></td>
+          <td><span class="top-bar-badge">${escapeHtml(v.dept || "all")}</span></td>
+          <td><code>${escapeHtml(v.ytId || v.url || "")}</code></td>
+          <td style="text-align:right;">
+            <button type="button" class="adm-btn-xs danger" data-remove-showroom-vid="${idx}">🗑 حذف</button>
           </td>
         </tr>
       `;
@@ -2175,15 +2975,15 @@ function bindVideosManagerEvents() {
     e.preventDefault();
     const rawUrl = document.getElementById("hero-yt-url").value.trim();
     const ytId = extractYouTubeId(rawUrl);
-    const poster = document.getElementById("hero-yt-poster").value.trim() || `[https://i.ytimg.com/vi/$](https://i.ytimg.com/vi/$){ytId}/maxresdefault.jpg`;
+    const poster = document.getElementById("hero-yt-poster").value.trim() || `https://i.ytimg.com/vi/${ytId}/maxresdefault.jpg`;
     const title = document.getElementById("hero-yt-title").value.trim() || "Istanbul Warehouse & Live Order Packing";
 
     adminState.publicConfig.heroVideo = { ytId, poster, title };
     try {
       await setDoc(doc(db, "settings", "public_config"), { heroVideo: adminState.publicConfig.heroVideo }, { merge: true });
-      showAdminToast("✓ Hero Showroom Video saved to live config!");
+      showAdminToast("✓ ویدیوی اصلی صفحه اول ذخیره شد!");
     } catch (err) {
-      showAdminToast(`Video save error: ${err.message}`);
+      showAdminToast(`خطا: ${err.message}`);
     }
   });
 
@@ -2193,7 +2993,7 @@ function bindVideosManagerEvents() {
     const ytId = extractYouTubeId(rawUrl);
     const badge = document.getElementById("cargo-vid-badge").value.trim();
     const title = document.getElementById("cargo-vid-title").value.trim();
-    const thumb = document.getElementById("cargo-vid-thumb").value.trim() || `[https://i.ytimg.com/vi/$](https://i.ytimg.com/vi/$){ytId}/hqdefault.jpg`;
+    const thumb = document.getElementById("cargo-vid-thumb").value.trim() || `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`;
 
     if (!Array.isArray(adminState.publicConfig.cargoVideos)) {
       adminState.publicConfig.cargoVideos = [];
@@ -2204,9 +3004,9 @@ function bindVideosManagerEvents() {
       await setDoc(doc(db, "settings", "public_config"), { cargoVideos: adminState.publicConfig.cargoVideos }, { merge: true });
       renderCargoVideosTable();
       e.target.reset();
-      showAdminToast("✓ Cargo review video added!");
+      showAdminToast("✓ ویدیوی رضایت مشتری و ارسال بار اضافه شد!");
     } catch (err) {
-      showAdminToast(`Save error: ${err.message}`);
+      showAdminToast(`خطا: ${err.message}`);
     }
   });
 
@@ -2218,9 +3018,47 @@ function bindVideosManagerEvents() {
     try {
       await setDoc(doc(db, "settings", "public_config"), { cargoVideos: adminState.publicConfig.cargoVideos }, { merge: true });
       renderCargoVideosTable();
-      showAdminToast("Video removed.");
+      showAdminToast("ویدیو حذف شد.");
     } catch (err) {
-      showAdminToast(`Remove error: ${err.message}`);
+      showAdminToast(`خطا: ${err.message}`);
+    }
+  });
+
+  // رویدادهای بخش جدید ویترین ویدیوهای نمایش محصولات
+  document.getElementById("admin-add-showroom-video-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const rawUrl = document.getElementById("showroom-vid-url").value.trim();
+    const ytId = extractYouTubeId(rawUrl);
+    const title = document.getElementById("showroom-vid-title").value.trim();
+    const dept = document.getElementById("showroom-vid-dept").value || "all";
+    const thumb = ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : "";
+
+    if (!Array.isArray(adminState.publicConfig.showroomVideos)) {
+      adminState.publicConfig.showroomVideos = [];
+    }
+    adminState.publicConfig.showroomVideos.unshift({ url: rawUrl, ytId, title, dept, thumb });
+
+    try {
+      await setDoc(doc(db, "settings", "public_config"), { showroomVideos: adminState.publicConfig.showroomVideos }, { merge: true });
+      renderShowroomVideosTable();
+      e.target.reset();
+      showAdminToast("✓ ویدیو به ویترین نمایش سایت اضافه شد!");
+    } catch (err) {
+      showAdminToast(`خطا: ${err.message}`);
+    }
+  });
+
+  document.getElementById("admin-showroom-videos-tbody")?.addEventListener("click", async (e) => {
+    const rmBtn = e.target.closest("[data-remove-showroom-vid]");
+    if (!rmBtn) return;
+    const idx = parseInt(rmBtn.getAttribute("data-remove-showroom-vid"), 10);
+    adminState.publicConfig.showroomVideos.splice(idx, 1);
+    try {
+      await setDoc(doc(db, "settings", "public_config"), { showroomVideos: adminState.publicConfig.showroomVideos }, { merge: true });
+      renderShowroomVideosTable();
+      showAdminToast("ویدیوی ویترین حذف شد.");
+    } catch (err) {
+      showAdminToast(`خطا: ${err.message}`);
     }
   });
 }
@@ -2229,7 +3067,6 @@ function bindVideosManagerEvents() {
    14. TAB 6: GLOBAL LIVE SETTINGS, GOOGLE ADS, GEMINI ROTATOR & GITHUB
    ========================================================================== */
 async function loadSettingsFromFirestore() {
-  // 1. Load `settings/public_config`
   try {
     const pubSnap = await getDoc(doc(db, "settings", "public_config"));
     if (pubSnap.exists()) {
@@ -2237,7 +3074,6 @@ async function loadSettingsFromFirestore() {
     }
   } catch (e) {}
 
-  // 2. Load `settings/admin_secrets` (with fallback check on `settings/private_keys`)
   try {
     const secSnap = await getDoc(doc(db, "settings", "admin_secrets"));
     if (secSnap.exists()) {
@@ -2252,6 +3088,7 @@ async function loadSettingsFromFirestore() {
 
   populateSettingsFormUI();
   renderCargoVideosTable();
+  renderShowroomVideosTable();
 }
 
 function populateSettingsFormUI() {
@@ -2292,7 +3129,7 @@ function populateSettingsFormUI() {
   setVal("cfg-github-branch", sec.githubBranch || "main");
 
   const badge = document.getElementById("gemini-key-count-badge");
-  if (badge) badge.textContent = `${keysArr.length} Keys Configured`;
+  if (badge) badge.textContent = `${keysArr.length} کلید ثبت شده`;
 }
 
 async function handleSaveGlobalSettings(e) {
@@ -2300,7 +3137,7 @@ async function handleSaveGlobalSettings(e) {
   const btn = document.getElementById("btn-save-global-settings");
   if (btn) {
     btn.disabled = true;
-    btn.textContent = "Saving Global Settings to Firestore...";
+    btn.textContent = "در حال ذخیره تنظیمات در دیتابیس...";
   }
 
   const currencySymbol = document.getElementById("cfg-currency-symbol").value || "€";
@@ -2353,13 +3190,13 @@ async function handleSaveGlobalSettings(e) {
 
     populateSettingsFormUI();
     updateDashboardKPIs();
-    showAdminToast("✓ Live WhatsApp, Google Ads & Gemini Rotator settings saved globally!");
+    showAdminToast("✓ تمام تنظیمات واتساپ، گوگل ادز و کلیدهای جمنای با موفقیت ذخیره شد!");
   } catch (err) {
-    showAdminToast(`Settings save error: ${err.message}`);
+    showAdminToast(`خطا در ذخیره تنظیمات: ${err.message}`);
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = "💾 Save All Global Settings to Firestore";
+      btn.textContent = "💾 ذخیره تمام تنظیمات در دیتابیس";
     }
   }
 }
@@ -2371,16 +3208,16 @@ async function testAllGeminiKeysHealth() {
 
   logBox.style.display = "block";
   if (keys.length === 0) {
-    logBox.textContent = "❌ No Gemini API keys entered in the box above.";
+    logBox.textContent = "❌ هیچ کلیدی در کادر بالا وارد نشده است.";
     return;
   }
 
-  logBox.textContent = `🩺 Testing ${keys.length} Gemini API Key(s)...\n`;
+  logBox.textContent = `🩺 در حال تست سلامت ${keys.length} کلید Gemini API...\n`;
 
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
     const masked = `${key.slice(0, 8)}...${key.slice(-4)}`;
-    const url = `[https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$](https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$){encodeURIComponent(key)}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(key)}`;
     try {
       const start = performance.now();
       const res = await fetch(url, {
@@ -2392,12 +3229,12 @@ async function testAllGeminiKeysHealth() {
       });
       const ms = Math.round(performance.now() - start);
       if (res.ok) {
-        logBox.textContent += `✅ Key #${i + 1} (${masked}): HEALTHY (${ms} ms)\n`;
+        logBox.textContent += `✅ کلید شماره ${i + 1} (${masked}): سالم و فعال (${ms} ms)\n`;
       } else {
-        logBox.textContent += `⚠️ Key #${i + 1} (${masked}): HTTP ${res.status}\n`;
+        logBox.textContent += `⚠️ کلید شماره ${i + 1} (${masked}): خطای HTTP ${res.status}\n`;
       }
     } catch (err) {
-      logBox.textContent += `❌ Key #${i + 1} (${masked}): ${err.message}\n`;
+      logBox.textContent += `❌ کلید شماره ${i + 1} (${masked}): ${err.message}\n`;
     }
   }
 }
@@ -2406,12 +3243,12 @@ async function testGitHubConnection() {
   const token = document.getElementById("cfg-github-token")?.value.trim();
   const repo = document.getElementById("cfg-github-repo")?.value.trim();
   if (!token || !repo) {
-    showAdminToast("Please enter both GitHub Token and Repository (owner/repo) first.");
+    showAdminToast("لطفاً ابتدا توکن و نام ریپازیتوری (مثلاً raminparadise800/paradise-wholesale) را وارد کنید.");
     return;
   }
 
   try {
-    const res = await fetch(`[https://api.github.com/repos/$](https://api.github.com/repos/$){repo}`, {
+    const res = await fetch(`https://api.github.com/repos/${repo}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/vnd.github+json"
@@ -2419,9 +3256,9 @@ async function testGitHubConnection() {
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    showAdminToast(`✓ Connected to GitHub Repo: ${data.full_name} (Default branch: ${data.default_branch})`);
+    showAdminToast(`✓ اتصال به گیت‌هاب برقرار شد: ${data.full_name}`);
   } catch (err) {
-    showAdminToast(`GitHub Connection Failed: ${err.message}`);
+    showAdminToast(`خطا در اتصال به گیت‌هاب: ${err.message}`);
   }
 }
 
@@ -2433,16 +3270,16 @@ function bindSettingsEvents() {
   document.getElementById("cfg-gemini-keys")?.addEventListener("input", () => {
     const keys = getActiveGeminiKeys();
     const badge = document.getElementById("gemini-key-count-badge");
-    if (badge) badge.textContent = `${keys.length} Keys Configured`;
+    if (badge) badge.textContent = `${keys.length} کلید ثبت شده`;
   });
 
   document.getElementById("btn-push-sitemap-robots")?.addEventListener("click", async () => {
     try {
-      showAdminToast("Building & pushing sitemap.xml and robots.txt to GitHub...");
+      showAdminToast("در حال ساخت و ارسال sitemap.xml و robots.txt به گیت‌هاب...");
       await buildAndPushSitemapAndRobots();
-      showAdminToast("✓ sitemap.xml & robots.txt pushed to GitHub successfully!");
+      showAdminToast("✓ فایل‌های sitemap.xml و robots.txt با موفقیت روی گیت‌هاب ساخته شدند!");
     } catch (err) {
-      showAdminToast(`Sitemap push error: ${err.message}`);
+      showAdminToast(`خطا: ${err.message}`);
     }
   });
 }
@@ -2451,6 +3288,7 @@ function bindSettingsEvents() {
    15. INITIALIZE EXECUTIVE ADMIN SUITE
    ========================================================================== */
 function initAdminSuite() {
+  injectPersianAndSmartFeaturesUI();
   bindAuthEvents();
   bindNavigationEvents();
   bindOrdersAndCrmEvents();
