@@ -2111,23 +2111,39 @@ function bindProductUploaderEvents() {
   document.getElementById("admin-product-form")?.addEventListener("submit", handleSaveProductForm);
 }
 
+/* === شروع قطعه ۲ (بخش‌های ۱۱ و ۱۲) — جایگزین بخش‌های ۱۱ و ۱۲ قبلی تا بالای بخش ۱۳ === */
+
 /* ==========================================================================
-   11. TAB 2: CATALOG MANAGER, BULK PRICE/PACK EDITOR & PERSISTENT CHECKBOXES
+   11. TAB 2: CATALOG MANAGER, PRICE-TIERS EXTRACTOR & PERSISTENT CHECKBOXES
    ========================================================================== */
+/**
+ * بازسازی شاردهای ۱۰۰تایی کاتالوگ + استخراج خودکار رنج قیمت‌ها (priceTiers)
+ * برای نمایش دکمه‌های فیلتر قیمت (مثلاً $5 | $9 | $12) در بالای صفحه محصولات
+ */
 async function rebuildAllCatalogShards() {
   try {
+    normalizeTaxonomyStructure();
+
     const hiddenDeptIds = new Set(adminState.taxonomy.filter((d) => d.hidden).map((d) => d.id));
     const hiddenSubcatIds = new Set();
+    const hiddenLeafKeys = new Set();
+
     adminState.taxonomy.forEach((d) => {
       (d.subcategories || []).forEach((s) => {
         if (s.hidden) hiddenSubcatIds.add(s.id);
+        (s.leaves || []).forEach((lf) => {
+          if (lf.hidden) hiddenLeafKeys.add(`${s.id}__${lf.id}`);
+        });
       });
     });
 
-    // فقط محصولاتی که دسته‌بندی آن‌ها مخفی نیست در شارد عمومی مشتریان قرار می‌گیرند
-    const visibleProducts = adminState.products.filter(
-      (p) => !hiddenDeptIds.has(p.department) && !hiddenSubcatIds.has(p.subcategory)
-    );
+    // فقط محصولاتی که بخش، شاخه یا زیربخش آن‌ها مخفی نیست در ویترین عمومی قرار می‌گیرند
+    const visibleProducts = adminState.products.filter((p) => {
+      if (hiddenDeptIds.has(p.department)) return false;
+      if (hiddenSubcatIds.has(p.subcategory)) return false;
+      if (p.leafSub && hiddenLeafKeys.has(`${p.subcategory}__${p.leafSub}`)) return false;
+      return true;
+    });
 
     const items = visibleProducts.map((p) => ({
       id: p.id || p.sku,
@@ -2136,13 +2152,17 @@ async function rebuildAllCatalogShards() {
       department: p.department || "men",
       subcategory: p.subcategory || "men-tshirts",
       leafSub: p.leafSub || "",
+      garmentType: p.garmentType || "",
+      season: p.season || "all-season",
+      detectedBrand: p.detectedBrand || "",
+      colors: p.colors || {},
       unitPrice: Number(p.unitPrice) || 0,
       pcsPerPack: Math.max(1, parseInt(p.pcsPerPack, 10) || 6),
       sizeRange: p.sizeRange || "S - M - L - XL",
       stockStatus: p.stockStatus || "in_stock",
       isFeatured: Boolean(p.isFeatured),
-      publicTitle: p.publicTitle || { en: `Wholesale Garment • ${p.sku}` },
-      brandTitle: p.brandTitle || p.publicTitle || { en: `Wholesale Garment • ${p.sku}` },
+      publicTitle: p.publicTitle || { en: `Premium Garment • Code ${p.sku}` },
+      brandTitle: p.brandTitle || p.publicTitle || { en: `Premium Garment • Code ${p.sku}` },
       searchTags: Array.isArray(p.searchTags) ? p.searchTags : [],
       imageUrl: p.imageUrl || "",
       thumbUrl: p.thumbUrl || p.imageUrl || "",
@@ -2152,23 +2172,44 @@ async function rebuildAllCatalogShards() {
       createdAtMillis: p.createdAtMillis || Date.now()
     }));
 
+    // تابع کمکی استخراج رنج قیمت‌های موجود (مرتب‌شده از ارزان‌ترین به گران‌ترین)
+    const extractSortedPrices = (list) =>
+      Array.from(new Set(list.map((i) => Number(i.unitPrice)).filter((n) => n > 0))).sort((a, b) => a - b);
+
+    // ۱. شارد جدیدترین‌ها
     await setDoc(doc(db, "catalog_shards", "latest"), {
       updatedAtIso: new Date().toISOString(),
       items: items.slice(0, 24)
     });
 
+    // ۲. شارد اصلی کاتالوگ + رنج قیمت‌های کل سایت
     const masterTotalPages = Math.max(1, Math.ceil(items.length / SHARD_CHUNK_SIZE));
     await setDoc(doc(db, "catalog_shards", "master_catalog"), {
       updatedAtIso: new Date().toISOString(),
       totalCount: items.length,
       totalPages: masterTotalPages,
       chunkSize: SHARD_CHUNK_SIZE,
+      allPriceTiers: extractSortedPrices(items),
       items: items.slice(0, 200)
     });
 
+    // ۳. شاردهای ۱۰۰تایی هر بخش اصلی + نقشه دقیق قیمت‌های هر شاخه و هر زیربخش (مثلاً تیشرت > یقه گرد -> [$5, $9])
     for (const deptObj of adminState.taxonomy) {
       const deptItems = items.filter((i) => i.department === deptObj.id);
       const totalPages = Math.max(1, Math.ceil(deptItems.length / SHARD_CHUNK_SIZE));
+
+      const priceTiersBySubcat = {};
+      const priceTiersByLeaf = {};
+
+      (deptObj.subcategories || []).forEach((sc) => {
+        const subItems = deptItems.filter((i) => i.subcategory === sc.id);
+        priceTiersBySubcat[sc.id] = extractSortedPrices(subItems);
+
+        (sc.leaves || []).forEach((lf) => {
+          const leafItems = subItems.filter((i) => i.leafSub === lf.id || i.leafSub === lf.labelEn);
+          priceTiersByLeaf[`${sc.id}__${lf.id}`] = extractSortedPrices(leafItems);
+        });
+      });
 
       await setDoc(doc(db, "catalog_shards", deptObj.id), {
         department: deptObj.id,
@@ -2176,6 +2217,9 @@ async function rebuildAllCatalogShards() {
         totalCount: deptItems.length,
         totalPages,
         page: 1,
+        deptPriceTiers: extractSortedPrices(deptItems),
+        priceTiersBySubcat,
+        priceTiersByLeaf,
         items: deptItems.slice(0, SHARD_CHUNK_SIZE)
       });
 
@@ -2280,6 +2324,7 @@ function renderCatalogTable() {
       const sku = escapeHtml(p.sku || p.id);
       const vCode = escapeHtml(p.vendorCode || String(p.sku || "").split("-")[0] || "PRD");
       const subcat = escapeHtml(p.subcategory || p.department || "men");
+      const leafBadge = p.leafSub ? ` / ${escapeHtml(p.leafSub)}` : "";
       const unitPrice = Number(p.unitPrice) || 0;
       const pcs = Math.max(1, parseInt(p.pcsPerPack, 10) || 6);
       const packTotal = formatMoney(unitPrice * pcs);
@@ -2298,7 +2343,7 @@ function renderCatalogTable() {
           </td>
           <td>
             <strong style="color:var(--gold-dark); display:block; direction:ltr; text-align:right;">${sku}</strong>
-            <span style="font-size:0.7rem; color:var(--text-muted);">${vCode} | ${subcat}</span>
+            <span style="font-size:0.7rem; color:var(--text-muted);">${vCode} | ${subcat}${leafBadge}</span>
             ${hasVideo ? `<span style="display:inline-block; font-size:0.65rem; background:#dbeafe; color:#1e40af; padding:1px 5px; border-radius:4px;">🎬 ویدیو</span>` : ""}
           </td>
           <td>
@@ -2327,9 +2372,6 @@ function renderCatalogTable() {
     .join("");
 }
 
-/**
- * تغییر دسته‌جمعی قیمت یا تعداد در پک (روی محصولات تیک‌خورده، یا اگر تیکی نباشد روی کل فیلتر فعلی)
- */
 async function executeBulkCatalogUpdate(fieldType, newValue) {
   const filtered = getFilteredCatalogProducts();
   const targets =
@@ -2424,13 +2466,11 @@ function bindCatalogManagerEvents() {
   document.getElementById("catalog-filter-price")?.addEventListener("input", resetLimitAndRender);
   document.getElementById("catalog-search-input")?.addEventListener("input", resetLimitAndRender);
 
-  // دکمه بارگذاری ۱۰۰ محصول بعدی بدون پریدن تیک‌ها
   document.getElementById("btn-load-more-catalog")?.addEventListener("click", () => {
     adminState.catalogDisplayLimit += 100;
     renderCatalogTable();
   });
 
-  // انتخاب همه فیلتر شده‌ها
   document.getElementById("catalog-select-all-filtered")?.addEventListener("change", (e) => {
     const checked = e.target.checked;
     const filtered = getFilteredCatalogProducts();
@@ -2448,7 +2488,6 @@ function bindCatalogManagerEvents() {
     renderCatalogTable();
   });
 
-  // تغییر گروهی قیمت و تعداد پک
   document.getElementById("btn-apply-bulk-price")?.addEventListener("click", async () => {
     const val = parseFloat(document.getElementById("bulk-new-unit-price")?.value);
     if (!val || val <= 0) {
@@ -2467,7 +2506,6 @@ function bindCatalogManagerEvents() {
     await executeBulkCatalogUpdate("pcs", val);
   });
 
-  // حذف تیک‌خورده‌ها یا حذف کل فیلتر
   document.getElementById("btn-delete-selected-products")?.addEventListener("click", async () => {
     if (adminState.selectedProductIds.size === 0) {
       showAdminToast("ابتدا محصولات مورد نظر را تیک بزنید.");
@@ -2490,10 +2528,9 @@ function bindCatalogManagerEvents() {
 
   document.getElementById("btn-rebuild-all-shards")?.addEventListener("click", async () => {
     await rebuildAllCatalogShards();
-    showAdminToast("✓ کاتالوگ سایت بروزرسانی شد!");
+    showAdminToast("✓ کاتالوگ و رنج قیمت‌های سایت بروزرسانی شد!");
   });
 
-  // رویدادهای جدول محصولات
   document.getElementById("admin-catalog-tbody")?.addEventListener("change", (e) => {
     const check = e.target.closest(".catalog-row-check");
     if (!check) return;
@@ -2538,7 +2575,6 @@ function bindCatalogManagerEvents() {
       return;
     }
 
-    // باز کردن پاپ‌آپ ویرایش عنوان (🏷️ عنوان)
     const titleBtn = target.closest("[data-open-title-modal]");
     if (titleBtn) {
       const id = titleBtn.getAttribute("data-open-title-modal");
@@ -2557,7 +2593,6 @@ function bindCatalogManagerEvents() {
       return;
     }
 
-    // باز کردن پاپ‌آپ افزودن فایل ویدیو یا لینک به محصول (🎬 ویدیو)
     const vidBtn = target.closest("[data-open-video-modal]");
     if (vidBtn) {
       const id = vidBtn.getAttribute("data-open-video-modal");
@@ -2581,7 +2616,6 @@ function bindCatalogManagerEvents() {
     }
   });
 
-  // رویدادهای مودال عنوان و مودال ویدیوی محصول
   document.getElementById("btn-close-title-modal")?.addEventListener("click", () => {
     document.getElementById("modal-edit-titles")?.classList.remove("open");
   });
@@ -2680,9 +2714,10 @@ function bindCatalogManagerEvents() {
 }
 
 /* ==========================================================================
-   12. TAB 3: VISUAL CATEGORIES, SEASONAL REORDER (⬆️⬇️) & HIDE/SHOW (👁️)
+   12. TAB 3: 3-LEVEL GRAPHICAL & 3-LANGUAGE CATEGORY MANAGER (NO SLASH/COMMA)
    ========================================================================== */
 async function saveTaxonomyToFirestore() {
+  normalizeTaxonomyStructure();
   adminState.publicConfig.taxonomy = adminState.taxonomy;
   await setDoc(doc(db, "settings", "public_config"), { taxonomy: adminState.taxonomy }, { merge: true });
   await rebuildAllCatalogShards();
@@ -2691,29 +2726,36 @@ async function saveTaxonomyToFirestore() {
 }
 
 function renderCategoriesManagerUI() {
+  normalizeTaxonomyStructure();
+
+  // ۱. رندر جدول سطح ۱ (بخش‌های اصلی)
   const deptTbody = document.getElementById("admin-departments-tbody");
   if (deptTbody) {
     deptTbody.innerHTML = adminState.taxonomy
       .map(
         (d, idx) => `
         <tr>
-          <td><img src="${escapeHtml(d.image || "")}" style="width:48px; height:48px; object-fit:cover; border-radius:8px; border:1px solid var(--border);" /></td>
+          <td><img src="${escapeHtml(d.image || "")}" style="width:46px; height:46px; object-fit:cover; border-radius:8px; border:1px solid var(--border);" /></td>
           <td>
-            <strong>${escapeHtml(d.labelFa || d.label)}</strong> (${escapeHtml(d.label)})<br>
-            <code style="font-size:0.72rem; color:var(--text-muted);">${escapeHtml(d.id)}</code>
+            <strong>${escapeHtml(d.labelFa)}</strong><br>
+            <code style="font-size:0.7rem; color:var(--text-muted);">${escapeHtml(d.id)}</code>
+          </td>
+          <td style="direction:ltr; text-align:right; font-size:0.76rem;">
+            <div>🇬🇧 <strong>${escapeHtml(d.labelEn)}</strong></div>
+            <div>🇮🇹 ${escapeHtml(d.labelIt)} | 🇪🇸 ${escapeHtml(d.labelEs)}</div>
           </td>
           <td>${(d.subcategories || []).length} شاخه</td>
           <td>
             <button type="button" class="btn-outline" data-toggle-dept-vis="${idx}" style="background:${d.hidden ? "#fef2f2" : "#ecfdf5"}; color:${d.hidden ? "#991b1b" : "#065f46"};">
-              ${d.hidden ? "🙈 مخفی در سایت (کلیک برای نمایش)" : "👁️ فعال در سایت"}
+              ${d.hidden ? "🙈 مخفی" : "👁️ فعال"}
             </button>
           </td>
           <td>
-            <button type="button" class="btn-outline" data-move-dept="${idx}:-1" ${idx === 0 ? "disabled" : ""}>⬆️ بالا</button>
-            <button type="button" class="btn-outline" data-move-dept="${idx}:1" ${idx === adminState.taxonomy.length - 1 ? "disabled" : ""}>⬇️ پایین</button>
+            <button type="button" class="btn-outline" data-move-dept="${idx}:-1" ${idx === 0 ? "disabled" : ""}>⬆️</button>
+            <button type="button" class="btn-outline" data-move-dept="${idx}:1" ${idx === adminState.taxonomy.length - 1 ? "disabled" : ""}>⬇️</button>
           </td>
-          <td>
-            <button type="button" class="btn-outline" data-edit-dept="${idx}">✏️ ویرایش/عکس</button>
+          <td style="white-space:nowrap;">
+            <button type="button" class="btn-outline" data-edit-dept="${idx}">✏️ ویرایش</button>
             <button type="button" class="btn-outline" data-del-dept="${idx}" style="color:var(--danger);">🗑</button>
           </td>
         </tr>
@@ -2723,6 +2765,7 @@ function renderCategoriesManagerUI() {
   }
 
   renderSubcategoriesManagerTable();
+  renderLeavesManagerTable();
 }
 
 function renderSubcategoriesManagerTable() {
@@ -2733,7 +2776,7 @@ function renderSubcategoriesManagerTable() {
   const subs = deptObj?.subcategories || [];
 
   if (subs.length === 0) {
-    subTbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:18px; color:var(--text-muted);">هنوز شاخه‌ای برای این بخش ثبت نشده است.</td></tr>`;
+    subTbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:18px; color:var(--text-muted);">هنوز شاخه‌ای برای این بخش ثبت نشده است.</td></tr>`;
     return;
   }
 
@@ -2741,24 +2784,75 @@ function renderSubcategoriesManagerTable() {
     .map(
       (sc, idx) => `
       <tr>
-        <td><img src="${escapeHtml(sc.image || "")}" style="width:48px; height:58px; object-fit:cover; border-radius:8px; border:1px solid var(--border);" /></td>
+        <td><img src="${escapeHtml(sc.image || "")}" style="width:46px; height:56px; object-fit:cover; border-radius:8px; border:1px solid var(--border);" /></td>
         <td>
-          <strong>${escapeHtml(sc.labelFa || sc.label)}</strong> (${escapeHtml(sc.label)})<br>
-          <code style="font-size:0.72rem; color:var(--text-muted);">${escapeHtml(sc.id)}</code>
+          <strong>${escapeHtml(sc.labelFa)}</strong><br>
+          <code style="font-size:0.7rem; color:var(--text-muted);">${escapeHtml(sc.id)}</code>
         </td>
-        <td>${Array.isArray(sc.leaves) && sc.leaves.length ? escapeHtml(sc.leaves.join(" ، ")) : "—"}</td>
+        <td style="direction:ltr; text-align:right; font-size:0.76rem;">
+          <div>🇬🇧 <strong>${escapeHtml(sc.labelEn)}</strong></div>
+          <div>🇮🇹 ${escapeHtml(sc.labelIt)} | 🇪🇸 ${escapeHtml(sc.labelEs)}</div>
+        </td>
+        <td>${(sc.leaves || []).length} زیربخش</td>
         <td>
           <button type="button" class="btn-outline" data-toggle-sub-vis="${deptObj.id}:${idx}" style="background:${sc.hidden ? "#fef2f2" : "#ecfdf5"}; color:${sc.hidden ? "#991b1b" : "#065f46"};">
-            ${sc.hidden ? "🙈 مخفی (کلیک برای نمایش)" : "👁️ فعال در سایت"}
+            ${sc.hidden ? "🙈 مخفی" : "👁️ فعال"}
           </button>
         </td>
         <td>
           <button type="button" class="btn-outline" data-move-sub="${deptObj.id}:${idx}:-1" ${idx === 0 ? "disabled" : ""}>⬆️</button>
           <button type="button" class="btn-outline" data-move-sub="${deptObj.id}:${idx}:1" ${idx === subs.length - 1 ? "disabled" : ""}>⬇️</button>
         </td>
-        <td>
-          <button type="button" class="btn-outline" data-edit-sub="${deptObj.id}:${idx}">✏️ ویرایش/عکس</button>
+        <td style="white-space:nowrap;">
+          <button type="button" class="btn-outline" data-edit-sub="${deptObj.id}:${idx}">✏️ ویرایش</button>
           <button type="button" class="btn-outline" data-del-sub="${deptObj.id}:${idx}" style="color:var(--danger);">🗑</button>
+        </td>
+      </tr>
+    `
+    )
+    .join("");
+}
+
+function renderLeavesManagerTable() {
+  const leafTbody = document.getElementById("admin-leaves-tbody");
+  if (!leafTbody) return;
+
+  const deptId = document.getElementById("leaf-parent-dept")?.value || adminState.taxonomy[0]?.id || "men";
+  const subcatId = document.getElementById("leaf-parent-subcat")?.value || "";
+  const deptObj = adminState.taxonomy.find((d) => d.id === deptId) || adminState.taxonomy[0];
+  const subObj = (deptObj?.subcategories || []).find((s) => s.id === subcatId) || deptObj?.subcategories?.[0];
+
+  if (!subObj || !Array.isArray(subObj.leaves) || subObj.leaves.length === 0) {
+    leafTbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:18px; color:var(--text-muted);">هیچ زیربخشی برای این شاخه ثبت نشده است. از فرم بالا اضافه کنید.</td></tr>`;
+    return;
+  }
+
+  leafTbody.innerHTML = subObj.leaves
+    .map(
+      (lf, idx) => `
+      <tr>
+        <td>${lf.image ? `<img src="${escapeHtml(lf.image)}" style="width:42px; height:50px; object-fit:cover; border-radius:6px;" />` : "🎯"}</td>
+        <td><strong>${escapeHtml(subObj.labelFa)}</strong></td>
+        <td>
+          <strong>${escapeHtml(lf.labelFa)}</strong><br>
+          <code style="font-size:0.7rem; color:var(--text-muted);">${escapeHtml(lf.id)}</code>
+        </td>
+        <td style="direction:ltr; text-align:right; font-size:0.76rem;">
+          <div>🇬🇧 <strong>${escapeHtml(lf.labelEn)}</strong></div>
+          <div>🇮🇹 ${escapeHtml(lf.labelIt)} | 🇪🇸 ${escapeHtml(lf.labelEs)}</div>
+        </td>
+        <td>
+          <button type="button" class="btn-outline" data-toggle-leaf-vis="${deptObj.id}:${subObj.id}:${idx}" style="background:${lf.hidden ? "#fef2f2" : "#ecfdf5"}; color:${lf.hidden ? "#991b1b" : "#065f46"};">
+            ${lf.hidden ? "🙈 مخفی" : "👁️ فعال"}
+          </button>
+        </td>
+        <td>
+          <button type="button" class="btn-outline" data-move-leaf="${deptObj.id}:${subObj.id}:${idx}:-1" ${idx === 0 ? "disabled" : ""}>⬆️</button>
+          <button type="button" class="btn-outline" data-move-leaf="${deptObj.id}:${subObj.id}:${idx}:1" ${idx === subObj.leaves.length - 1 ? "disabled" : ""}>⬇️</button>
+        </td>
+        <td style="white-space:nowrap;">
+          <button type="button" class="btn-outline" data-edit-leaf="${deptObj.id}:${subObj.id}:${idx}">✏️ ویرایش</button>
+          <button type="button" class="btn-outline" data-del-leaf="${deptObj.id}:${subObj.id}:${idx}" style="color:var(--danger);">🗑</button>
         </td>
       </tr>
     `
@@ -2769,13 +2863,38 @@ function renderSubcategoriesManagerTable() {
 function bindCategoriesManagerEvents() {
   document.getElementById("filter-subcat-manager-dept")?.addEventListener("change", renderSubcategoriesManagerTable);
 
-  // افزودن یا ویرایش بخش اصلی
+  document.getElementById("leaf-parent-dept")?.addEventListener("change", (e) => {
+    populateLeafManagerSubcatSelect(e.target.value);
+    renderLeavesManagerTable();
+  });
+
+  document.getElementById("leaf-parent-subcat")?.addEventListener("change", renderLeavesManagerTable);
+
+  document.getElementById("btn-reset-dept-form")?.addEventListener("click", () => {
+    document.getElementById("form-add-department")?.reset();
+    document.getElementById("dept-edit-original-id").value = "";
+  });
+
+  document.getElementById("btn-reset-subcat-form")?.addEventListener("click", () => {
+    document.getElementById("form-add-subcategory")?.reset();
+    document.getElementById("subcat-edit-original-id").value = "";
+  });
+
+  document.getElementById("btn-reset-leaf-form")?.addEventListener("click", () => {
+    document.getElementById("form-add-leaf")?.reset();
+    document.getElementById("leaf-edit-original-id").value = "";
+    document.getElementById("leaf-image-url").value = "";
+  });
+
+  // ۱. ذخیره یا ویرایش سطح ۱ (بخش اصلی ۳ زبانه)
   document.getElementById("form-add-department")?.addEventListener("submit", async (e) => {
     e.preventDefault();
+    const origId = document.getElementById("dept-edit-original-id").value.trim();
     const id = slugify(document.getElementById("dept-id-input").value.trim(), "dept");
     const labelFa = document.getElementById("dept-label-fa").value.trim();
-    const label = document.getElementById("dept-label-en").value.trim();
-    const labelItEs = document.getElementById("dept-label-ites").value.trim();
+    const labelEn = document.getElementById("dept-label-en").value.trim();
+    const labelIt = document.getElementById("dept-label-it").value.trim() || labelEn;
+    const labelEs = document.getElementById("dept-label-es").value.trim() || labelEn;
     const imgFile = document.getElementById("dept-image-file")?.files?.[0] || null;
     let image = document.getElementById("dept-image-url").value.trim();
 
@@ -2786,26 +2905,38 @@ function bindCategoriesManagerEvents() {
       if (imgFile) {
         image = await uploadSingleImageAsset(imgFile, "categories/depts", 700);
       }
-      const existing = adminState.taxonomy.find((d) => d.id === id);
+
+      const targetId = origId || id;
+      const existing = adminState.taxonomy.find((d) => d.id === targetId);
+
       if (existing) {
+        existing.id = id;
         existing.labelFa = labelFa;
-        existing.label = label;
-        existing.labelItEs = labelItEs;
+        existing.labelEn = labelEn;
+        existing.label = labelEn;
+        existing.labelIt = labelIt;
+        existing.labelEs = labelEs;
+        existing.labelItEs = `${labelIt} / ${labelEs}`;
         if (image) existing.image = image;
       } else {
         adminState.taxonomy.push({
           id,
           labelFa,
-          label,
-          labelItEs,
+          labelEn,
+          label: labelEn,
+          labelIt,
+          labelEs,
+          labelItEs: `${labelIt} / ${labelEs}`,
           hidden: false,
           image: image || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=600&q=80",
           subcategories: []
         });
       }
+
       await saveTaxonomyToFirestore();
       e.target.reset();
-      showAdminToast(`✓ بخش "${labelFa}" ذخیره شد!`);
+      document.getElementById("dept-edit-original-id").value = "";
+      showAdminToast(`✓ بخش "${labelFa}" به ۳ زبان ذخیره و در کل سایت بروزرسانی شد!`);
     } catch (err) {
       showAdminToast(`خطا: ${err.message}`);
     } finally {
@@ -2813,7 +2944,7 @@ function bindCategoriesManagerEvents() {
     }
   });
 
-  // رویدادهای جدول بخش‌های اصلی (مخفی‌سازی، جابجایی، ویرایش، حذف)
+  // رویدادهای جدول سطح ۱ (بخش‌های اصلی)
   document.getElementById("admin-departments-tbody")?.addEventListener("click", async (e) => {
     const toggleBtn = e.target.closest("[data-toggle-dept-vis]");
     if (toggleBtn) {
@@ -2841,11 +2972,14 @@ function bindCategoriesManagerEvents() {
     if (editBtn) {
       const idx = parseInt(editBtn.getAttribute("data-edit-dept"), 10);
       const d = adminState.taxonomy[idx];
+      document.getElementById("dept-edit-original-id").value = d.id;
       document.getElementById("dept-id-input").value = d.id;
       document.getElementById("dept-label-fa").value = d.labelFa || "";
-      document.getElementById("dept-label-en").value = d.label || "";
-      document.getElementById("dept-label-ites").value = d.labelItEs || "";
+      document.getElementById("dept-label-en").value = d.labelEn || d.label || "";
+      document.getElementById("dept-label-it").value = d.labelIt || "";
+      document.getElementById("dept-label-es").value = d.labelEs || "";
       document.getElementById("dept-image-url").value = d.image || "";
+      showAdminToast(`بخش "${d.labelFa}" جهت ویرایش در فرم بالا قرار گرفت.`);
       return;
     }
 
@@ -2858,22 +2992,20 @@ function bindCategoriesManagerEvents() {
     }
   });
 
-  // افزودن یا ویرایش شاخه (مثلاً کلاه مردانه) و زیرمجموعه‌ها (مثلاً جاگر) + عکس اختصاصی
+  // ۲. ذخیره یا ویرایش سطح ۲ (شاخه محصولات ۳ زبانه + عکس)
   document.getElementById("form-add-subcategory")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const deptId = document.getElementById("subcat-parent-dept").value;
     const deptObj = adminState.taxonomy.find((d) => d.id === deptId);
     if (!deptObj) return;
 
+    const origId = document.getElementById("subcat-edit-original-id").value.trim();
     const rawId = document.getElementById("subcat-id-input").value.trim();
     const id = slugify(rawId.startsWith(deptId) ? rawId : `${deptId}-${rawId}`, `${deptId}-item`);
     const labelFa = document.getElementById("subcat-label-fa").value.trim();
-    const label = document.getElementById("subcat-label-en").value.trim();
-    const leaves = document
-      .getElementById("subcat-leaves-input")
-      .value.split(/[,،]+/)
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const labelEn = document.getElementById("subcat-label-en").value.trim();
+    const labelIt = document.getElementById("subcat-label-it").value.trim() || labelEn;
+    const labelEs = document.getElementById("subcat-label-es").value.trim() || labelEn;
     const imgFile = document.getElementById("subcat-image-file")?.files?.[0] || null;
     let image = document.getElementById("subcat-image-url").value.trim();
 
@@ -2885,32 +3017,43 @@ function bindCategoriesManagerEvents() {
         image = await uploadSingleImageAsset(imgFile, "categories/subcats", 600);
       }
       if (!Array.isArray(deptObj.subcategories)) deptObj.subcategories = [];
-      const existing = deptObj.subcategories.find((s) => s.id === id);
+
+      const targetId = origId || id;
+      const existing = deptObj.subcategories.find((s) => s.id === targetId);
 
       if (existing) {
+        existing.id = id;
         existing.labelFa = labelFa;
-        existing.label = label;
-        existing.en = `Luxury Turkish Wholesale ${label}`;
-        existing.leaves = leaves;
+        existing.labelEn = labelEn;
+        existing.label = labelEn;
+        existing.labelIt = labelIt;
+        existing.labelEs = labelEs;
+        existing.en = `Premium ${labelEn}`;
+        existing.it = `${labelIt} Premium`;
+        existing.es = `${labelEs} Premium`;
         if (image) existing.image = image;
       } else {
         deptObj.subcategories.push({
           id,
           labelFa,
-          label,
-          en: `Luxury Turkish Wholesale ${label}`,
-          it: `Ingrosso ${label}`,
-          es: `Mayorista ${label}`,
+          labelEn,
+          label: labelEn,
+          labelIt,
+          labelEs,
+          en: `Premium ${labelEn}`,
+          it: `${labelIt} Premium`,
+          es: `${labelEs} Premium`,
           hidden: false,
           image: image || deptObj.image || "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=500&q=80",
-          leaves
+          leaves: []
         });
       }
 
       document.getElementById("filter-subcat-manager-dept").value = deptId;
       await saveTaxonomyToFirestore();
       e.target.reset();
-      showAdminToast(`✓ شاخه "${labelFa}" ذخیره شد!`);
+      document.getElementById("subcat-edit-original-id").value = "";
+      showAdminToast(`✓ شاخه "${labelFa}" به ۳ زبان ذخیره شد!`);
     } catch (err) {
       showAdminToast(`خطا: ${err.message}`);
     } finally {
@@ -2918,7 +3061,7 @@ function bindCategoriesManagerEvents() {
     }
   });
 
-  // رویدادهای جدول شاخه‌ها (مخفی‌سازی، جابجایی فصلی ⬆️⬇️، ویرایش عکس، حذف)
+  // رویدادهای جدول سطح ۲ (شاخه‌ها)
   document.getElementById("admin-subcategories-tbody")?.addEventListener("click", async (e) => {
     const toggleBtn = e.target.closest("[data-toggle-sub-vis]");
     if (toggleBtn) {
@@ -2928,7 +3071,7 @@ function bindCategoriesManagerEvents() {
       if (!sc) return;
       sc.hidden = !sc.hidden;
       await saveTaxonomyToFirestore();
-      showAdminToast(sc.hidden ? `شاخه "${sc.labelFa}" در سایت مخفی شد.` : `شاخه "${sc.labelFa}" در سایت فعال شد.`);
+      showAdminToast(sc.hidden ? `شاخه "${sc.labelFa}" مخفی شد.` : `شاخه "${sc.labelFa}" فعال شد.`);
       return;
     }
 
@@ -2955,12 +3098,14 @@ function bindCategoriesManagerEvents() {
       if (!sc) return;
 
       document.getElementById("subcat-parent-dept").value = deptId;
+      document.getElementById("subcat-edit-original-id").value = sc.id;
       document.getElementById("subcat-id-input").value = sc.id;
       document.getElementById("subcat-label-fa").value = sc.labelFa || "";
-      document.getElementById("subcat-label-en").value = sc.label || "";
-      document.getElementById("subcat-leaves-input").value = (sc.leaves || []).join(", ");
+      document.getElementById("subcat-label-en").value = sc.labelEn || sc.label || "";
+      document.getElementById("subcat-label-it").value = sc.labelIt || "";
+      document.getElementById("subcat-label-es").value = sc.labelEs || "";
       document.getElementById("subcat-image-url").value = sc.image || "";
-      showAdminToast(`شاخه "${sc.labelFa}" در فرم بالا بارگذاری شد.`);
+      showAdminToast(`شاخه "${sc.labelFa}" در فرم سطح ۲ بارگذاری شد.`);
       return;
     }
 
@@ -2975,7 +3120,146 @@ function bindCategoriesManagerEvents() {
       await saveTaxonomyToFirestore();
     }
   });
+
+  // ۳. ذخیره یا ویرایش سطح ۳ (زیربخش‌های داخلی مثل یقه گرد، یقه‌دار پلو، جاگر...) به ۳ زبان و بدون کاما
+  document.getElementById("form-add-leaf")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const deptId = document.getElementById("leaf-parent-dept").value;
+    const subcatId = document.getElementById("leaf-parent-subcat").value;
+    const deptObj = adminState.taxonomy.find((d) => d.id === deptId);
+    const subObj = (deptObj?.subcategories || []).find((s) => s.id === subcatId);
+    if (!subObj) return;
+
+    const origId = document.getElementById("leaf-edit-original-id").value.trim();
+    const id = slugify(document.getElementById("leaf-id-input").value.trim(), "style");
+    const labelFa = document.getElementById("leaf-label-fa").value.trim();
+    const labelEn = document.getElementById("leaf-label-en").value.trim();
+    const labelIt = document.getElementById("leaf-label-it").value.trim() || labelEn;
+    const labelEs = document.getElementById("leaf-label-es").value.trim() || labelEn;
+    const imgFile = document.getElementById("leaf-image-file")?.files?.[0] || null;
+    let image = document.getElementById("leaf-image-url")?.value.trim() || "";
+
+    const btn = document.getElementById("btn-save-leaf");
+    if (btn) btn.disabled = true;
+
+    try {
+      if (imgFile) {
+        image = await uploadSingleImageAsset(imgFile, "categories/leaves", 500);
+      }
+      if (!Array.isArray(subObj.leaves)) subObj.leaves = [];
+
+      const targetId = origId || id;
+      const existing = subObj.leaves.find((l) => l.id === targetId);
+
+      if (existing) {
+        existing.id = id;
+        existing.labelFa = labelFa;
+        existing.labelEn = labelEn;
+        existing.labelIt = labelIt;
+        existing.labelEs = labelEs;
+        if (image) existing.image = image;
+      } else {
+        subObj.leaves.push({
+          id,
+          labelFa,
+          labelEn,
+          labelIt,
+          labelEs,
+          image,
+          hidden: false
+        });
+      }
+
+      await saveTaxonomyToFirestore();
+      document.getElementById("leaf-parent-dept").value = deptId;
+      populateLeafManagerSubcatSelect(deptId, subcatId);
+      renderLeavesManagerTable();
+
+      document.getElementById("leaf-edit-original-id").value = "";
+      document.getElementById("leaf-id-input").value = "";
+      document.getElementById("leaf-label-fa").value = "";
+      document.getElementById("leaf-label-en").value = "";
+      document.getElementById("leaf-label-it").value = "";
+      document.getElementById("leaf-label-es").value = "";
+      document.getElementById("leaf-image-url").value = "";
+      const fileInp = document.getElementById("leaf-image-file");
+      if (fileInp) fileInp.value = "";
+
+      showAdminToast(`✓ زیربخش "${labelFa}" به ۳ زبان ذخیره شد!`);
+    } catch (err) {
+      showAdminToast(`خطا: ${err.message}`);
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  });
+
+  // رویدادهای جدول سطح ۳ (زیربخش‌ها)
+  document.getElementById("admin-leaves-tbody")?.addEventListener("click", async (e) => {
+    const toggleBtn = e.target.closest("[data-toggle-leaf-vis]");
+    if (toggleBtn) {
+      const [deptId, subId, idxStr] = toggleBtn.getAttribute("data-toggle-leaf-vis").split(":");
+      const deptObj = adminState.taxonomy.find((d) => d.id === deptId);
+      const subObj = (deptObj?.subcategories || []).find((s) => s.id === subId);
+      const lf = subObj?.leaves?.[parseInt(idxStr, 10)];
+      if (!lf) return;
+      lf.hidden = !lf.hidden;
+      await saveTaxonomyToFirestore();
+      showAdminToast(lf.hidden ? `زیربخش "${lf.labelFa}" مخفی شد.` : `زیربخش "${lf.labelFa}" فعال شد.`);
+      return;
+    }
+
+    const moveBtn = e.target.closest("[data-move-leaf]");
+    if (moveBtn) {
+      const [deptId, subId, idxStr, dirStr] = moveBtn.getAttribute("data-move-leaf").split(":");
+      const deptObj = adminState.taxonomy.find((d) => d.id === deptId);
+      const subObj = (deptObj?.subcategories || []).find((s) => s.id === subId);
+      const leaves = subObj?.leaves || [];
+      const idx = parseInt(idxStr, 10);
+      const targetIdx = idx + parseInt(dirStr, 10);
+      if (targetIdx < 0 || targetIdx >= leaves.length) return;
+      const temp = leaves[idx];
+      leaves[idx] = leaves[targetIdx];
+      leaves[targetIdx] = temp;
+      await saveTaxonomyToFirestore();
+      return;
+    }
+
+    const editBtn = e.target.closest("[data-edit-leaf]");
+    if (editBtn) {
+      const [deptId, subId, idxStr] = editBtn.getAttribute("data-edit-leaf").split(":");
+      const deptObj = adminState.taxonomy.find((d) => d.id === deptId);
+      const subObj = (deptObj?.subcategories || []).find((s) => s.id === subId);
+      const lf = subObj?.leaves?.[parseInt(idxStr, 10)];
+      if (!lf) return;
+
+      document.getElementById("leaf-parent-dept").value = deptId;
+      populateLeafManagerSubcatSelect(deptId, subId);
+      document.getElementById("leaf-edit-original-id").value = lf.id;
+      document.getElementById("leaf-id-input").value = lf.id;
+      document.getElementById("leaf-label-fa").value = lf.labelFa || "";
+      document.getElementById("leaf-label-en").value = lf.labelEn || "";
+      document.getElementById("leaf-label-it").value = lf.labelIt || "";
+      document.getElementById("leaf-label-es").value = lf.labelEs || "";
+      document.getElementById("leaf-image-url").value = lf.image || "";
+      showAdminToast(`زیربخش "${lf.labelFa}" جهت ویرایش در فرم سطح ۳ قرار گرفت.`);
+      return;
+    }
+
+    const delBtn = e.target.closest("[data-del-leaf]");
+    if (delBtn) {
+      const [deptId, subId, idxStr] = delBtn.getAttribute("data-del-leaf").split(":");
+      const deptObj = adminState.taxonomy.find((d) => d.id === deptId);
+      const subObj = (deptObj?.subcategories || []).find((s) => s.id === subId);
+      const idx = parseInt(idxStr, 10);
+      if (!subObj?.leaves?.[idx]) return;
+      if (!confirm(`آیا زیربخش "${subObj.leaves[idx].labelFa}" حذف شود؟`)) return;
+      subObj.leaves.splice(idx, 1);
+      await saveTaxonomyToFirestore();
+    }
+  });
 }
+
+/* === پایان قطعه ۲ — بخش ۱۳ (VENDORS CRM) و ادامه فایل بدون تغییر در زیر این خط قرار می‌گیرند === */
 
 /* ==========================================================================
    13. TAB 4: VENDORS CRM (CODE, NAME & SUPER-ADMIN PRIVATE PHONE/ADDRESS)
