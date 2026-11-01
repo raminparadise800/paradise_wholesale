@@ -2,7 +2,9 @@
  * ============================================================================
  * PARADISE WHOLESALE CLOTHING (Paradise Turkey Wholesale)
  * Domain: https://paradisewholesaler.com
- * File: admin.js (BLOCK 1 OF 2) — Minimal Persian Mobile-First B2B Engine
+ * File: admin.js (BLOCK 1 OF 2 — AUDITED & OPTIMIZED)
+ *       8x Parallel Uploader, Dual-WebP (Thumb + HD), CORS-Free Gemini Vision,
+ *       Visual Category Manager, Vendor CRM & Strict Role Security
  * ============================================================================
  */
 
@@ -11,6 +13,9 @@ import {
   getAuth,
   onAuthStateChanged,
   signInWithEmailAndPassword,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
   signOut
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 import {
@@ -35,7 +40,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-storage.js";
 
 /* ==========================================================================
-   1. CORE CONFIGURATION & TAXONOMY WITH LUXURY 3-LANGUAGE FALLBACKS
+   1. CORE CONFIGURATION & DEFAULT VISUAL TAXONOMY
    ========================================================================== */
 export const firebaseConfig = {
   apiKey: "AIzaSyCQyBszaUZ4FJX2OJw4YrcLMwUbk2BtxL4",
@@ -46,110 +51,374 @@ export const firebaseConfig = {
   appId: "1:516659166400:web:9ac24230ebe5676cfe0125"
 };
 
-export const SUPER_ADMIN_EMAIL = "Paradise.men2019@gmail.com";
 export const SITE_DOMAIN = "https://paradisewholesaler.com";
 export const DEFAULT_WHATSAPP = "+905459099395";
 export const SHARD_CHUNK_SIZE = 100;
+export const PARALLEL_UPLOAD_LIMIT = 8; // آپلود موازی ۸تا ۸تا همزمان
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-export const DEPARTMENTS_TAXONOMY = [
+/* درخت پیش‌فرض بخش‌ها، شاخه‌ها، زیرمجموعه‌ها و عکس‌های کاتالوگ (قابل ویرایش کامل از تب ۳) */
+export const DEFAULT_TAXONOMY = [
   {
     id: "men",
-    label: "مردانه (Men)",
+    labelFa: "مردانه",
+    label: "Men",
+    labelItEs: "Uomo / Hombre",
+    hidden: false,
+    image: "https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?auto=format&fit=crop&w=600&q=80",
     subcategories: [
-      { id: "men-tshirts", label: "تیشرت مردانه (T-Shirts)", en: "Premium Turkish Cotton Men's T-Shirt", it: "T-Shirt Uomo in Cotone Turco Premium", es: "Camiseta Hombre de Algodón Turco Premium" },
-      { id: "men-shirts", label: "پیراهن مردانه (Shirts)", en: "Luxury Tailored Men's Casual Shirt", it: "Camicia Uomo Sartoriale di Lusso", es: "Camisa Hombre de Corte Sastre" },
-      { id: "men-knitwear", label: "بافت و پلیور مردانه (Knitwear)", en: "Fine Merino Blend Men's Knitwear", it: "Maglieria Uomo in Misto Lana Fine", es: "Punto y Jersey Hombre de Calidad Superior" },
-      { id: "men-sweatshirts-hoodies", label: "هودی و دورس مردانه (Hoodies)", en: "Heavyweight 3-Thread Men's Hoodie & Sweatshirt", it: "Felpa e Hoodie Uomo Cotone Pesante", es: "Sudadera y Hoodie Hombre Algodón Premium" },
-      { id: "men-tracksuits", label: "ست ورزشی و ترک‌سوئیت مردانه (Tracksuits)", en: "2-Piece Luxury Men's Tracksuit Set", it: "Tuta Completa Uomo 2 Pezzi", es: "Conjunto Chándal Hombre 2 Piezas" },
-      { id: "men-jeans", label: "شلوار جین مردانه (Jeans)", en: "Turkish Denim Men's Jeans", it: "Jeans Uomo in Denim Turco", es: "Pantalón Vaquero Denim Hombre" },
-      { id: "men-trousers", label: "شلوار کتان و پارچه‌ای مردانه (Trousers)", en: "Tailored Men's Chino & Trousers", it: "Pantaloni Chino e Classici Uomo", es: "Pantalón Chino y Vestir Hombre" },
-      { id: "men-jackets-coats", label: "کاپشن و پالتو مردانه (Jackets & Coats)", en: "Designer Men's Outerwear Jacket", it: "Giacca e Capospalla Uomo", es: "Chaqueta y Abrigo Hombre" },
-      { id: "men-suits-blazers", label: "کت و شلوار مردانه (Suits & Blazers)", en: "Executive Men's Suit & Blazer", it: "Abito e Blazer Sartoriale Uomo", es: "Traje y Blazer Ejecutivo Hombre" }
+      {
+        id: "men-tshirts",
+        labelFa: "تیشرت مردانه",
+        label: "T-Shirts",
+        en: "Premium Turkish Cotton Men's T-Shirt",
+        it: "T-Shirt Uomo in Cotone Turco Premium",
+        es: "Camiseta Hombre de Algodón Turco Premium",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Oversize", "Regular", "Polo"]
+      },
+      {
+        id: "men-sweatshirts-hoodies",
+        labelFa: "هودی و دورس مردانه",
+        label: "Sweatshirts & Hoodies",
+        en: "Heavyweight Turkish Cotton Men's Hoodie & Sweatshirt",
+        it: "Felpa e Hoodie Uomo Cotone Turco",
+        es: "Sudadera y Hoodie Hombre Algodón Turco",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Hoodie", "Sweatshirt", "Zip-Up"]
+      },
+      {
+        id: "men-tracksuits",
+        labelFa: "ست ورزشی و ترک‌سوئیت مردانه",
+        label: "Tracksuits",
+        en: "2-Piece Luxury Men's Tracksuit Set",
+        it: "Tuta Completa Uomo 2 Pezzi",
+        es: "Conjunto Chándal Hombre 2 Piezas",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=500&q=80",
+        leaves: ["2-Piece Set", "3-Piece Set"]
+      },
+      {
+        id: "men-shirts",
+        labelFa: "پیراهن مردانه",
+        label: "Shirts",
+        en: "Luxury Tailored Men's Shirt",
+        it: "Camicia Uomo Sartoriale",
+        es: "Camisa Hombre Corte Sastre",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Classic", "Linen", "Casual"]
+      },
+      {
+        id: "men-knitwear",
+        labelFa: "بافت و پلیور مردانه",
+        label: "Knitwear",
+        en: "Fine Turkish Men's Knitwear & Sweater",
+        it: "Maglieria Uomo Fine",
+        es: "Punto y Jersey Hombre",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Pullover", "Turtleneck", "Cardigan"]
+      },
+      {
+        id: "men-jeans",
+        labelFa: "شلوار جین مردانه",
+        label: "Jeans",
+        en: "Turkish Denim Men's Jeans",
+        it: "Jeans Uomo Denim Turco",
+        es: "Pantalón Vaquero Denim Hombre",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Slim Fit", "Baggy", "Straight"]
+      },
+      {
+        id: "men-trousers",
+        labelFa: "شلوار کتان، پارچه‌ای و جاگر مردانه",
+        label: "Trousers & Joggers",
+        en: "Tailored Men's Trousers & Joggers",
+        it: "Pantaloni e Jogger Uomo",
+        es: "Pantalón y Jogger Hombre",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Jogger", "Cargo", "Chino"]
+      },
+      {
+        id: "men-jackets-coats",
+        labelFa: "کاپشن و پالتو مردانه",
+        label: "Jackets & Coats",
+        en: "Designer Men's Outerwear Jacket",
+        it: "Giacca e Capospalla Uomo",
+        es: "Chaqueta y Abrigo Hombre",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Puffer", "Bomber", "Leather Jacket"]
+      },
+      {
+        id: "men-suits-blazers",
+        labelFa: "کت و شلوار مردانه",
+        label: "Suits & Blazers",
+        en: "Executive Men's Suit & Blazer",
+        it: "Abito e Blazer Uomo",
+        es: "Traje y Blazer Hombre",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Full Suit", "Blazer"]
+      }
     ]
   },
   {
     id: "women",
-    label: "زنانه (Women)",
+    labelFa: "زنانه",
+    label: "Women",
+    labelItEs: "Donna / Mujer",
+    hidden: false,
+    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=600&q=80",
     subcategories: [
-      { id: "women-tops-tshirts", label: "تاپ و تیشرت زنانه (Tops & T-Shirts)", en: "Boutique Women's Cotton Top & T-Shirt", it: "Top e T-Shirt Donna Boutique", es: "Top y Camiseta Mujer Boutique" },
-      { id: "women-blouses-shirts", label: "بلوز و شومیز زنانه (Blouses & Shirts)", en: "Elegant Women's Satin & Poplin Blouse", it: "Camicia e Blusa Elegante Donna", es: "Blusa y Camisa Elegante Mujer" },
-      { id: "women-knitwear", label: "بافت زنانه (Knitwear)", en: "Soft Touch Women's Luxury Knitwear", it: "Maglieria Morbida Donna", es: "Punto Suave Mujer Boutique" },
-      { id: "women-sweatshirts-hoodies", label: "هودی و سوئیشرت زنانه (Hoodies)", en: "Luxury Lounge Women's Hoodie & Sweatshirt", it: "Felpa e Hoodie Donna", es: "Sudadera y Hoodie Mujer" },
-      { id: "women-dresses-jumpsuits", label: "پیراهن، مجلسی و سرهمی (Dresses)", en: "Evening & Resort Women's Dress", it: "Abito Elegante da Boutique Donna", es: "Vestido Elegante de Boutique Mujer" },
-      { id: "women-skirts", label: "دامن زنانه (Skirts)", en: "Tailored Women's Boutique Skirt", it: "Gonna Sartoriale Donna", es: "Falda de Boutique Mujer" },
-      { id: "women-jeans-trousers", label: "شلوار و جین زنانه (Jeans & Trousers)", en: "High-Waist Women's Denim & Trousers", it: "Jeans e Pantaloni Vita Alta Donna", es: "Jeans y Pantalón Tiro Alto Mujer" },
-      { id: "women-tracksuits-loungewear", label: "ست راحتی و ترک‌سوئیت زنانه (Tracksuits)", en: "2-Piece Women's Tracksuit & Lounge Set", it: "Completo Tuta e Loungewear Donna", es: "Conjunto Chándal y Lounge Mujer" },
-      { id: "women-jackets-coats", label: "کاپشن و پالتو زنانه (Jackets & Coats)", en: "Boutique Women's Trench & Coat", it: "Cappotto e Giacca Donna", es: "Abrigo y Chaqueta Mujer" },
-      { id: "women-suits-coord", label: "ست دو تکه و کت‌شلوار زنانه (Co-ord Sets)", en: "2-Piece Women's Tailored Co-ord Suit", it: "Tailleur e Completo 2 Pezzi Donna", es: "Conjunto Sastre 2 Piezas Mujer" }
+      {
+        id: "women-tops-tshirts",
+        labelFa: "تاپ و تیشرت زنانه",
+        label: "Tops & T-Shirts",
+        en: "Boutique Women's Cotton Top & T-Shirt",
+        it: "Top e T-Shirt Donna Boutique",
+        es: "Top y Camiseta Mujer Boutique",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=500&q=80",
+        leaves: ["T-Shirt", "Crop Top", "Bodysuit"]
+      },
+      {
+        id: "women-blouses-shirts",
+        labelFa: "بلوز و شومیز زنانه",
+        label: "Blouses & Shirts",
+        en: "Elegant Women's Satin & Poplin Blouse",
+        it: "Camicia e Blusa Elegante Donna",
+        es: "Blusa y Camisa Elegante Mujer",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1551163943-3f6a855d1153?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Satin Blouse", "Shirt"]
+      },
+      {
+        id: "women-sweatshirts-hoodies",
+        labelFa: "هودی و سوئیشرت زنانه",
+        label: "Sweatshirts & Hoodies",
+        en: "Luxury Women's Hoodie & Sweatshirt",
+        it: "Felpa e Hoodie Donna",
+        es: "Sudadera y Hoodie Mujer",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Hoodie", "Sweatshirt"]
+      },
+      {
+        id: "women-dresses-jumpsuits",
+        labelFa: "پیراهن، مجلسی و سرهمی",
+        label: "Dresses & Jumpsuits",
+        en: "Boutique Women's Evening & Day Dress",
+        it: "Abito Elegante Donna",
+        es: "Vestido Elegante Mujer",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Midi Dress", "Maxi Dress", "Jumpsuit"]
+      },
+      {
+        id: "women-tracksuits-loungewear",
+        labelFa: "ست راحتی و ترک‌سوئیت زنانه",
+        label: "Tracksuits & Loungewear",
+        en: "2-Piece Women's Tracksuit Set",
+        it: "Completo Tuta Donna",
+        es: "Conjunto Chándal Mujer",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Tracksuit", "Lounge Set"]
+      },
+      {
+        id: "women-jeans-trousers",
+        labelFa: "شلوار و جین زنانه",
+        label: "Jeans & Trousers",
+        en: "High-Waist Women's Denim & Trousers",
+        it: "Jeans e Pantaloni Donna",
+        es: "Jeans y Pantalón Mujer",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Wide Leg", "Jogger", "Skinny"]
+      },
+      {
+        id: "women-skirts",
+        labelFa: "دامن زنانه",
+        label: "Skirts",
+        en: "Tailored Women's Boutique Skirt",
+        it: "Gonna Sartoriale Donna",
+        es: "Falda de Boutique Mujer",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Mini", "Midi"]
+      },
+      {
+        id: "women-knitwear",
+        labelFa: "بافت زنانه",
+        label: "Knitwear",
+        en: "Soft Touch Women's Knitwear",
+        it: "Maglieria Morbida Donna",
+        es: "Punto Suave Mujer",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Cardigan", "Sweater"]
+      },
+      {
+        id: "women-jackets-coats",
+        labelFa: "کاپشن و پالتو زنانه",
+        label: "Jackets & Coats",
+        en: "Boutique Women's Coat & Jacket",
+        it: "Cappotto e Giacca Donna",
+        es: "Abrigo y Chaqueta Mujer",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Trench Coat", "Puffer"]
+      },
+      {
+        id: "women-suits-coord",
+        labelFa: "ست دو تکه و کت‌شلوار زنانه",
+        label: "Suits & Co-ord Sets",
+        en: "2-Piece Women's Tailored Co-ord Suit",
+        it: "Tailleur e Completo Donna",
+        es: "Conjunto Sastre Mujer",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1548624313-0396c75e4b1a?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Blazer Set", "Skirt Set"]
+      }
     ]
   },
   {
     id: "kids-baby",
-    label: "بچگانه (Kids & Baby)",
+    labelFa: "بچگانه",
+    label: "Kids & Baby",
+    labelItEs: "Bambini / Niños",
+    hidden: false,
+    image: "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?auto=format&fit=crop&w=600&q=80",
     subcategories: [
-      { id: "kids-boys", label: "پسرانه (Boys Clothing)", en: "Turkish Cotton Boys Wholesale Set", it: "Completo Bambino in Cotone Turco", es: "Conjunto Niño Algodón Turco" },
-      { id: "kids-girls", label: "دخترانه (Girls Clothing)", en: "Boutique Girls Dress & Set", it: "Completo e Abito Bambina", es: "Conjunto y Vestido Niña" },
-      { id: "kids-baby-sets", label: "ست نوزادی (Baby Sets)", en: "Organic Combed Cotton Baby Serie Pack", it: "Set Neonato in Cotone Organico", es: "Set Bebé Algodón Orgánico" }
+      {
+        id: "kids-boys",
+        labelFa: "پسرانه",
+        label: "Boys Clothing",
+        en: "Turkish Cotton Boys Wholesale Set",
+        it: "Completo Bambino Cotone Turco",
+        es: "Conjunto Niño Algodón Turco",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1519457431-44ccd64a579b?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Tracksuit", "T-Shirt Set"]
+      },
+      {
+        id: "kids-girls",
+        labelFa: "دخترانه",
+        label: "Girls Clothing",
+        en: "Boutique Girls Dress & Set",
+        it: "Completo e Abito Bambina",
+        es: "Conjunto y Vestido Niña",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Dress", "2-Piece Set"]
+      },
+      {
+        id: "kids-baby-sets",
+        labelFa: "ست نوزادی",
+        label: "Baby Sets",
+        en: "Organic Combed Cotton Baby Serie Pack",
+        it: "Set Neonato Cotone Organico",
+        es: "Set Bebé Algodón Orgánico",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1522771930-78848d9293e8?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Newborn Set", "Romper"]
+      }
     ]
   },
   {
     id: "shoes",
-    label: "کفش (Shoes)",
+    labelFa: "کفش",
+    label: "Shoes",
+    labelItEs: "Scarpe / Calzado",
+    hidden: false,
+    image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=600&q=80",
     subcategories: [
-      { id: "shoes-men", label: "کفش و کتانی مردانه (Men's Shoes)", en: "Handcrafted Leather Men's Sneaker & Loafer", it: "Sneaker e Mocassino Uomo in Pelle", es: "Zapatilla y Mocasín Hombre Piel" },
-      { id: "shoes-women", label: "کفش و کتانی زنانه (Women's Shoes)", en: "Luxury Women's Footwear & Heels", it: "Calzature e Sneaker Donna di Lusso", es: "Calzado y Zapatilla Mujer de Lujo" }
+      {
+        id: "shoes-men",
+        labelFa: "کفش و کتانی مردانه",
+        label: "Men's Shoes",
+        en: "Handcrafted Leather Men's Sneaker & Loafer",
+        it: "Sneaker e Mocassino Uomo",
+        es: "Zapatilla y Mocasín Hombre",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Sneakers", "Loafers", "Boots"]
+      },
+      {
+        id: "shoes-women",
+        labelFa: "کفش و کتانی زنانه",
+        label: "Women's Shoes",
+        en: "Luxury Women's Footwear & Sneakers",
+        it: "Calzature e Sneaker Donna",
+        es: "Calzado y Zapatilla Mujer",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Sneakers", "Heels", "Boots"]
+      }
     ]
   },
   {
     id: "bags-accessories",
-    label: "کیف و اکسسوری (Bags)",
+    labelFa: "کیف و اکسسوری",
+    label: "Bags & Accessories",
+    labelItEs: "Borse / Bolsos",
+    hidden: false,
+    image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=600&q=80",
     subcategories: [
-      { id: "bags-main", label: "کیف (Bags)", en: "Structured Luxury Leather Handbag & Tote", it: "Borsa in Pelle Strutturata di Lusso", es: "Bolso de Piel Estructurado de Lujo" },
-      { id: "accessories-main", label: "اکسسوری، کمربند و کلاه (Accessories)", en: "Luxury Leather Belt & Boutique Accessory", it: "Cintura in Pelle e Accessorio Boutique", es: "Cinturón de Piel y Accesorio Boutique" }
+      {
+        id: "bags-main",
+        labelFa: "کیف",
+        label: "Bags",
+        en: "Structured Luxury Leather Handbag & Tote",
+        it: "Borsa in Pelle di Lusso",
+        es: "Bolso de Piel de Lujo",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Handbag", "Crossbody", "Backpack"]
+      },
+      {
+        id: "accessories-main",
+        labelFa: "اکسسوری، کمربند و کلاه",
+        label: "Accessories",
+        en: "Luxury Belt, Cap & Boutique Accessory",
+        it: "Cintura, Cappello e Accessori",
+        es: "Cinturón, Gorra y Accesorios",
+        hidden: false,
+        image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=500&q=80",
+        leaves: ["Belts", "Hats & Caps", "Wallets"]
+      }
     ]
   }
 ];
 
-/**
- * تولید عنوان و توضیحات ۳ زبانه بسیار شیک و استاندارد (برای مواقعی که جمنای هنوز اجرا نشده یا خطا داده است)
- * تا ظاهر سایت همیشه لوکس و بدون نقص بماند.
- */
-function buildSmartFallbackContent(deptId, subcatId, sku, pcsPerPack) {
-  const deptObj = DEPARTMENTS_TAXONOMY.find((d) => d.id === deptId) || DEPARTMENTS_TAXONOMY[0];
-  const subObj = deptObj.subcategories.find((s) => s.id === subcatId) || deptObj.subcategories[0];
-
-  const enTitle = `${subObj.en || "Luxury Turkish Wholesale Garment"} • Code ${sku}`;
-  const itTitle = `${subObj.it || "Abbigliamento Ingrosso Turco di Lusso"} • Cod. ${sku}`;
-  const esTitle = `${subObj.es || "Ropa Mayorista Turca de Lujo"} • Cód. ${sku}`;
-
-  return {
-    publicTitle: { en: enTitle, it: itTitle, es: esTitle },
-    brandTitle: { en: enTitle, it: itTitle, es: esTitle },
-    description: {
-      en: `Direct Istanbul factory wholesale pack (${pcsPerPack} pcs serie pack). Master quality fabric & stitching. Fast 3-5 day express air cargo to Europe, UK & USA.`,
-      it: `Pacco serie ingrosso diretto da Istanbul (${pcsPerPack} pezzi per pacco). Qualità master e spedizione espressa in 3-5 giorni in tutta Italia ed Europa.`,
-      es: `Paquete serie al por mayor directo desde Estambul (${pcsPerPack} piezas por paquete). Calidad maestra y envío exprés en 3-5 días a España y Europa.`
-    }
-  };
-}
+export const DEPARTMENTS_TAXONOMY = DEFAULT_TAXONOMY;
 
 /* ==========================================================================
-   2. ADMIN APPLICATION STATE
+   2. APPLICATION STATE
    ========================================================================== */
 const adminState = {
   user: null,
+  role: "super_admin", // "super_admin" | "assistant"
+  taxonomy: structuredClone(DEFAULT_TAXONOMY),
   orders: [],
   customers: [],
   products: [],
   blogs: [],
-  vendors: [
-    { code: "PRD", name: "تامین‌کننده اصلی پارادایس" }
-  ],
+  vendors: [{ code: "PRD", name: "تامین‌کننده اصلی پارادایس" }],
+  vendorSecrets: {}, // { [code]: { phone, address } } -> فقط برای مدیر کل
+  selectedProductIds: new Set(), // حفظ تیک محصولات در اسکرول و صفحه‌بندی ۱۰۰تایی
+  catalogDisplayLimit: 100,
+  sessionAiBase64Map: new Map(), // کش موقت تصویر برای جلوگیری ۱۰۰٪ از خطای CORS در جمنای
   stagedImages: [],
   failedUploadQueue: [],
   lastUploadReport: {
@@ -161,11 +430,13 @@ const adminState = {
   aiWorkerRunning: false,
   aiWorkerStopRequested: false,
   publicConfig: {
+    logoUrl: "",
     whatsappRaw: "+905459099395",
     whatsappDisplay: "+90 545 909 93 95",
     currencySymbol: "$",
     currencyCode: "USD",
     bestRateThreshold: 25,
+    underMoqMarkupPercent: 15,
     ga4MeasurementId: "",
     googleAdsId: "",
     googleAdsConversionLabel: "",
@@ -175,6 +446,9 @@ const adminState = {
     tiktokUrl: "https://tiktok.com/@paradisewholesaler",
     androidAppUrl: "",
     vendors: [{ code: "PRD", name: "تامین‌کننده اصلی پارادایس" }],
+    assistantEmails: [],
+    superAdminEmails: [],
+    taxonomy: null,
     heroVideo: {
       ytId: "dQw4w9WgXcQ",
       poster: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=85",
@@ -188,25 +462,24 @@ const adminState = {
     geminiModel: "gemini-2.5-flash",
     githubToken: "",
     githubRepo: "",
-    githubBranch: "main"
+    githubBranch: "main",
+    superAdminEmails: [],
+    assistantEmails: [],
+    vendorSecrets: {}
   },
   geminiKeyCursor: 0
 };
 
 /* ==========================================================================
-   3. UTILITY HELPERS & AUTOMATIC DOM DEDUPLICATOR
+   3. UTILITIES, SMART FALLBACK TITLES & FINGERPRINT
    ========================================================================== */
-/**
- * اگر هنگام کپی‌پیست در admin.html المانی با ID تکراری ایجاد شده باشد، نسخه تکراری را خودکار حذف می‌کند
- */
 function cleanDuplicateDomNodes() {
   const seenIds = new Set();
   document.querySelectorAll("[id]").forEach((el) => {
     const id = el.getAttribute("id");
     if (!id) return;
     if (seenIds.has(id)) {
-      const wrapper = el.closest("#media-upload-box-photos, #media-upload-box-video, .field") || el;
-      wrapper.remove();
+      el.remove();
     } else {
       seenIds.add(id);
     }
@@ -275,9 +548,50 @@ function findDuplicateProductByFingerprint(fingerprint) {
   );
 }
 
+function buildSmartFallbackContent(deptId, subcatId, leafSub, sku, pcsPerPack) {
+  const deptObj = adminState.taxonomy.find((d) => d.id === deptId) || adminState.taxonomy[0];
+  const subObj = deptObj?.subcategories?.find((s) => s.id === subcatId) || deptObj?.subcategories?.[0] || {};
+  const leafSuffix = leafSub ? ` (${leafSub})` : "";
+
+  const enBase = subObj.en || `Luxury Turkish Wholesale ${subObj.label || "Garment"}`;
+  const itBase = subObj.it || `Abbigliamento Ingrosso Turco ${subObj.label || ""}`;
+  const esBase = subObj.es || `Ropa Mayorista Turca ${subObj.label || ""}`;
+
+  const enTitle = `${enBase}${leafSuffix} • Code ${sku}`;
+  const itTitle = `${itBase}${leafSuffix} • Cod. ${sku}`;
+  const esTitle = `${esBase}${leafSuffix} • Cód. ${sku}`;
+
+  return {
+    publicTitle: { en: enTitle, it: itTitle, es: esTitle },
+    brandTitle: { en: enTitle, it: itTitle, es: esTitle },
+    description: {
+      en: `Direct Istanbul factory wholesale pack (${pcsPerPack} pcs serie pack). Master quality fabric & stitching. Fast 3-5 day express air cargo to Europe, UK & USA.`,
+      it: `Pacco serie ingrosso diretto da Istanbul (${pcsPerPack} pezzi per pacco). Qualità master e spedizione espressa in 3-5 giorni in tutta Italia ed Europa.`,
+      es: `Paquete serie al por mayor directo desde Estambul (${pcsPerPack} piezas por paquete). Calidad maestra y envío exprés en 3-5 días a España y Europa.`
+    }
+  };
+}
+
 /* ==========================================================================
-   4. FIREBASE AUTHENTICATION & INITIAL BOOTSTRAP
+   4. FIREBASE AUTHENTICATION, PERSISTENCE & STRICT ROLE SECURITY (RBAC)
    ========================================================================== */
+function applyRolePermissionsUI() {
+  const isSuper = adminState.role === "super_admin";
+  const badge = document.getElementById("sidebar-admin-role-badge");
+  if (badge) {
+    badge.textContent = isSuper ? "👑 مدیر کل (دسترسی کامل)" : "📸 دستیار آپلود (دسترسی محدود)";
+    badge.style.background = isSuper ? "rgba(16, 185, 129, 0.2)" : "rgba(245, 158, 11, 0.2)";
+    badge.style.color = isSuper ? "#6ee7b7" : "#fde047";
+  }
+
+  // اگر کاربر دستیار است، تمام بخش‌های حساس مدیر کل به طور کامل از DOM حذف می‌شوند
+  if (!isSuper) {
+    document.querySelectorAll('[data-super-only="true"]').forEach((el) => {
+      el.remove();
+    });
+  }
+}
+
 function bindAuthEvents() {
   const loginForm = document.getElementById("admin-login-form");
   const passInput = document.getElementById("admin-login-password");
@@ -297,27 +611,29 @@ function bindAuthEvents() {
       e.preventDefault();
       const email = document.getElementById("admin-login-email").value.trim();
       const password = document.getElementById("admin-login-password").value;
+      const rememberMe = Boolean(document.getElementById("admin-remember-me")?.checked);
       const submitBtn = document.getElementById("admin-login-submit-btn");
       const errBox = document.getElementById("admin-login-error");
 
       if (errBox) errBox.style.display = "none";
       if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.textContent = "در حال ورود...";
+        submitBtn.textContent = "در حال بررسی امنیت و ورود...";
       }
 
       try {
+        await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
         await signInWithEmailAndPassword(auth, email, password);
-        showAdminToast("✓ خوش آمدید!");
+        showAdminToast("✓ ورود با موفقیت انجام شد.");
       } catch (err) {
         if (errBox) {
           errBox.style.display = "block";
-          errBox.textContent = `خطا در ورود: ${err.message}`;
+          errBox.textContent = "ایمیل یا رمز عبور اشتباه است.";
         }
       } finally {
         if (submitBtn) {
           submitBtn.disabled = false;
-          submitBtn.textContent = "🔐 ورود به پنل مدیریت";
+          submitBtn.textContent = "🔐 ورود به سیستم";
         }
       }
     });
@@ -326,7 +642,7 @@ function bindAuthEvents() {
   if (logoutBtn) {
     logoutBtn.addEventListener("click", async () => {
       await signOut(auth);
-      showAdminToast("خارج شدید.");
+      window.location.reload();
     });
   }
 
@@ -339,9 +655,8 @@ function bindAuthEvents() {
     if (user) {
       if (authScreen) authScreen.style.display = "none";
       if (appShell) appShell.style.display = "flex";
-      if (emailLabel) emailLabel.textContent = user.email || SUPER_ADMIN_EMAIL;
+      if (emailLabel) emailLabel.textContent = user.email || "";
       await loadAllAdminData();
-      updateAiQueueCounters();
     } else {
       if (authScreen) authScreen.style.display = "flex";
       if (appShell) appShell.style.display = "none";
@@ -350,14 +665,18 @@ function bindAuthEvents() {
 }
 
 async function loadAllAdminData() {
+  await loadSettingsFromFirestore();
+
   await Promise.all([
-    loadSettingsFromFirestore(),
     loadProductsCatalog(),
-    loadOrdersAndCustomers(),
-    loadPublishedBlogs()
+    adminState.role === "super_admin" ? loadOrdersAndCustomers() : Promise.resolve(),
+    adminState.role === "super_admin" ? loadPublishedBlogs() : Promise.resolve()
   ]);
+
   syncVendorsFromProductsAndConfig();
+  renderCategoriesManagerUI();
   updateDashboardKPIs();
+  updateAiQueueCounters();
 }
 
 function updateDashboardKPIs() {
@@ -365,6 +684,7 @@ function updateDashboardKPIs() {
   const ordCount = adminState.orders.length;
   const custCount = adminState.customers.length;
   const blogCount = adminState.blogs.length;
+  const vendCount = adminState.vendors.length;
 
   const totalVolume = adminState.orders.reduce((acc, o) => acc + (Number(o.totalAmount) || 0), 0);
 
@@ -381,6 +701,7 @@ function updateDashboardKPIs() {
   setTxt("nav-badge-orders", String(ordCount));
   setTxt("nav-badge-products", String(prodCount));
   setTxt("nav-badge-blogs", String(blogCount));
+  setTxt("nav-badge-vendors", String(vendCount));
 }
 
 /* ==========================================================================
@@ -405,18 +726,25 @@ function bindNavigationEvents() {
   backdrop?.addEventListener("click", closeMobileSidebar);
 
   const tabTitles = {
-    "ai-uploader": "➕ ۱. آپلود سریع محصول",
-    catalog: "🗂️ ۲. مدیریت محصولات و عمده‌فروشان",
-    orders: "📦 ۳. سفارشات و مشتریان واتساپ",
-    videos: "🎬 ۴. ویدیوهای سایت",
-    blog: "📝 ۵. وبلاگ اتوماتیک سئو",
-    settings: "⚙️ ۶. تنظیمات و کلیدها"
+    "ai-uploader": "➕ ۱. آپلود سریع محصول (۸تایی موازی)",
+    catalog: "🗂️ ۲. مدیریت محصولات، قیمت و انتخاب تیکی",
+    categories: "🌿 ۳. مدیریت بخش‌ها، شاخه‌ها و عکس دسته‌ها",
+    vendors: "🏪 ۴. مدیریت عمده‌فروشان و کدهای اختصاصی",
+    orders: "📦 ۵. سفارشات و مشتریان واتساپ",
+    videos: "🎬 ۶. ویدیوهای ویترین و رضایت مشتریان",
+    blog: "📝 ۷. مقالات سئو ۳ زبانه",
+    settings: "⚙️ ۸. تنظیمات، لوگو، فرمول ۲۵ عدد و ادمین‌ها"
   };
 
   document.querySelectorAll("[data-admin-tab]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const targetTab = btn.getAttribute("data-admin-tab");
       if (!targetTab) return;
+
+      if (adminState.role === "assistant" && btn.getAttribute("data-super-only") === "true") {
+        showAdminToast("⛔ دسترسی محدود به مدیر کل.");
+        return;
+      }
 
       document.querySelectorAll("[data-admin-tab]").forEach((b) => {
         b.classList.toggle("active", b === btn);
@@ -437,84 +765,108 @@ function bindNavigationEvents() {
 }
 
 /* ==========================================================================
-   6. WEBP IMAGE COMPRESSOR + WATERMARK STAMPER & GEMINI ROTATOR
+   6. DUAL-WEBP COMPRESSOR (HD + THUMBNAIL + AI BASE64) & CODE-ONLY WATERMARK
    ========================================================================== */
-async function compressImageToWebP(file, maxWidth = 1200, quality = 0.84, watermarkText = "") {
+/**
+ * در یک مرحله واحد روی موبایل/دسکتاپ:
+ * 1) نسخه HD (عرض 1200px) با واترمارکِ فقط کد محصول (بدون قیمت)
+ * 2) نسخه Thumbnail فوق‌سبک (عرض 420px) برای اسکرول سریع مشتریان
+ * 3) رشته Base64 سبک (`aiBase64`) برای ارسال مستقیم به جمنای بدون خطای CORS فایربیس
+ */
+async function compressImageToDualWebP(file, watermarkCode = "") {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = () => reject(new Error("خطا در خواندن فایل عکس"));
     reader.onload = (ev) => {
       const img = new Image();
-      img.onerror = () => reject(new Error("فرمت عکس نامعتبر است"));
-      img.onload = () => {
-        let width = img.naturalWidth || img.width;
-        let height = img.naturalHeight || img.height;
+      img.onerror = () => reject(new Error("فرمت عکس پشتیبانی نمی‌شود"));
+      img.onload = async () => {
+        try {
+          const origW = img.naturalWidth || img.width;
+          const origH = img.naturalHeight || img.height;
 
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        }
+          const renderCanvasBlob = (maxW, qual, includeBase64 = false) =>
+            new Promise((resBlob, rejBlob) => {
+              let w = origW;
+              let h = origH;
+              if (w > maxW) {
+                h = Math.round((h * maxW) / widthOrOrig(origW));
+                w = maxW;
+              }
+              function widthOrOrig(val) {
+                return val || 1;
+              }
+              const canvas = document.createElement("canvas");
+              canvas.width = w;
+              canvas.height = h;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0, w, h);
 
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, width, height);
+              // حک فقط کد محصول (بدون قیمت) روی عکس
+              if (watermarkCode) {
+                const fontSize = Math.max(12, Math.round(w * 0.026));
+                ctx.font = `800 ${fontSize}px sans-serif`;
+                const padX = Math.round(fontSize * 0.75);
+                const padY = Math.round(fontSize * 0.42);
+                const metrics = ctx.measureText(watermarkCode);
+                const boxW = metrics.width + padX * 2;
+                const boxH = fontSize + padY * 2;
+                const posX = Math.round(w * 0.025);
+                const posY = h - boxH - Math.round(w * 0.025);
 
-        if (watermarkText) {
-          const fontSize = Math.max(15, Math.round(width * 0.025));
-          ctx.font = `800 ${fontSize}px sans-serif`;
-          const padX = Math.round(fontSize * 0.75);
-          const padY = Math.round(fontSize * 0.45);
-          const metrics = ctx.measureText(watermarkText);
-          const boxW = metrics.width + padX * 2;
-          const boxH = fontSize + padY * 2;
-          const posX = 14;
-          const posY = height - boxH - 14;
+                ctx.fillStyle = "rgba(9, 13, 22, 0.82)";
+                ctx.beginPath();
+                if (ctx.roundRect) {
+                  ctx.roundRect(posX, posY, boxW, boxH, 6);
+                } else {
+                  ctx.rect(posX, posY, boxW, boxH);
+                }
+                ctx.fill();
 
-          ctx.fillStyle = "rgba(9, 13, 22, 0.82)";
-          ctx.beginPath();
-          if (ctx.roundRect) {
-            ctx.roundRect(posX, posY, boxW, boxH, 8);
-          } else {
-            ctx.rect(posX, posY, boxW, boxH);
-          }
-          ctx.fill();
+                ctx.strokeStyle = "rgba(212, 175, 55, 0.9)";
+                ctx.lineWidth = Math.max(1, Math.round(w * 0.0018));
+                ctx.stroke();
 
-          ctx.strokeStyle = "rgba(212, 175, 55, 0.9)";
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
+                ctx.fillStyle = "#ffffff";
+                ctx.textBaseline = "middle";
+                ctx.fillText(watermarkCode, posX + padX, posY + boxH / 2);
+              }
 
-          ctx.fillStyle = "#ffffff";
-          ctx.textBaseline = "middle";
-          ctx.fillText(watermarkText, posX + padX, posY + boxH / 2);
-        }
-
-        const dataUrl = canvas.toDataURL("image/webp", quality);
-        const base64Data = dataUrl.split(",")[1] || "";
-
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) {
-              reject(new Error("خطا در تبدیل به WebP"));
-              return;
-            }
-            resolve({
-              file,
-              fileName: file.name,
-              fingerprint: getFileFingerprint(file),
-              blob,
-              base64Data,
-              mimeType: "image/webp",
-              dataUrl,
-              origSize: file.size,
-              webpSize: blob.size,
-              remoteUrl: ""
+              const dataUrl = includeBase64 ? canvas.toDataURL("image/webp", qual) : "";
+              canvas.toBlob(
+                (blob) => {
+                  if (!blob) return rejBlob(new Error("WebP conversion failed"));
+                  resBlob({ blob, dataUrl });
+                },
+                "image/webp",
+                qual
+              );
             });
-          },
-          "image/webp",
-          quality
-        );
+
+          const [hdRes, thumbRes] = await Promise.all([
+            renderCanvasBlob(1200, 0.85, false),
+            renderCanvasBlob(420, 0.76, true)
+          ]);
+
+          const aiBase64 = (thumbRes.dataUrl || "").split(",")[1] || "";
+
+          resolve({
+            file,
+            fileName: file.name,
+            fingerprint: getFileFingerprint(file),
+            blob: hdRes.blob,
+            thumbBlob: thumbRes.blob,
+            dataUrl: thumbRes.dataUrl,
+            aiBase64,
+            origSize: file.size,
+            webpSize: hdRes.blob.size,
+            thumbSize: thumbRes.blob.size,
+            remoteUrl: "",
+            remoteThumbUrl: ""
+          });
+        } catch (err) {
+          reject(err);
+        }
       };
       img.src = ev.target.result;
     };
@@ -522,23 +874,61 @@ async function compressImageToWebP(file, maxWidth = 1200, quality = 0.84, waterm
   });
 }
 
-async function uploadWebPToFirebaseStorage(stagedItem, dept, skuCode, index = 0) {
-  if (stagedItem.remoteUrl) return stagedItem.remoteUrl;
+/**
+ * آپلود همزمان نسخه HD و نسخه Thumbnail در Firebase Storage
+ */
+async function uploadDualWebPToStorage(stagedItem, dept, skuCode, index = 0) {
+  if (stagedItem.remoteUrl && stagedItem.remoteThumbUrl) {
+    return { hdUrl: stagedItem.remoteUrl, thumbUrl: stagedItem.remoteThumbUrl };
+  }
   const cleanCode = String(skuCode || "PRD").replace(/[^a-zA-Z0-9_-]/g, "");
-  const timestamp = Date.now();
+  const ts = Date.now();
   const suffix = index > 0 ? `_${index + 1}` : "";
-  const path = `products/${dept || "men"}/${timestamp}_${cleanCode}${suffix}.webp`;
 
-  const fileRef = storageRef(storage, path);
-  await uploadBytes(fileRef, stagedItem.blob, {
+  const hdPath = `products/${dept || "men"}/${ts}_${cleanCode}${suffix}.webp`;
+  const thumbPath = `products/${dept || "men"}/thumbs/${ts}_${cleanCode}${suffix}_thumb.webp`;
+
+  const hdRef = storageRef(storage, hdPath);
+  const thumbRef = storageRef(storage, thumbPath);
+
+  const cacheMeta = {
     contentType: "image/webp",
     cacheControl: "public,max-age=31536000,immutable"
-  });
-  const downloadUrl = await getDownloadURL(fileRef);
-  stagedItem.remoteUrl = downloadUrl;
-  return downloadUrl;
+  };
+
+  await Promise.all([
+    uploadBytes(hdRef, stagedItem.blob, cacheMeta),
+    uploadBytes(thumbRef, stagedItem.thumbBlob || stagedItem.blob, cacheMeta)
+  ]);
+
+  const [hdUrl, thumbUrl] = await Promise.all([
+    getDownloadURL(hdRef),
+    getDownloadURL(thumbRef)
+  ]);
+
+  stagedItem.remoteUrl = hdUrl;
+  stagedItem.remoteThumbUrl = thumbUrl;
+  return { hdUrl, thumbUrl };
 }
 
+/**
+ * آپلود عکس‌های دسته‌بندی یا لوگو در استوریج
+ */
+async function uploadSingleImageAsset(file, folder = "categories", maxW = 700) {
+  const processed = await compressImageToDualWebP(file, "");
+  const cleanName = slugify(file.name.replace(/\.[^.]+$/, ""), "asset");
+  const path = `${folder}/${Date.now()}_${cleanName}.webp`;
+  const fileRef = storageRef(storage, path);
+  await uploadBytes(fileRef, maxW <= 500 ? processed.thumbBlob : processed.blob, {
+    contentType: "image/webp",
+    cacheControl: "public,max-age=31536000"
+  });
+  return await getDownloadURL(fileRef);
+}
+
+/**
+ * آپلود مستقیم فایل ویدیو از گالری گوشی
+ */
 async function uploadVideoFileToStorage(videoFile, dept, skuCode) {
   if (!videoFile) return "";
   const cleanCode = String(skuCode || "VID").replace(/[^a-zA-Z0-9_-]/g, "");
@@ -552,6 +942,9 @@ async function uploadVideoFileToStorage(videoFile, dept, skuCode) {
   return await getDownloadURL(fileRef);
 }
 
+/* ==========================================================================
+   7. GEMINI MULTI-KEY ROTATOR ENGINE
+   ========================================================================== */
 function getActiveGeminiKeys() {
   const textareaVal = document.getElementById("cfg-gemini-keys")?.value || "";
   const fromDom = textareaVal
@@ -568,7 +961,7 @@ function getActiveGeminiKeys() {
 async function callGeminiWithRotator(contentsPayload, expectJson = true) {
   const keys = getActiveGeminiKeys();
   if (keys.length === 0) {
-    throw new Error("کلید جمنای در تب ۶ وارد نشده است.");
+    throw new Error("کلید جمنای در تب تنظیمات وارد نشده است.");
   }
 
   const preferredModel =
@@ -600,7 +993,7 @@ async function callGeminiWithRotator(contentsPayload, expectJson = true) {
         });
 
         if (res.status === 429 || res.status === 503) {
-          lastError = new Error(`محدودیت سهمیه کلید شماره ${keyIndex + 1}`);
+          lastError = new Error(`محدودیت سهمیه کلید ${keyIndex + 1}`);
           break;
         }
 
@@ -631,19 +1024,18 @@ async function callGeminiWithRotator(contentsPayload, expectJson = true) {
     }
   }
 
-  throw lastError || new Error("خطا در ارتباط با کلیدهای جمنای");
+  throw lastError || new Error("خطا در ارتباط با جمنای");
 }
 
 /* === پایان بلوک ۱ از ۲ فایل admin.js — بلوک ۲ را دقیقاً زیر این خط پیست کنید === */
 /* === شروع بلوک ۲ از ۲ فایل admin.js — دقیقاً زیر بلوک ۱ پیست کنید === */
 
 /* ==========================================================================
-   7. VENDOR DRAWER, UPLOAD MODES & PRODUCT UPLOADER ENGINE (TAB 1)
+   8. VENDOR MANAGER, TAXONOMY DROPDOWNS & INSTANT GALLERY SELECTION
    ========================================================================== */
 function syncVendorsFromProductsAndConfig() {
   const vendorMap = new Map();
 
-  // ۱. خواندن عمده‌فروشان ذخیره‌شده در تنظیمات
   const cfgVendors = Array.isArray(adminState.publicConfig.vendors) ? adminState.publicConfig.vendors : [];
   cfgVendors.forEach((v) => {
     if (v && v.code) {
@@ -652,7 +1044,6 @@ function syncVendorsFromProductsAndConfig() {
     }
   });
 
-  // ۲. استخراج خودکار عمده‌فروشان از محصولات موجود
   adminState.products.forEach((p) => {
     const code = String(p.vendorCode || String(p.sku || "").split("-")[0] || "PRD")
       .trim()
@@ -668,10 +1059,11 @@ function syncVendorsFromProductsAndConfig() {
 
   adminState.vendors = Array.from(vendorMap.values());
   renderVendorDropdowns();
+  renderVendorsManagerTable();
+  updateDashboardKPIs();
 }
 
 function renderVendorDropdowns(selectedCode = "") {
-  // کشوی انتخاب عمده‌فروش در تب آپلود
   const uploadVendorSel = document.getElementById("prod-vendor-select");
   if (uploadVendorSel) {
     const current = selectedCode || uploadVendorSel.value || adminState.vendors[0]?.code || "PRD";
@@ -683,7 +1075,6 @@ function renderVendorDropdowns(selectedCode = "") {
       .join("");
   }
 
-  // کشوی فیلتر عمده‌فروش در تب کاتالوگ
   const catalogVendorSel = document.getElementById("catalog-filter-vendor");
   if (catalogVendorSel) {
     const currentFilter = catalogVendorSel.value || "all";
@@ -705,21 +1096,83 @@ function renderVendorDropdowns(selectedCode = "") {
 function getSelectedVendorObj() {
   const sel = document.getElementById("prod-vendor-select");
   const code = (sel?.value || "PRD").trim().toUpperCase();
-  const found = adminState.vendors.find((v) => v.code === code);
-  return found || { code, name: code };
+  return adminState.vendors.find((v) => v.code === code) || { code, name: code };
 }
 
-function populateSubcategoryDropdown(deptId, selectedSubId = "") {
+function populateAllTaxonomySelects(selectedDept = "", selectedSub = "", selectedLeaf = "") {
+  const deptSel = document.getElementById("prod-department");
+  const catFilterDept = document.getElementById("catalog-filter-dept");
+  const subcatParentDept = document.getElementById("subcat-parent-dept");
+  const filterSubcatMgrDept = document.getElementById("filter-subcat-manager-dept");
+
+  const activeDepts = adminState.taxonomy;
+  const targetDeptId = selectedDept || deptSel?.value || activeDepts[0]?.id || "men";
+
+  if (deptSel) {
+    deptSel.innerHTML = activeDepts
+      .map(
+        (d) =>
+          `<option value="${escapeHtml(d.id)}" ${d.id === targetDeptId ? "selected" : ""}>${escapeHtml(d.labelFa || d.label)} (${escapeHtml(d.label)})${d.hidden ? " [مخفی]" : ""}</option>`
+      )
+      .join("");
+  }
+
+  if (catFilterDept) {
+    const cur = catFilterDept.value || "all";
+    catFilterDept.innerHTML =
+      `<option value="all">همه بخش‌ها</option>` +
+      activeDepts
+        .map((d) => `<option value="${escapeHtml(d.id)}" ${d.id === cur ? "selected" : ""}>${escapeHtml(d.labelFa || d.label)}</option>`)
+        .join("");
+  }
+
+  if (subcatParentDept) {
+    const cur = subcatParentDept.value || activeDepts[0]?.id || "men";
+    subcatParentDept.innerHTML = activeDepts
+      .map((d) => `<option value="${escapeHtml(d.id)}" ${d.id === cur ? "selected" : ""}>${escapeHtml(d.labelFa || d.label)}</option>`)
+      .join("");
+  }
+
+  if (filterSubcatMgrDept) {
+    const cur = filterSubcatMgrDept.value || activeDepts[0]?.id || "men";
+    filterSubcatMgrDept.innerHTML = activeDepts
+      .map((d) => `<option value="${escapeHtml(d.id)}" ${d.id === cur ? "selected" : ""}>${escapeHtml(d.labelFa || d.label)}</option>`)
+      .join("");
+  }
+
+  populateSubcategoryDropdown(targetDeptId, selectedSub, selectedLeaf);
+  populateCatalogFilterSubcategories(catFilterDept?.value || "all");
+}
+
+function populateSubcategoryDropdown(deptId, selectedSubId = "", selectedLeaf = "") {
   const subSelect = document.getElementById("prod-subcategory");
   if (!subSelect) return;
-  const deptObj = DEPARTMENTS_TAXONOMY.find((d) => d.id === deptId) || DEPARTMENTS_TAXONOMY[0];
+  const deptObj = adminState.taxonomy.find((d) => d.id === deptId) || adminState.taxonomy[0];
+  const subs = deptObj?.subcategories || [];
+  const targetSub = selectedSubId || subs[0]?.id || "";
 
-  subSelect.innerHTML = deptObj.subcategories
+  subSelect.innerHTML = subs
     .map(
       (sc) =>
-        `<option value="${escapeHtml(sc.id)}" ${sc.id === selectedSubId ? "selected" : ""}>${escapeHtml(sc.label)}</option>`
+        `<option value="${escapeHtml(sc.id)}" ${sc.id === targetSub ? "selected" : ""}>${escapeHtml(sc.labelFa || sc.label)} (${escapeHtml(sc.label)})${sc.hidden ? " [مخفی]" : ""}</option>`
     )
     .join("");
+
+  populateLeafSubDropdown(deptId, targetSub, selectedLeaf);
+}
+
+function populateLeafSubDropdown(deptId, subcatId, selectedLeaf = "") {
+  const leafSelect = document.getElementById("prod-leaf-sub");
+  if (!leafSelect) return;
+  const deptObj = adminState.taxonomy.find((d) => d.id === deptId) || adminState.taxonomy[0];
+  const subObj = (deptObj?.subcategories || []).find((s) => s.id === subcatId);
+  const leaves = Array.isArray(subObj?.leaves) ? subObj.leaves : [];
+
+  leafSelect.innerHTML =
+    `<option value="">— عمومی شاخه —</option>` +
+    leaves
+      .map((lf) => `<option value="${escapeHtml(lf)}" ${lf === selectedLeaf ? "selected" : ""}>${escapeHtml(lf)}</option>`)
+      .join("");
 }
 
 function populateCatalogFilterSubcategories(deptId = "all") {
@@ -727,11 +1180,11 @@ function populateCatalogFilterSubcategories(deptId = "all") {
   if (!filterSub) return;
   const currentVal = filterSub.value || "all";
 
-  let html = `<option value="all">همه زیرشاخه‌ها</option>`;
-  DEPARTMENTS_TAXONOMY.forEach((d) => {
+  let html = `<option value="all">همه شاخه‌ها</option>`;
+  adminState.taxonomy.forEach((d) => {
     if (deptId !== "all" && d.id !== deptId) return;
-    d.subcategories.forEach((sc) => {
-      html += `<option value="${escapeHtml(sc.id)}" ${sc.id === currentVal ? "selected" : ""}>${escapeHtml(sc.label)}</option>`;
+    (d.subcategories || []).forEach((sc) => {
+      html += `<option value="${escapeHtml(sc.id)}" ${sc.id === currentVal ? "selected" : ""}>${escapeHtml(sc.labelFa || sc.label)}</option>`;
     });
   });
   filterSub.innerHTML = html;
@@ -763,34 +1216,29 @@ function renderStagedImagePreviews() {
 
   if (adminState.stagedImages.length === 0) {
     container.innerHTML = "";
-    if (badge) badge.textContent = "(فشرده‌سازی خودکار WebP)";
+    if (badge) badge.textContent = "(تولید خودکار ۲ کیفیت Thumbnail و HD + آپلود ۸تایی همزمان)";
     return;
   }
 
-  let totalWebp = 0;
   container.innerHTML = adminState.stagedImages
-    .map((item, idx) => {
-      totalWebp += item.webpSize || 0;
-      return `
-        <div class="preview-item">
-          <img src="${escapeHtml(item.dataUrl || item.remoteUrl)}" alt="Preview ${idx + 1}" />
-          <button type="button" class="preview-remove" data-remove-staged="${idx}">✕</button>
-        </div>
-      `;
-    })
+    .map(
+      (item, idx) => `
+      <div class="preview-item">
+        <img src="${escapeHtml(item.previewUrl || item.dataUrl || item.remoteUrl)}" alt="Preview ${idx + 1}" />
+        <button type="button" class="preview-remove" data-remove-staged="${idx}">✕</button>
+      </div>
+    `
+    )
     .join("");
 
   if (badge) {
-    badge.textContent = `(${adminState.stagedImages.length} عکس آماده — ${Math.round(totalWebp / 1024)} KB)`;
+    badge.textContent = `(${adminState.stagedImages.length} عکس آماده آپلود ۸تایی پرسرعت)`;
   }
 }
 
-async function handleFilesSelected(fileList) {
+function handleFilesSelected(fileList) {
   const files = Array.from(fileList || []).filter((f) => f.type.startsWith("image/"));
   if (files.length === 0) return;
-
-  const badge = document.getElementById("webp-compression-status");
-  if (badge) badge.textContent = `در حال آماده‌سازی ${files.length} عکس...`;
 
   let skippedInSelection = 0;
   for (const file of files) {
@@ -799,17 +1247,20 @@ async function handleFilesSelected(fileList) {
       skippedInSelection++;
       continue;
     }
-    try {
-      const compressed = await compressImageToWebP(file, 1200, 0.84, "");
-      adminState.stagedImages.push(compressed);
-    } catch (err) {
-      showAdminToast(`خطا در خواندن ${file.name}`);
-    }
+    adminState.stagedImages.push({
+      file,
+      fileName: file.name,
+      fingerprint: fp,
+      previewUrl: URL.createObjectURL(file),
+      origSize: file.size,
+      remoteUrl: "",
+      remoteThumbUrl: ""
+    });
   }
 
   renderStagedImagePreviews();
   if (skippedInSelection > 0) {
-    showAdminToast(`${skippedInSelection} عکس تکراری در انتخاب فعلی رد شد.`);
+    showAdminToast(`${skippedInSelection} عکس تکراری در انتخاب فعلی نادیده گرفته شد.`);
   }
 }
 
@@ -843,10 +1294,10 @@ function renderBatchUploadReport() {
   if (logEl) {
     const lines = [];
     rep.successItems.forEach((s) => {
-      lines.push(`<div style="color:#065f46;">✅ <strong>${escapeHtml(s.sku)}</strong> (${escapeHtml(s.fileName)}) آپلود و ثبت شد.</div>`);
+      lines.push(`<div style="color:#065f46;">✅ <strong>${escapeHtml(s.sku)}</strong> (${escapeHtml(s.fileName)}) — ثبت شد</div>`);
     });
     rep.duplicateItems.forEach((d) => {
-      lines.push(`<div style="color:#92400e;">⚠️ <strong>تکراری (رد شد):</strong> ${escapeHtml(d.fileName)} (ثبت شده با کد ${escapeHtml(d.existingSku)})</div>`);
+      lines.push(`<div style="color:#92400e;">⚠️ <strong>تکراری (رد شد):</strong> ${escapeHtml(d.fileName)} (کد موجود: ${escapeHtml(d.existingSku)})</div>`);
     });
     rep.failedItems.forEach((f) => {
       lines.push(`<div style="color:#991b1b;">❌ <strong>خطا:</strong> ${escapeHtml(f.fileName)} — ${escapeHtml(f.error)}</div>`);
@@ -856,15 +1307,18 @@ function renderBatchUploadReport() {
 }
 
 /* ==========================================================================
-   8. SMART UPLOAD EXECUTION (BATCH / SINGLE MULTI-PHOTO / VIDEO-AS-PRODUCT)
+   9. 8x PARALLEL BATCH UPLOADER + VIDEO-AS-PRODUCT + AI WORKER
    ========================================================================== */
-async function executeBatchUploadItems(itemsToProcess, isRetry = false) {
+async function executeParallelBatchUpload(itemsToProcess, isRetry = false) {
   const submitBtn = document.getElementById("btn-save-product-submit");
   const retryBtn = document.getElementById("btn-retry-failed-uploads");
+  const progWrap = document.getElementById("parallel-upload-progress-wrap");
+  const progFill = document.getElementById("parallel-upload-progress-fill");
 
   const vendor = getSelectedVendorObj();
   const department = document.getElementById("prod-department")?.value || "men";
   const subcategory = document.getElementById("prod-subcategory")?.value || "men-tshirts";
+  const leafSub = document.getElementById("prod-leaf-sub")?.value || "";
   const unitPrice = parseFloat(document.getElementById("prod-unit-price")?.value) || 5;
   const pcsPerPack = Math.max(1, parseInt(document.getElementById("prod-pcs-per-pack")?.value, 10) || 6);
   const sizeRange = document.getElementById("prod-size-range")?.value.trim() || "S - M - L - XL - XXL";
@@ -887,94 +1341,117 @@ async function executeBatchUploadItems(itemsToProcess, isRetry = false) {
   const newFailedQueue = [];
   if (submitBtn) submitBtn.disabled = true;
   if (retryBtn) retryBtn.disabled = true;
+  if (progWrap) progWrap.style.display = "block";
+  if (progFill) progFill.style.width = "4%";
 
-  let uploadedVideoUrl = "";
+  let sharedVideoUrl = "";
   if (videoFile) {
     try {
-      uploadedVideoUrl = await uploadVideoFileToStorage(videoFile, department, vendor.code);
+      sharedVideoUrl = await uploadVideoFileToStorage(videoFile, department, vendor.code);
     } catch (e) {}
   }
 
-  for (let i = 0; i < itemsToProcess.length; i++) {
-    const item = itemsToProcess[i];
-    const fileName = item.fileName || item.file?.name || `عکس_${i + 1}`;
-    const fp = item.fingerprint || getFileFingerprint(item.file);
+  let completedCounter = 0;
+  const totalCount = itemsToProcess.length;
 
-    if (submitBtn) {
-      submitBtn.textContent = `⏳ در حال آپلود (${i + 1} از ${itemsToProcess.length})...`;
-    }
+  // پردازش موازی ۸تا ۸تا همزمان
+  for (let startIdx = 0; startIdx < totalCount; startIdx += PARALLEL_UPLOAD_LIMIT) {
+    const chunk = itemsToProcess.slice(startIdx, startIdx + PARALLEL_UPLOAD_LIMIT);
 
-    // ۱. بررسی ضد تکراری
-    const dupProd = findDuplicateProductByFingerprint(fp);
-    if (dupProd && !isRetry) {
-      adminState.lastUploadReport.duplicateItems.push({
-        fileName,
-        existingSku: dupProd.sku || dupProd.id
-      });
-      renderBatchUploadReport();
-      continue;
-    }
+    await Promise.all(
+      chunk.map(async (item, localIdx) => {
+        const globalIdx = startIdx + localIdx;
+        const fileName = item.fileName || item.file?.name || `عکس_${globalIdx + 1}`;
+        const fp = item.fingerprint || getFileFingerprint(item.file);
 
-    // ۲. تولید کد محصول با کد عمده‌فروش
-    const sku =
-      itemsToProcess.length === 1 && document.getElementById("prod-sku")?.value.trim()
-        ? document.getElementById("prod-sku").value.trim().toUpperCase()
-        : item.assignedSku || `${vendor.code}-${Math.floor(1000 + Math.random() * 9000)}`;
-    item.assignedSku = sku;
+        // ۱. بررسی ضد تکراری
+        const dupProd = findDuplicateProductByFingerprint(fp);
+        if (dupProd && !isRetry) {
+          adminState.lastUploadReport.duplicateItems.push({
+            fileName,
+            existingSku: dupProd.sku || dupProd.id
+          });
+          completedCounter++;
+          return;
+        }
 
-    try {
-      // ۳. حک کد روی عکس (در صورت فعال بودن تیک)
-      let finalStaged = item;
-      if (watermarkEnabled && item.file) {
-        finalStaged = await compressImageToWebP(item.file, 1200, 0.84, `${sku} | $${unitPrice}`);
-      }
+        // ۲. ساخت کد یکتا بر اساس کد اختصاصی عمده‌فروش
+        const randNum = Math.floor(1000 + Math.random() * 9000);
+        const sku =
+          totalCount === 1 && document.getElementById("prod-sku")?.value.trim()
+            ? document.getElementById("prod-sku").value.trim().toUpperCase()
+            : item.assignedSku || `${vendor.code}-${randNum}`;
+        item.assignedSku = sku;
 
-      // ۴. آپلود در استوریج
-      const remoteUrl = await uploadWebPToFirebaseStorage(finalStaged, department, sku, 0);
+        try {
+          // ۳. تبدیل دوگانه (نسخه HD + نسخه Thumbnail سبک + حک فقط کد محصول بدون قیمت)
+          let dualImg = item;
+          if (item.file && !item.blob) {
+            dualImg = await compressImageToDualWebP(item.file, watermarkEnabled ? sku : "");
+            Object.assign(item, dualImg);
+          }
 
-      // ۵. ساخت عنوان ۳ زبانه استاندارد و شیک اولیه (تا قبل از اجرای جمنای هیچ ظاهر خامی دیده نشود)
-      const fallbackText = buildSmartFallbackContent(department, subcategory, sku, pcsPerPack);
+          if (item.aiBase64) {
+            adminState.sessionAiBase64Map.set(sku, item.aiBase64);
+          }
 
-      const productPayload = {
-        id: sku,
-        code: sku,
-        sku,
-        vendorCode: vendor.code,
-        vendorName: vendor.name,
-        fileFingerprint: fp,
-        fileFingerprints: fp ? [fp] : [],
-        department,
-        subcategory,
-        unitPrice,
-        pcsPerPack,
-        packTotal: Number((unitPrice * pcsPerPack).toFixed(2)),
-        sizeRange,
-        stockStatus: "in_stock",
-        isFeatured: true,
-        aiStatus: "pending",
-        publicTitle: fallbackText.publicTitle,
-        brandTitle: fallbackText.brandTitle,
-        description: fallbackText.description,
-        searchTags: [sku.toLowerCase(), vendor.code.toLowerCase(), department, subcategory],
-        imageUrl: remoteUrl,
-        images: [remoteUrl],
-        videoUrl: uploadedVideoUrl || (youtubeId ? `https://www.youtube.com/watch?v=${youtubeId}` : ""),
-        youtubeId: youtubeId || "",
-        createdAtMillis: Date.now() + i,
-        updatedAtIso: new Date().toISOString(),
-        createdAt: serverTimestamp()
-      };
+          // ۴. آپلود همزمان عکس HD و عکس Thumbnail در Storage
+          const { hdUrl, thumbUrl } = await uploadDualWebPToStorage(item, department, sku, 0);
 
-      await setDoc(doc(db, "products", sku), productPayload, { merge: true });
-      adminState.products.unshift(productPayload);
-      adminState.lastUploadReport.successItems.push({ sku, fileName });
-    } catch (err) {
-      newFailedQueue.push(item);
-      adminState.lastUploadReport.failedItems.push({
-        fileName,
-        error: err.message || "خطای اینترنت یا سرور"
-      });
-    }
+          // ۵. تولید عنوان و متن ۳ زبانه استاندارد اولیه
+          const fallbackText = buildSmartFallbackContent(department, subcategory, leafSub, sku, pcsPerPack);
+
+          const productPayload = {
+            id: sku,
+            code: sku,
+            sku,
+            vendorCode: vendor.code,
+            vendorName: vendor.name,
+            fileFingerprint: fp,
+            fileFingerprints: fp ? [fp] : [],
+            department,
+            subcategory,
+            leafSub,
+            unitPrice,
+            pcsPerPack,
+            packTotal: Number((unitPrice * pcsPerPack).toFixed(2)),
+            sizeRange,
+            stockStatus: "in_stock",
+            isFeatured: true,
+            aiStatus: "pending",
+            publicTitle: fallbackText.publicTitle,
+            brandTitle: fallbackText.brandTitle,
+            description: fallbackText.description,
+            searchTags: [sku.toLowerCase(), vendor.code.toLowerCase(), department, subcategory, leafSub.toLowerCase()].filter(Boolean),
+            imageUrl: hdUrl,
+            thumbUrl: thumbUrl || hdUrl,
+            images: [hdUrl],
+            videoUrl: sharedVideoUrl || (youtubeId ? `https://www.youtube.com/watch?v=${youtubeId}` : ""),
+            youtubeId: youtubeId || "",
+            createdAtMillis: Date.now() + globalIdx,
+            updatedAtIso: new Date().toISOString(),
+            createdAt: serverTimestamp()
+          };
+
+          await setDoc(doc(db, "products", sku), productPayload, { merge: true });
+          adminState.products.unshift(productPayload);
+          adminState.lastUploadReport.successItems.push({ sku, fileName });
+        } catch (err) {
+          newFailedQueue.push(item);
+          adminState.lastUploadReport.failedItems.push({
+            fileName,
+            error: err.message || "خطای ارتباط با سرور"
+          });
+        } finally {
+          completedCounter++;
+          const pct = Math.round((completedCounter / totalCount) * 100);
+          if (progFill) progFill.style.width = `${pct}%`;
+          if (submitBtn) {
+            submitBtn.textContent = `⏳ آپلود موازی ۸تایی (${completedCounter} از ${totalCount} — ${pct}%)...`;
+          }
+        }
+      })
+    );
 
     renderBatchUploadReport();
   }
@@ -987,20 +1464,22 @@ async function executeBatchUploadItems(itemsToProcess, isRetry = false) {
   await rebuildAllCatalogShards();
   syncVendorsFromProductsAndConfig();
   renderCatalogTable();
-  updateDashboardKPIs();
   updateAiQueueCounters();
   generateAutoSku();
 
   if (submitBtn) {
     submitBtn.disabled = false;
-    submitBtn.textContent = "🚀 شروع آپلود هوشمند و ثبت محصولات";
+    submitBtn.textContent = "🚀 شروع آپلود موازی (۸تایی) و ثبت محصولات";
   }
   if (retryBtn) retryBtn.disabled = false;
+  setTimeout(() => {
+    if (progWrap) progWrap.style.display = "none";
+  }, 1200);
 
   const succ = adminState.lastUploadReport.successItems.length;
   const dup = adminState.lastUploadReport.duplicateItems.length;
   const fail = adminState.failedUploadQueue.length;
-  showAdminToast(`پایان آپلود: ${succ} موفق | ${dup} تکراری | ${fail} خطا`);
+  showAdminToast(`پایان آپلود موازی: ${succ} موفق | ${dup} تکراری | ${fail} خطا`);
 
   if (succ > 0 && getActiveGeminiKeys().length > 0 && !adminState.aiWorkerRunning) {
     startBackgroundAiWorker();
@@ -1008,7 +1487,7 @@ async function executeBatchUploadItems(itemsToProcess, isRetry = false) {
 }
 
 /**
- * ثبت تک محصول (با چند عکس از زوایای مختلف) یا ثبت ویدیو به عنوان محصول مستقل (بدون نیاز به عکس)
+ * ثبت تک محصول (با چند عکس از زوایای مختلف) یا ثبت ویدیو به عنوان محصول مستقل
  */
 async function handleSaveProductForm(e) {
   e.preventDefault();
@@ -1019,15 +1498,13 @@ async function handleSaveProductForm(e) {
   const youtubeId = extractYouTubeId(youtubeRaw);
   const videoFile = document.getElementById("prod-video-file")?.files?.[0] || null;
 
-  // اگر در حالت آپلود دسته‌ای هستیم و عکس انتخاب شده و در حال ویرایش محصول قبلی نیستیم:
   if (!existingDocId && mode === "batch" && adminState.stagedImages.length > 0) {
-    await executeBatchUploadItems([...adminState.stagedImages], false);
+    await executeParallelBatchUpload([...adminState.stagedImages], false);
     return;
   }
 
-  // بررسی اینکه حداقل یک عکس یا یک ویدیو/لینک یوتیوب وارد شده باشد
   if (adminState.stagedImages.length === 0 && !youtubeId && !youtubeRaw && !videoFile && !existingDocId) {
-    showAdminToast("لطفاً عکس انتخاب کنید یا لینک ویدیوی یوتیوب / فایل ویدیو وارد نمایید.");
+    showAdminToast("لطفاً عکس انتخاب کنید یا فایل ویدیو / لینک یوتیوب وارد نمایید.");
     return;
   }
 
@@ -1038,48 +1515,45 @@ async function handleSaveProductForm(e) {
 
   const department = document.getElementById("prod-department")?.value || "men";
   const subcategory = document.getElementById("prod-subcategory")?.value || "men-tshirts";
+  const leafSub = document.getElementById("prod-leaf-sub")?.value || "";
   const unitPrice = parseFloat(document.getElementById("prod-unit-price")?.value) || 5;
   const pcsPerPack = Math.max(1, parseInt(document.getElementById("prod-pcs-per-pack")?.value, 10) || 6);
   const sizeRange = document.getElementById("prod-size-range")?.value.trim() || "S - M - L - XL - XXL";
   const watermarkEnabled = Boolean(document.getElementById("prod-watermark-toggle")?.checked);
 
-  // بررسی ضد تکراری برای ثبت جدید
   if (!existingDocId && adminState.stagedImages[0]?.fingerprint) {
     const dup = findDuplicateProductByFingerprint(adminState.stagedImages[0].fingerprint);
     if (dup) {
-      adminState.lastUploadReport = {
-        totalSelected: 1,
-        successItems: [],
-        failedItems: [],
-        duplicateItems: [{ fileName: adminState.stagedImages[0].fileName || "عکس", existingSku: dup.sku }]
-      };
-      renderBatchUploadReport();
-      showAdminToast(`⚠️ این محصول قبلاً با کد ${dup.sku} آپلود شده است!`);
+      showAdminToast(`⚠️ این عکس قبلاً با کد ${dup.sku} آپلود شده است!`);
       return;
     }
   }
 
   if (submitBtn) {
     submitBtn.disabled = true;
-    submitBtn.textContent = "⏳ در حال آپلود و ثبت محصول...";
+    submitBtn.textContent = "⏳ در حال آپلود رسانه و ثبت محصول...";
   }
 
   try {
-    const uploadedUrls = [];
+    const uploadedHdUrls = [];
+    let primaryThumbUrl = "";
     const fingerprints = [];
 
     for (let i = 0; i < adminState.stagedImages.length; i++) {
-      let staged = adminState.stagedImages[i];
+      const staged = adminState.stagedImages[i];
       if (staged.fingerprint) fingerprints.push(staged.fingerprint);
 
       if (staged.remoteUrl) {
-        uploadedUrls.push(staged.remoteUrl);
-      } else if (staged.blob) {
-        if (watermarkEnabled && staged.file) {
-          staged = await compressImageToWebP(staged.file, 1200, 0.84, `${sku} | $${unitPrice}`);
+        uploadedHdUrls.push(staged.remoteUrl);
+        if (!primaryThumbUrl) primaryThumbUrl = staged.remoteThumbUrl || staged.remoteUrl;
+      } else if (staged.file) {
+        const dual = await compressImageToDualWebP(staged.file, watermarkEnabled ? sku : "");
+        if (i === 0 && dual.aiBase64) {
+          adminState.sessionAiBase64Map.set(sku, dual.aiBase64);
         }
-        const url = await uploadWebPToFirebaseStorage(staged, department, sku, i);
-        uploadedUrls.push(url);
+        const { hdUrl, thumbUrl } = await uploadDualWebPToStorage(dual, department, sku, i);
+        uploadedHdUrls.push(hdUrl);
+        if (!primaryThumbUrl) primaryThumbUrl = thumbUrl;
       }
     }
 
@@ -1088,15 +1562,15 @@ async function handleSaveProductForm(e) {
       finalVideoUrl = await uploadVideoFileToStorage(videoFile, department, sku);
     }
 
-    // اگر محصول فقط ویدیو است (بدون عکس)، کاور یوتیوب یا کاور ویدیو را به عنوان تصویر کارت بگذار
-    const primaryImageUrl =
-      uploadedUrls[0] ||
-      (youtubeId
-        ? `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`
-        : "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=700&q=80");
+    const defaultCover = youtubeId
+      ? `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`
+      : "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=700&q=80";
+
+    const primaryImageUrl = uploadedHdUrls[0] || defaultCover;
+    const finalThumbUrl = primaryThumbUrl || primaryImageUrl;
 
     const existingProd = adminState.products.find((p) => p.id === docId);
-    const fallbackText = buildSmartFallbackContent(department, subcategory, sku, pcsPerPack);
+    const fallbackText = buildSmartFallbackContent(department, subcategory, leafSub, sku, pcsPerPack);
 
     const productPayload = {
       id: docId,
@@ -1108,19 +1582,21 @@ async function handleSaveProductForm(e) {
       fileFingerprints: fingerprints.length ? fingerprints : existingProd?.fileFingerprints || [],
       department,
       subcategory,
+      leafSub,
       unitPrice,
       pcsPerPack,
       packTotal: Number((unitPrice * pcsPerPack).toFixed(2)),
       sizeRange,
       stockStatus: existingProd?.stockStatus || "in_stock",
       isFeatured: true,
-      aiStatus: existingProd?.aiStatus === "completed" ? "completed" : uploadedUrls.length > 0 ? "pending" : "completed",
+      aiStatus: existingProd?.aiStatus === "completed" ? "completed" : uploadedHdUrls.length > 0 ? "pending" : "completed",
       publicTitle: existingProd?.publicTitle || fallbackText.publicTitle,
       brandTitle: existingProd?.brandTitle || fallbackText.brandTitle,
       description: existingProd?.description || fallbackText.description,
-      searchTags: existingProd?.searchTags || [sku.toLowerCase(), vendor.code.toLowerCase(), department, subcategory],
+      searchTags: existingProd?.searchTags || [sku.toLowerCase(), vendor.code.toLowerCase(), department, subcategory, leafSub.toLowerCase()].filter(Boolean),
       imageUrl: primaryImageUrl,
-      images: uploadedUrls.length > 0 ? uploadedUrls : [primaryImageUrl],
+      thumbUrl: finalThumbUrl,
+      images: uploadedHdUrls.length > 0 ? uploadedHdUrls : [primaryImageUrl],
       videoUrl: finalVideoUrl || "",
       youtubeId: youtubeId || "",
       createdAtMillis: existingProd?.createdAtMillis || Date.now(),
@@ -1137,18 +1613,9 @@ async function handleSaveProductForm(e) {
       adminState.products.unshift(productPayload);
     }
 
-    adminState.lastUploadReport = {
-      totalSelected: 1,
-      successItems: [{ sku, fileName: uploadedUrls.length ? `${uploadedUrls.length} عکس` : "محصول ویدیویی" }],
-      failedItems: [],
-      duplicateItems: []
-    };
-    renderBatchUploadReport();
-
     await rebuildAllCatalogShards();
     syncVendorsFromProductsAndConfig();
     renderCatalogTable();
-    updateDashboardKPIs();
     updateAiQueueCounters();
     resetProductForm();
     showAdminToast(`✓ محصول ${sku} با موفقیت ذخیره شد!`);
@@ -1161,13 +1628,13 @@ async function handleSaveProductForm(e) {
   } finally {
     if (submitBtn) {
       submitBtn.disabled = false;
-      submitBtn.textContent = "🚀 شروع آپلود هوشمند و ثبت محصولات";
+      submitBtn.textContent = "🚀 شروع آپلود موازی (۸تایی) و ثبت محصولات";
     }
   }
 }
 
 /* ==========================================================================
-   9. MINIMAL BACKGROUND AI WORKER (AUTO 3-LANGUAGE TITLES & TAGS)
+   10. CORS-FREE BACKGROUND AI WORKER
    ========================================================================== */
 function updateAiQueueCounters() {
   const pendingCount = adminState.products.filter((p) => p.aiStatus === "pending").length;
@@ -1179,27 +1646,28 @@ function updateAiQueueCounters() {
   if (doneEl) doneEl.textContent = String(doneCount);
 }
 
-async function fetchImageAsBase64(imageUrl) {
-  const res = await fetch(imageUrl);
-  const blob = await res.blob();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error("Image read failed"));
-    reader.onload = () => {
-      const dataUrl = String(reader.result || "");
-      resolve({
-        mimeType: blob.type || "image/webp",
-        base64Data: dataUrl.split(",")[1] || ""
-      });
-    };
-    reader.readAsDataURL(blob);
-  });
+async function getProductBase64ForAi(prod) {
+  const cached = adminState.sessionAiBase64Map.get(prod.sku) || adminState.sessionAiBase64Map.get(prod.id);
+  if (cached) return cached;
+
+  try {
+    const res = await fetch(prod.thumbUrl || prod.imageUrl);
+    const blob = await res.blob();
+    return await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || "").split(",")[1] || "");
+      reader.onerror = () => resolve("");
+      reader.readAsDataURL(blob);
+    });
+  } catch (e) {
+    return "";
+  }
 }
 
 async function startBackgroundAiWorker() {
   if (adminState.aiWorkerRunning) return;
   if (getActiveGeminiKeys().length === 0) {
-    showAdminToast("برای تگ‌گذاری خودکار، ابتدا کلید جمنای را در تب ۶ وارد کنید.");
+    showAdminToast("برای تگ‌گذاری خودکار، ابتدا کلید جمنای را در تب ۸ وارد کنید.");
     return;
   }
 
@@ -1223,45 +1691,40 @@ async function startBackgroundAiWorker() {
     if (miniStatus) miniStatus.textContent = `در حال تگ‌گذاری ${nextProd.sku}...`;
 
     try {
-      const imgData = await fetchImageAsBase64(nextProd.imageUrl);
-      const prompt = `
-Analyze this wholesale garment/shoe/bag image (Code: ${nextProd.sku}, Category: ${nextProd.subcategory}).
+      const base64Data = await getProductBase64ForAi(nextProd);
+      const parts = [];
+      if (base64Data) {
+        parts.push({ inlineData: { mimeType: "image/webp", data: base64Data } });
+      }
+      parts.push({
+        text: `
+Analyze this B2B wholesale item (Code: ${nextProd.sku}, Category: ${nextProd.subcategory} ${nextProd.leafSub || ""}).
 Return ONLY valid JSON:
 {
   "publicTitle": {
-    "en": "Luxury B2B wholesale title describing fabric & cut WITHOUT any brand names (append • Code ${nextProd.sku})",
+    "en": "Luxury B2B wholesale title describing fabric & cut WITHOUT brand names (append • Code ${nextProd.sku})",
     "it": "Italian luxury wholesale title WITHOUT brand names (append • Cod. ${nextProd.sku})",
     "es": "Spanish luxury wholesale title WITHOUT brand names (append • Cód. ${nextProd.sku})"
   },
   "brandTitle": {
-    "en": "Real detected brand + model title for internal search (append • ${nextProd.sku})",
+    "en": "Detected brand + model title for internal search (append • ${nextProd.sku})",
     "it": "Italian brand title",
     "es": "Spanish brand title"
   },
-  "searchTags": ["12 lowercase search keywords in en, it, es, and Persian including detected brand name"],
+  "searchTags": ["12 lowercase keywords in en, it, es, and Persian"],
   "description": {
     "en": "2-sentence B2B wholesale description (${nextProd.pcsPerPack} pcs serie pack, Istanbul direct)",
     "it": "2-sentence Italian wholesale description",
     "es": "2-sentence Spanish wholesale description"
   }
-}`.trim();
+}`.trim()
+      });
 
-      const aiRes = await callGeminiWithRotator(
-        [
-          {
-            role: "user",
-            parts: [
-              { inlineData: { mimeType: imgData.mimeType, data: imgData.base64Data } },
-              { text: prompt }
-            ]
-          }
-        ],
-        true
-      );
-
+      const aiRes = await callGeminiWithRotator([{ role: "user", parts }], true);
       const fallback = buildSmartFallbackContent(
         nextProd.department,
         nextProd.subcategory,
+        nextProd.leafSub,
         nextProd.sku,
         nextProd.pcsPerPack
       );
@@ -1294,17 +1757,17 @@ Return ONLY valid JSON:
 
       await updateDoc(doc(db, "products", nextProd.id), updates);
       Object.assign(nextProd, updates);
+      adminState.sessionAiBase64Map.delete(nextProd.sku);
       processed++;
       updateAiQueueCounters();
       renderCatalogTable();
 
-      await new Promise((r) => setTimeout(r, 1800));
+      await new Promise((r) => setTimeout(r, 1500));
     } catch (err) {
-      // اگر جمنای خطا داد، محصول همان عنوان استاندارد و شیک اولیه را حفظ می‌کند تا سایت همیشه زیبا بماند
       nextProd.aiStatus = "completed";
       await updateDoc(doc(db, "products", nextProd.id), { aiStatus: "completed" }).catch(() => {});
       updateAiQueueCounters();
-      await new Promise((r) => setTimeout(r, 2000));
+      await new Promise((r) => setTimeout(r, 1500));
     }
   }
 
@@ -1313,12 +1776,8 @@ Return ONLY valid JSON:
   if (stopBtn) stopBtn.style.display = "none";
   updateAiQueueCounters();
 
-  if (processed > 0) {
-    await rebuildAllCatalogShards();
-  }
-  if (miniStatus) {
-    miniStatus.textContent = adminState.aiWorkerStopRequested ? "متوقف شد" : "✓ همه تکمیل شد";
-  }
+  if (processed > 0) await rebuildAllCatalogShards();
+  if (miniStatus) miniStatus.textContent = adminState.aiWorkerStopRequested ? "متوقف شد" : "✓ همه تکمیل شد";
 }
 
 function resetProductForm() {
@@ -1326,16 +1785,15 @@ function resetProductForm() {
   const docIdEl = document.getElementById("prod-doc-id");
   if (docIdEl) docIdEl.value = "";
   const titleEl = document.getElementById("product-form-mode-title");
-  if (titleEl) titleEl.textContent = "ثبت و آپلود محصول جدید";
+  if (titleEl) titleEl.textContent = "🚀 آپلود پرسرعت (۸ عکس همزمان + ساخت نسخه سبک و HD)";
   adminState.stagedImages = [];
   renderStagedImagePreviews();
-  populateSubcategoryDropdown(document.getElementById("prod-department")?.value || "men");
+  populateAllTaxonomySelects();
   generateAutoSku();
   updatePackMathDisplay();
 }
 
 function bindProductUploaderEvents() {
-  // ۱. دکمه‌های تغییر حالت آپلود (دسته‌ای / تک محصول / لینک ویدیو)
   document.getElementById("upload-mode-selector")?.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-mode]");
     if (!btn) return;
@@ -1350,11 +1808,10 @@ function bindProductUploaderEvents() {
 
     const photoBox = document.getElementById("media-upload-box-photos");
     if (photoBox) {
-      photoBox.style.display = mode === "youtube" ? "none" : "block";
+      photoBox.style.display = mode === "video" ? "none" : "block";
     }
   });
 
-  // ۲. کشوی ثبت عمده‌فروش جدید
   const drawer = document.getElementById("new-vendor-drawer");
   document.getElementById("btn-toggle-new-vendor")?.addEventListener("click", () => {
     if (!drawer) return;
@@ -1362,56 +1819,34 @@ function bindProductUploaderEvents() {
   });
 
   document.getElementById("btn-save-new-vendor")?.addEventListener("click", async () => {
-    const nameInput = document.getElementById("new-vendor-name");
-    const codeInput = document.getElementById("new-vendor-code");
-    const name = (nameInput?.value || "").trim();
-    const code = (codeInput?.value || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+    const name = (document.getElementById("new-vendor-name")?.value || "").trim();
+    const code = (document.getElementById("new-vendor-code")?.value || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+    const phone = (document.getElementById("new-vendor-phone")?.value || "").trim();
+    const address = (document.getElementById("new-vendor-address")?.value || "").trim();
 
     if (!name || !code) {
-      showAdminToast("لطفاً نام و کد انگلیسی عمده‌فروش را وارد کنید.");
+      showAdminToast("لطفاً نام و کد عمده‌فروش را وارد کنید.");
       return;
     }
 
-    const exists = adminState.vendors.find((v) => v.code === code);
-    if (exists) {
-      exists.name = name;
-    } else {
-      adminState.vendors.push({ code, name });
-    }
-
-    adminState.publicConfig.vendors = adminState.vendors;
+    await saveOrUpdateVendorRecord(code, name, phone, address);
     renderVendorDropdowns(code);
     generateAutoSku();
-
-    if (nameInput) nameInput.value = "";
-    if (codeInput) codeInput.value = "";
     if (drawer) drawer.style.display = "none";
-
-    try {
-      await setDoc(doc(db, "settings", "public_config"), { vendors: adminState.vendors }, { merge: true });
-      showAdminToast(`✓ عمده‌فروش ${code} (${name}) ذخیره و انتخاب شد!`);
-    } catch (err) {
-      showAdminToast(`عمده‌فروش در لیست انتخاب شد.`);
-    }
   });
 
   document.getElementById("prod-vendor-select")?.addEventListener("change", () => {
-    if (!document.getElementById("prod-doc-id")?.value) {
-      generateAutoSku();
-    }
+    if (!document.getElementById("prod-doc-id")?.value) generateAutoSku();
   });
 
-  // ۳. تغییر بخش و زیرشاخه
-  const deptSelect = document.getElementById("prod-department");
-  if (deptSelect) {
-    populateSubcategoryDropdown(deptSelect.value);
-    deptSelect.addEventListener("change", (e) => {
-      populateSubcategoryDropdown(e.target.value);
-    });
-  }
+  document.getElementById("prod-department")?.addEventListener("change", (e) => {
+    populateSubcategoryDropdown(e.target.value);
+  });
 
-  generateAutoSku();
-  updatePackMathDisplay();
+  document.getElementById("prod-subcategory")?.addEventListener("change", (e) => {
+    const deptId = document.getElementById("prod-department")?.value || "men";
+    populateLeafSubDropdown(deptId, e.target.value);
+  });
 
   document.getElementById("btn-autogen-sku")?.addEventListener("click", generateAutoSku);
   document.getElementById("prod-unit-price")?.addEventListener("input", updatePackMathDisplay);
@@ -1425,7 +1860,6 @@ function bindProductUploaderEvents() {
     });
   });
 
-  // ۴. انتخاب عکس از گالری
   const fileInput = document.getElementById("product-file-input");
   fileInput?.addEventListener("change", (e) => {
     if (e.target.files) handleFilesSelected(e.target.files);
@@ -1440,10 +1874,9 @@ function bindProductUploaderEvents() {
     renderStagedImagePreviews();
   });
 
-  // ۵. تلاش مجدد و کنترل صف جمنای
   document.getElementById("btn-retry-failed-uploads")?.addEventListener("click", async () => {
     if (adminState.failedUploadQueue.length === 0) return;
-    await executeBatchUploadItems([...adminState.failedUploadQueue], true);
+    await executeParallelBatchUpload([...adminState.failedUploadQueue], true);
   });
 
   document.getElementById("btn-start-ai-worker")?.addEventListener("click", startBackgroundAiWorker);
@@ -1456,16 +1889,30 @@ function bindProductUploaderEvents() {
 }
 
 /* ==========================================================================
-   10. CHUNKED 100-ITEM SHARD BUILDER & TAB 2 CATALOG MANAGER
+   11. TAB 2: CATALOG MANAGER, BULK PRICE/PACK EDITOR & PERSISTENT CHECKBOXES
    ========================================================================== */
 async function rebuildAllCatalogShards() {
   try {
-    const items = adminState.products.map((p) => ({
+    const hiddenDeptIds = new Set(adminState.taxonomy.filter((d) => d.hidden).map((d) => d.id));
+    const hiddenSubcatIds = new Set();
+    adminState.taxonomy.forEach((d) => {
+      (d.subcategories || []).forEach((s) => {
+        if (s.hidden) hiddenSubcatIds.add(s.id);
+      });
+    });
+
+    // فقط محصولاتی که دسته‌بندی آن‌ها مخفی نیست در شارد عمومی مشتریان قرار می‌گیرند
+    const visibleProducts = adminState.products.filter(
+      (p) => !hiddenDeptIds.has(p.department) && !hiddenSubcatIds.has(p.subcategory)
+    );
+
+    const items = visibleProducts.map((p) => ({
       id: p.id || p.sku,
       sku: p.sku || p.code || p.id,
       vendorCode: p.vendorCode || "PRD",
       department: p.department || "men",
       subcategory: p.subcategory || "men-tshirts",
+      leafSub: p.leafSub || "",
       unitPrice: Number(p.unitPrice) || 0,
       pcsPerPack: Math.max(1, parseInt(p.pcsPerPack, 10) || 6),
       sizeRange: p.sizeRange || "S - M - L - XL",
@@ -1475,6 +1922,7 @@ async function rebuildAllCatalogShards() {
       brandTitle: p.brandTitle || p.publicTitle || { en: `Wholesale Garment • ${p.sku}` },
       searchTags: Array.isArray(p.searchTags) ? p.searchTags : [],
       imageUrl: p.imageUrl || "",
+      thumbUrl: p.thumbUrl || p.imageUrl || "",
       images: Array.isArray(p.images) ? p.images : [p.imageUrl],
       videoUrl: p.videoUrl || "",
       youtubeId: p.youtubeId || "",
@@ -1495,7 +1943,7 @@ async function rebuildAllCatalogShards() {
       items: items.slice(0, 200)
     });
 
-    for (const deptObj of DEPARTMENTS_TAXONOMY) {
+    for (const deptObj of adminState.taxonomy) {
       const deptItems = items.filter((i) => i.department === deptObj.id);
       const totalPages = Math.max(1, Math.ceil(deptItems.length / SHARD_CHUNK_SIZE));
 
@@ -1539,7 +1987,7 @@ async function loadProductsCatalog() {
       adminState.products = list;
     } catch (e) {}
   }
-  populateCatalogFilterSubcategories("all");
+  populateAllTaxonomySelects();
   renderCatalogTable();
   updateAiQueueCounters();
 }
@@ -1548,6 +1996,8 @@ function getFilteredCatalogProducts() {
   const vendorFilter = document.getElementById("catalog-filter-vendor")?.value || "all";
   const deptFilter = document.getElementById("catalog-filter-dept")?.value || "all";
   const subcatFilter = document.getElementById("catalog-filter-subcat")?.value || "all";
+  const priceFilterRaw = (document.getElementById("catalog-filter-price")?.value || "").trim();
+  const priceFilter = priceFilterRaw !== "" ? parseFloat(priceFilterRaw) : null;
   const searchQ = (document.getElementById("catalog-search-input")?.value || "").trim().toLowerCase();
 
   return adminState.products.filter((p) => {
@@ -1555,6 +2005,7 @@ function getFilteredCatalogProducts() {
     if (vendorFilter !== "all" && pVendor !== vendorFilter) return false;
     if (deptFilter !== "all" && p.department !== deptFilter) return false;
     if (subcatFilter !== "all" && p.subcategory !== subcatFilter) return false;
+    if (priceFilter !== null && !isNaN(priceFilter) && Number(p.unitPrice) !== priceFilter) return false;
     if (searchQ) {
       const pubEn = p.publicTitle?.en || "";
       const brdEn = p.brandTitle?.en || "";
@@ -1566,70 +2017,86 @@ function getFilteredCatalogProducts() {
   });
 }
 
+function updateSelectionCountersUI() {
+  const selCountEl = document.getElementById("catalog-selected-count");
+  if (selCountEl) selCountEl.textContent = String(adminState.selectedProductIds.size);
+}
+
 function renderCatalogTable() {
   const tbody = document.getElementById("admin-catalog-tbody");
   const countEl = document.getElementById("catalog-showing-count");
+  const loadMoreBtn = document.getElementById("btn-load-more-catalog");
   if (!tbody) return;
 
   const filtered = getFilteredCatalogProducts();
   if (countEl) countEl.textContent = String(filtered.length);
+  updateSelectionCountersUI();
 
   if (filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:24px; color:var(--text-muted);">هیچ محصولی با این فیلتر یافت نشد.</td></tr>`;
+    if (loadMoreBtn) loadMoreBtn.style.display = "none";
     return;
   }
 
-  tbody.innerHTML = filtered
-    .slice(0, 300)
+  const visibleSlice = filtered.slice(0, adminState.catalogDisplayLimit);
+
+  if (loadMoreBtn) {
+    if (filtered.length > adminState.catalogDisplayLimit) {
+      loadMoreBtn.style.display = "inline-flex";
+      loadMoreBtn.textContent = `⬇️ نمایش ۱۰۰ محصول بعدی (${visibleSlice.length} از ${filtered.length} — حفظ تیک‌های قبلی)`;
+    } else {
+      loadMoreBtn.style.display = "none";
+    }
+  }
+
+  const isSuper = adminState.role === "super_admin";
+
+  tbody.innerHTML = visibleSlice
     .map((p) => {
       const id = escapeHtml(p.id || p.sku);
       const sku = escapeHtml(p.sku || p.id);
       const vCode = escapeHtml(p.vendorCode || String(p.sku || "").split("-")[0] || "PRD");
       const subcat = escapeHtml(p.subcategory || p.department || "men");
-      const pubEn = escapeHtml(typeof p.publicTitle === "object" ? p.publicTitle.en : p.publicTitle || sku);
       const unitPrice = Number(p.unitPrice) || 0;
       const pcs = Math.max(1, parseInt(p.pcsPerPack, 10) || 6);
       const packTotal = formatMoney(unitPrice * pcs);
       const stock = p.stockStatus || "in_stock";
-      const img = escapeHtml(p.imageUrl || "");
+      const img = escapeHtml(p.thumbUrl || p.imageUrl || "");
       const hasVideo = Boolean(p.videoUrl || p.youtubeId);
-      const aiBadge =
-        p.aiStatus === "pending"
-          ? `<span style="font-size:0.7rem; background:#fef3c7; color:#92400e; padding:2px 6px; border-radius:4px;">⏳ در صف جمنای</span>`
-          : `<span style="font-size:0.7rem; background:#ecfdf5; color:#065f46; padding:2px 6px; border-radius:4px;">✓ آماده</span>`;
+      const isChecked = adminState.selectedProductIds.has(p.id || p.sku);
 
       return `
-        <tr>
+        <tr class="${isChecked ? "selected-row" : ""}" data-row-id="${id}">
+          <td style="text-align:center;">
+            <input type="checkbox" class="catalog-row-check" data-check-id="${id}" ${isChecked ? "checked" : ""} style="width:17px; height:17px; cursor:pointer;" />
+          </td>
           <td>
-            <img src="${img}" alt="${sku}" style="width:46px; height:60px; object-fit:cover; border-radius:6px; border:1px solid var(--border);" loading="lazy" />
+            <img src="${img}" alt="${sku}" style="width:44px; height:58px; object-fit:cover; border-radius:6px; border:1px solid var(--border);" loading="lazy" />
           </td>
           <td>
             <strong style="color:var(--gold-dark); display:block; direction:ltr; text-align:right;">${sku}</strong>
-            <span style="font-size:0.72rem; color:var(--text-muted);">عمده‌فروش: <strong>${vCode}</strong> | ${subcat}</span>
+            <span style="font-size:0.7rem; color:var(--text-muted);">${vCode} | ${subcat}</span>
+            ${hasVideo ? `<span style="display:inline-block; font-size:0.65rem; background:#dbeafe; color:#1e40af; padding:1px 5px; border-radius:4px;">🎬 ویدیو</span>` : ""}
           </td>
           <td>
-            <div style="font-weight:700; font-size:0.8rem; margin-bottom:4px;">${pubEn}</div>
-            <div>${aiBadge} ${hasVideo ? `<span style="font-size:0.7rem; background:#dbeafe; color:#1e40af; padding:2px 6px; border-radius:4px;">🎬 دارای ویدیو</span>` : ""}</div>
+            <input type="number" step="0.5" class="input" data-inline-price="${id}" value="${unitPrice}" style="width:74px; padding:5px; direction:ltr;" ${!isSuper ? "readonly" : ""} />
           </td>
           <td>
-            <input type="number" step="0.5" class="input" data-inline-price="${id}" value="${unitPrice}" style="width:78px; padding:6px; direction:ltr;" />
-          </td>
-          <td>
-            <input type="number" step="1" min="1" class="input" data-inline-pcs="${id}" value="${pcs}" style="width:68px; padding:6px; direction:ltr;" />
+            <input type="number" step="1" min="1" class="input" data-inline-pcs="${id}" value="${pcs}" style="width:64px; padding:5px; direction:ltr;" ${!isSuper ? "readonly" : ""} />
           </td>
           <td style="font-weight:800; direction:ltr;">${packTotal}</td>
           <td>
-            <select class="select" data-inline-stock="${id}" style="width:115px; padding:6px; font-size:0.76rem;">
+            <select class="select" data-inline-stock="${id}" style="width:105px; padding:5px; font-size:0.74rem;">
               <option value="in_stock" ${stock === "in_stock" ? "selected" : ""}>🟢 موجود</option>
               <option value="low_stock" ${stock === "low_stock" ? "selected" : ""}>🟡 محدود</option>
               <option value="out_of_stock" ${stock === "out_of_stock" ? "selected" : ""}>🔴 ناموجود</option>
             </select>
           </td>
           <td style="white-space:nowrap;">
-            <button type="button" class="btn-outline" data-save-inline="${id}" title="ذخیره قیمت و موجودی">💾</button>
-            <button type="button" class="btn-outline" data-quick-video="${id}" title="افزودن یا تغییر لینک ویدیو">🎬 ویدیو</button>
-            <button type="button" class="btn-outline" data-edit-full="${id}" title="ویرایش">✏️</button>
-            <button type="button" class="btn-outline" data-delete-prod="${id}" style="color:var(--danger); border-color:#fecaca;" title="حذف">🗑</button>
+            <button type="button" class="btn-outline" data-save-inline="${id}" title="ذخیره سریع">💾</button>
+            <button type="button" class="btn-outline" data-open-title-modal="${id}" title="مشاهده و ویرایش عنوان">🏷️ عنوان</button>
+            <button type="button" class="btn-outline" data-open-video-modal="${id}" title="آپلود فایل ویدیو یا لینک">🎬 ویدیو</button>
+            ${isSuper ? `<button type="button" class="btn-outline" data-delete-prod="${id}" style="color:var(--danger); border-color:#fecaca;" title="حذف">🗑</button>` : ""}
           </td>
         </tr>
       `;
@@ -1637,72 +2104,186 @@ function renderCatalogTable() {
     .join("");
 }
 
-async function handleBulkDeleteFilteredProducts() {
-  const vendorFilter = document.getElementById("catalog-filter-vendor")?.value || "all";
-  const deptFilter = document.getElementById("catalog-filter-dept")?.value || "all";
-  const subcatFilter = document.getElementById("catalog-filter-subcat")?.value || "all";
+/**
+ * تغییر دسته‌جمعی قیمت یا تعداد در پک (روی محصولات تیک‌خورده، یا اگر تیکی نباشد روی کل فیلتر فعلی)
+ */
+async function executeBulkCatalogUpdate(fieldType, newValue) {
+  const filtered = getFilteredCatalogProducts();
+  const targets =
+    adminState.selectedProductIds.size > 0
+      ? adminState.products.filter((p) => adminState.selectedProductIds.has(p.id))
+      : filtered;
 
-  if (vendorFilter === "all" && deptFilter === "all" && subcatFilter === "all") {
-    showAdminToast("⚠️ ابتدا عمده‌فروش یا شاخه مورد نظر را از بالا فیلتر کنید.");
-    return;
-  }
-
-  const targets = getFilteredCatalogProducts();
   if (targets.length === 0) {
-    showAdminToast("محصولی در این فیلتر وجود ندارد.");
+    showAdminToast("هیچ محصولی انتخاب یا فیلتر نشده است.");
     return;
   }
 
-  if (!confirm(`آیا مطمئن هستید که ${targets.length} محصول فیلتر شده یکجا حذف شوند؟`)) return;
-
-  const btn = document.getElementById("btn-bulk-delete-filtered");
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = `⏳ در حال حذف ${targets.length} محصول...`;
+  const label = fieldType === "price" ? `قیمت جدید $${newValue}` : `تعداد در پک ${newValue} تایی`;
+  if (!confirm(`آیا مطمئن هستید که می‌خواهید برای ${targets.length} محصول، ${label} را به صورت یکجا اعمال کنید؟`)) {
+    return;
   }
+
+  showAdminToast(`⏳ در حال بروزرسانی ${targets.length} محصول...`);
 
   try {
+    for (let i = 0; i < targets.length; i += PARALLEL_UPLOAD_LIMIT) {
+      const chunk = targets.slice(i, i + PARALLEL_UPLOAD_LIMIT);
+      await Promise.all(
+        chunk.map(async (prod) => {
+          const newPrice = fieldType === "price" ? Number(newValue) : Number(prod.unitPrice) || 5;
+          const newPcs = fieldType === "pcs" ? Math.max(1, parseInt(newValue, 10)) : Math.max(1, parseInt(prod.pcsPerPack, 10) || 6);
+          const packTotal = Number((newPrice * newPcs).toFixed(2));
+
+          await updateDoc(doc(db, "products", prod.id), {
+            unitPrice: newPrice,
+            pcsPerPack: newPcs,
+            packTotal,
+            updatedAtIso: new Date().toISOString()
+          });
+
+          prod.unitPrice = newPrice;
+          prod.pcsPerPack = newPcs;
+          prod.packTotal = packTotal;
+        })
+      );
+    }
+
+    await rebuildAllCatalogShards();
+    renderCatalogTable();
+    showAdminToast(`✓ تعداد ${targets.length} محصول با موفقیت به ${label} تغییر یافت!`);
+  } catch (err) {
+    showAdminToast(`خطا در بروزرسانی گروهی: ${err.message}`);
+  }
+}
+
+async function deleteProductList(targetProducts) {
+  if (!targetProducts || targetProducts.length === 0) return;
+  if (!confirm(`آیا مطمئن هستید که ${targetProducts.length} محصول برای همیشه از کل سایت حذف شوند؟`)) return;
+
+  showAdminToast(`⏳ در حال حذف ${targetProducts.length} محصول...`);
+  try {
     const deletedIds = new Set();
-    for (const prod of targets) {
-      await deleteDoc(doc(db, "products", prod.id));
-      deletedIds.add(prod.id);
+    for (let i = 0; i < targetProducts.length; i += PARALLEL_UPLOAD_LIMIT) {
+      const chunk = targetProducts.slice(i, i + PARALLEL_UPLOAD_LIMIT);
+      await Promise.all(
+        chunk.map(async (prod) => {
+          await deleteDoc(doc(db, "products", prod.id));
+          deletedIds.add(prod.id);
+          adminState.selectedProductIds.delete(prod.id);
+        })
+      );
     }
 
     adminState.products = adminState.products.filter((p) => !deletedIds.has(p.id));
     await rebuildAllCatalogShards();
     syncVendorsFromProductsAndConfig();
     renderCatalogTable();
-    updateDashboardKPIs();
     updateAiQueueCounters();
-    showAdminToast(`✓ تعداد ${deletedIds.size} محصول یکجا حذف شد.`);
+    showAdminToast(`✓ تعداد ${deletedIds.size} محصول از کل سایت حذف شد.`);
   } catch (err) {
     showAdminToast(`خطا در حذف: ${err.message}`);
-  } finally {
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = "🗑️ حذف یکجای محصولات فیلتر شده";
-    }
   }
 }
 
 function bindCatalogManagerEvents() {
-  document.getElementById("catalog-filter-vendor")?.addEventListener("change", renderCatalogTable);
+  const resetLimitAndRender = () => {
+    adminState.catalogDisplayLimit = 100;
+    renderCatalogTable();
+  };
+
+  document.getElementById("catalog-filter-vendor")?.addEventListener("change", resetLimitAndRender);
   document.getElementById("catalog-filter-dept")?.addEventListener("change", (e) => {
     populateCatalogFilterSubcategories(e.target.value);
+    resetLimitAndRender();
+  });
+  document.getElementById("catalog-filter-subcat")?.addEventListener("change", resetLimitAndRender);
+  document.getElementById("catalog-filter-price")?.addEventListener("input", resetLimitAndRender);
+  document.getElementById("catalog-search-input")?.addEventListener("input", resetLimitAndRender);
+
+  // دکمه بارگذاری ۱۰۰ محصول بعدی بدون پریدن تیک‌ها
+  document.getElementById("btn-load-more-catalog")?.addEventListener("click", () => {
+    adminState.catalogDisplayLimit += 100;
     renderCatalogTable();
   });
-  document.getElementById("catalog-filter-subcat")?.addEventListener("change", renderCatalogTable);
-  document.getElementById("catalog-search-input")?.addEventListener("input", renderCatalogTable);
+
+  // انتخاب همه فیلتر شده‌ها
+  document.getElementById("catalog-select-all-filtered")?.addEventListener("change", (e) => {
+    const checked = e.target.checked;
+    const filtered = getFilteredCatalogProducts();
+    filtered.forEach((p) => {
+      if (checked) adminState.selectedProductIds.add(p.id);
+      else adminState.selectedProductIds.delete(p.id);
+    });
+    renderCatalogTable();
+  });
+
+  document.getElementById("btn-clear-selected-checks")?.addEventListener("click", () => {
+    adminState.selectedProductIds.clear();
+    const selAll = document.getElementById("catalog-select-all-filtered");
+    if (selAll) selAll.checked = false;
+    renderCatalogTable();
+  });
+
+  // تغییر گروهی قیمت و تعداد پک
+  document.getElementById("btn-apply-bulk-price")?.addEventListener("click", async () => {
+    const val = parseFloat(document.getElementById("bulk-new-unit-price")?.value);
+    if (!val || val <= 0) {
+      showAdminToast("لطفاً قیمت جدید را وارد کنید.");
+      return;
+    }
+    await executeBulkCatalogUpdate("price", val);
+  });
+
+  document.getElementById("btn-apply-bulk-pcs")?.addEventListener("click", async () => {
+    const val = parseInt(document.getElementById("bulk-new-pcs-pack")?.value, 10);
+    if (!val || val < 1) {
+      showAdminToast("لطفاً تعداد جدید در پک را وارد کنید.");
+      return;
+    }
+    await executeBulkCatalogUpdate("pcs", val);
+  });
+
+  // حذف تیک‌خورده‌ها یا حذف کل فیلتر
+  document.getElementById("btn-delete-selected-products")?.addEventListener("click", async () => {
+    if (adminState.selectedProductIds.size === 0) {
+      showAdminToast("ابتدا محصولات مورد نظر را تیک بزنید.");
+      return;
+    }
+    const targets = adminState.products.filter((p) => adminState.selectedProductIds.has(p.id));
+    await deleteProductList(targets);
+  });
+
+  document.getElementById("btn-bulk-delete-filtered")?.addEventListener("click", async () => {
+    const vendorFilter = document.getElementById("catalog-filter-vendor")?.value || "all";
+    const deptFilter = document.getElementById("catalog-filter-dept")?.value || "all";
+    const subcatFilter = document.getElementById("catalog-filter-subcat")?.value || "all";
+    if (vendorFilter === "all" && deptFilter === "all" && subcatFilter === "all") {
+      showAdminToast("⚠️ ابتدا یک عمده‌فروش یا شاخه را فیلتر کنید.");
+      return;
+    }
+    await deleteProductList(getFilteredCatalogProducts());
+  });
+
   document.getElementById("btn-rebuild-all-shards")?.addEventListener("click", async () => {
     await rebuildAllCatalogShards();
     showAdminToast("✓ کاتالوگ سایت بروزرسانی شد!");
   });
-  document.getElementById("btn-bulk-delete-filtered")?.addEventListener("click", handleBulkDeleteFilteredProducts);
+
+  // رویدادهای جدول محصولات
+  document.getElementById("admin-catalog-tbody")?.addEventListener("change", (e) => {
+    const check = e.target.closest(".catalog-row-check");
+    if (!check) return;
+    const id = check.getAttribute("data-check-id");
+    if (check.checked) adminState.selectedProductIds.add(id);
+    else adminState.selectedProductIds.delete(id);
+    check.closest("tr")?.classList.toggle("selected-row", check.checked);
+    updateSelectionCountersUI();
+  });
 
   document.getElementById("admin-catalog-tbody")?.addEventListener("click", async (e) => {
     const target = e.target;
 
-    // ۱. ذخیره سریع قیمت و موجودی
     const saveBtn = target.closest("[data-save-inline]");
     if (saveBtn) {
       const id = saveBtn.getAttribute("data-save-inline");
@@ -1727,101 +2308,582 @@ function bindCatalogManagerEvents() {
         }
         await rebuildAllCatalogShards();
         renderCatalogTable();
-        showAdminToast(`✓ قیمت و موجودی ${id} ذخیره شد.`);
+        showAdminToast(`✓ ذخیره شد.`);
       } catch (err) {
         showAdminToast(`خطا: ${err.message}`);
       }
       return;
     }
 
-    // ۲. افزودن یا تغییر ویدیوی محصول در هر زمان
-    const vidBtn = target.closest("[data-quick-video]");
+    // باز کردن پاپ‌آپ ویرایش عنوان (🏷️ عنوان)
+    const titleBtn = target.closest("[data-open-title-modal]");
+    if (titleBtn) {
+      const id = titleBtn.getAttribute("data-open-title-modal");
+      const prod = adminState.products.find((p) => p.id === id);
+      if (!prod) return;
+
+      document.getElementById("modal-prod-id").value = prod.id;
+      document.getElementById("modal-title-heading").textContent = `🏷️ عنوان و تگ‌های محصول: ${prod.sku}`;
+      document.getElementById("modal-pub-en").value = prod.publicTitle?.en || "";
+      document.getElementById("modal-pub-it").value = prod.publicTitle?.it || "";
+      document.getElementById("modal-pub-es").value = prod.publicTitle?.es || "";
+      document.getElementById("modal-brand-en").value = prod.brandTitle?.en || "";
+      document.getElementById("modal-search-tags").value = Array.isArray(prod.searchTags) ? prod.searchTags.join(", ") : "";
+      document.getElementById("modal-desc-en").value = prod.description?.en || "";
+      document.getElementById("modal-edit-titles")?.classList.add("open");
+      return;
+    }
+
+    // باز کردن پاپ‌آپ افزودن فایل ویدیو یا لینک به محصول (🎬 ویدیو)
+    const vidBtn = target.closest("[data-open-video-modal]");
     if (vidBtn) {
-      const id = vidBtn.getAttribute("data-quick-video");
+      const id = vidBtn.getAttribute("data-open-video-modal");
       const prod = adminState.products.find((p) => p.id === id);
       if (!prod) return;
 
-      const currentVid = prod.videoUrl || (prod.youtubeId ? `https://youtu.be/${prod.youtubeId}` : "");
-      const inputUrl = prompt(
-        `لینک یوتیوب / Shorts یا لینک مستقیم MP4 را برای محصول ${prod.sku} وارد کنید (برای حذف ویدیو خالی بگذارید):`,
-        currentVid
-      );
-      if (inputUrl === null) return;
-
-      const trimmed = inputUrl.trim();
-      const ytId = extractYouTubeId(trimmed);
-
-      try {
-        await updateDoc(doc(db, "products", id), {
-          videoUrl: trimmed,
-          youtubeId: ytId || "",
-          updatedAtIso: new Date().toISOString()
-        });
-        prod.videoUrl = trimmed;
-        prod.youtubeId = ytId || "";
-        await rebuildAllCatalogShards();
-        renderCatalogTable();
-        showAdminToast(trimmed ? `🎬 ویدیو به محصول ${prod.sku} متصل شد!` : `ویدیوی محصول حذف شد.`);
-      } catch (err) {
-        showAdminToast(`خطا: ${err.message}`);
-      }
+      document.getElementById("modal-video-prod-id").value = prod.id;
+      document.getElementById("modal-video-heading").textContent = `🎬 ویدیوی محصول: ${prod.sku}`;
+      document.getElementById("modal-video-url-input").value = prod.videoUrl || (prod.youtubeId ? `https://youtu.be/${prod.youtubeId}` : "");
+      const fileInp = document.getElementById("modal-video-file-input");
+      if (fileInp) fileInp.value = "";
+      document.getElementById("modal-product-video")?.classList.add("open");
       return;
     }
 
-    // ۳. ویرایش محصول در تب ۱
-    const editBtn = target.closest("[data-edit-full]");
-    if (editBtn) {
-      const id = editBtn.getAttribute("data-edit-full");
-      const prod = adminState.products.find((p) => p.id === id);
-      if (!prod) return;
-
-      document.getElementById("prod-doc-id").value = prod.id;
-      renderVendorDropdowns(prod.vendorCode || "PRD");
-      document.getElementById("prod-department").value = prod.department || "men";
-      populateSubcategoryDropdown(prod.department || "men", prod.subcategory);
-      document.getElementById("prod-sku").value = prod.sku || prod.id;
-      document.getElementById("prod-unit-price").value = prod.unitPrice || 5;
-      document.getElementById("prod-pcs-per-pack").value = prod.pcsPerPack || 6;
-      document.getElementById("prod-size-range").value = prod.sizeRange || "S - M - L - XL - XXL";
-      document.getElementById("prod-youtube-url").value = prod.videoUrl || prod.youtubeId || "";
-      updatePackMathDisplay();
-
-      adminState.stagedImages = (Array.isArray(prod.images) ? prod.images : [prod.imageUrl]).filter(Boolean).map((u) => ({
-        remoteUrl: u,
-        dataUrl: u,
-        origSize: 0,
-        webpSize: 0
-      }));
-      renderStagedImagePreviews();
-
-      document.getElementById("product-form-mode-title").textContent = `ویرایش محصول: ${prod.sku}`;
-      document.querySelector('[data-admin-tab="ai-uploader"]')?.click();
-      return;
-    }
-
-    // ۴. حذف تکی محصول
     const delBtn = target.closest("[data-delete-prod]");
     if (delBtn) {
       const id = delBtn.getAttribute("data-delete-prod");
-      if (!confirm(`محصول ${id} حذف شود؟`)) return;
-      try {
-        await deleteDoc(doc(db, "products", id));
-        adminState.products = adminState.products.filter((p) => p.id !== id);
-        await rebuildAllCatalogShards();
-        syncVendorsFromProductsAndConfig();
-        renderCatalogTable();
-        updateDashboardKPIs();
-        updateAiQueueCounters();
-        showAdminToast(`محصول ${id} حذف شد.`);
-      } catch (err) {
-        showAdminToast(`خطا: ${err.message}`);
+      const prod = adminState.products.find((p) => p.id === id);
+      if (prod) await deleteProductList([prod]);
+    }
+  });
+
+  // رویدادهای مودال عنوان و مودال ویدیوی محصول
+  document.getElementById("btn-close-title-modal")?.addEventListener("click", () => {
+    document.getElementById("modal-edit-titles")?.classList.remove("open");
+  });
+
+  document.getElementById("form-modal-edit-titles")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = document.getElementById("modal-prod-id").value;
+    const prod = adminState.products.find((p) => p.id === id);
+    if (!prod) return;
+
+    const publicTitle = {
+      en: document.getElementById("modal-pub-en").value.trim(),
+      it: document.getElementById("modal-pub-it").value.trim(),
+      es: document.getElementById("modal-pub-es").value.trim()
+    };
+    const brandTitle = {
+      ...prod.brandTitle,
+      en: document.getElementById("modal-brand-en").value.trim() || publicTitle.en
+    };
+    const searchTags = document
+      .getElementById("modal-search-tags")
+      .value.split(",")
+      .map((t) => t.trim().toLowerCase())
+      .filter(Boolean);
+    const description = {
+      ...prod.description,
+      en: document.getElementById("modal-desc-en").value.trim()
+    };
+
+    await updateDoc(doc(db, "products", id), { publicTitle, brandTitle, searchTags, description, aiStatus: "completed" });
+    Object.assign(prod, { publicTitle, brandTitle, searchTags, description, aiStatus: "completed" });
+    await rebuildAllCatalogShards();
+    document.getElementById("modal-edit-titles")?.classList.remove("open");
+    renderCatalogTable();
+    showAdminToast("✓ عناوین محصول ذخیره شد.");
+  });
+
+  document.getElementById("btn-close-video-modal")?.addEventListener("click", () => {
+    document.getElementById("modal-product-video")?.classList.remove("open");
+  });
+
+  document.getElementById("form-modal-product-video")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = document.getElementById("modal-video-prod-id").value;
+    const prod = adminState.products.find((p) => p.id === id);
+    if (!prod) return;
+
+    const btn = document.getElementById("btn-save-modal-video");
+    const file = document.getElementById("modal-video-file-input")?.files?.[0] || null;
+    const rawUrl = document.getElementById("modal-video-url-input")?.value.trim() || "";
+    const ytId = extractYouTubeId(rawUrl);
+
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "⏳ در حال آپلود ویدیو...";
+    }
+
+    try {
+      let finalVideoUrl = rawUrl;
+      if (file) {
+        finalVideoUrl = await uploadVideoFileToStorage(file, prod.department, prod.sku);
       }
+      await updateDoc(doc(db, "products", id), {
+        videoUrl: finalVideoUrl,
+        youtubeId: ytId || "",
+        updatedAtIso: new Date().toISOString()
+      });
+      prod.videoUrl = finalVideoUrl;
+      prod.youtubeId = ytId || "";
+      await rebuildAllCatalogShards();
+      renderCatalogTable();
+      document.getElementById("modal-product-video")?.classList.remove("open");
+      showAdminToast(`🎬 ویدیو به محصول ${prod.sku} اضافه شد!`);
+    } catch (err) {
+      showAdminToast(`خطا: ${err.message}`);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = "💾 آپلود و ذخیره ویدیوی محصول";
+      }
+    }
+  });
+
+  document.getElementById("btn-remove-modal-video")?.addEventListener("click", async () => {
+    const id = document.getElementById("modal-video-prod-id").value;
+    const prod = adminState.products.find((p) => p.id === id);
+    if (!prod) return;
+    await updateDoc(doc(db, "products", id), { videoUrl: "", youtubeId: "" });
+    prod.videoUrl = "";
+    prod.youtubeId = "";
+    await rebuildAllCatalogShards();
+    renderCatalogTable();
+    document.getElementById("modal-product-video")?.classList.remove("open");
+    showAdminToast("ویدیوی محصول حذف شد.");
+  });
+}
+
+/* ==========================================================================
+   12. TAB 3: VISUAL CATEGORIES, SEASONAL REORDER (⬆️⬇️) & HIDE/SHOW (👁️)
+   ========================================================================== */
+async function saveTaxonomyToFirestore() {
+  adminState.publicConfig.taxonomy = adminState.taxonomy;
+  await setDoc(doc(db, "settings", "public_config"), { taxonomy: adminState.taxonomy }, { merge: true });
+  await rebuildAllCatalogShards();
+  populateAllTaxonomySelects();
+  renderCategoriesManagerUI();
+}
+
+function renderCategoriesManagerUI() {
+  const deptTbody = document.getElementById("admin-departments-tbody");
+  if (deptTbody) {
+    deptTbody.innerHTML = adminState.taxonomy
+      .map(
+        (d, idx) => `
+        <tr>
+          <td><img src="${escapeHtml(d.image || "")}" style="width:48px; height:48px; object-fit:cover; border-radius:8px; border:1px solid var(--border);" /></td>
+          <td>
+            <strong>${escapeHtml(d.labelFa || d.label)}</strong> (${escapeHtml(d.label)})<br>
+            <code style="font-size:0.72rem; color:var(--text-muted);">${escapeHtml(d.id)}</code>
+          </td>
+          <td>${(d.subcategories || []).length} شاخه</td>
+          <td>
+            <button type="button" class="btn-outline" data-toggle-dept-vis="${idx}" style="background:${d.hidden ? "#fef2f2" : "#ecfdf5"}; color:${d.hidden ? "#991b1b" : "#065f46"};">
+              ${d.hidden ? "🙈 مخفی در سایت (کلیک برای نمایش)" : "👁️ فعال در سایت"}
+            </button>
+          </td>
+          <td>
+            <button type="button" class="btn-outline" data-move-dept="${idx}:-1" ${idx === 0 ? "disabled" : ""}>⬆️ بالا</button>
+            <button type="button" class="btn-outline" data-move-dept="${idx}:1" ${idx === adminState.taxonomy.length - 1 ? "disabled" : ""}>⬇️ پایین</button>
+          </td>
+          <td>
+            <button type="button" class="btn-outline" data-edit-dept="${idx}">✏️ ویرایش/عکس</button>
+            <button type="button" class="btn-outline" data-del-dept="${idx}" style="color:var(--danger);">🗑</button>
+          </td>
+        </tr>
+      `
+      )
+      .join("");
+  }
+
+  renderSubcategoriesManagerTable();
+}
+
+function renderSubcategoriesManagerTable() {
+  const subTbody = document.getElementById("admin-subcategories-tbody");
+  if (!subTbody) return;
+  const filterDeptId = document.getElementById("filter-subcat-manager-dept")?.value || adminState.taxonomy[0]?.id || "men";
+  const deptObj = adminState.taxonomy.find((d) => d.id === filterDeptId) || adminState.taxonomy[0];
+  const subs = deptObj?.subcategories || [];
+
+  if (subs.length === 0) {
+    subTbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:18px; color:var(--text-muted);">هنوز شاخه‌ای برای این بخش ثبت نشده است.</td></tr>`;
+    return;
+  }
+
+  subTbody.innerHTML = subs
+    .map(
+      (sc, idx) => `
+      <tr>
+        <td><img src="${escapeHtml(sc.image || "")}" style="width:48px; height:58px; object-fit:cover; border-radius:8px; border:1px solid var(--border);" /></td>
+        <td>
+          <strong>${escapeHtml(sc.labelFa || sc.label)}</strong> (${escapeHtml(sc.label)})<br>
+          <code style="font-size:0.72rem; color:var(--text-muted);">${escapeHtml(sc.id)}</code>
+        </td>
+        <td>${Array.isArray(sc.leaves) && sc.leaves.length ? escapeHtml(sc.leaves.join(" ، ")) : "—"}</td>
+        <td>
+          <button type="button" class="btn-outline" data-toggle-sub-vis="${deptObj.id}:${idx}" style="background:${sc.hidden ? "#fef2f2" : "#ecfdf5"}; color:${sc.hidden ? "#991b1b" : "#065f46"};">
+            ${sc.hidden ? "🙈 مخفی (کلیک برای نمایش)" : "👁️ فعال در سایت"}
+          </button>
+        </td>
+        <td>
+          <button type="button" class="btn-outline" data-move-sub="${deptObj.id}:${idx}:-1" ${idx === 0 ? "disabled" : ""}>⬆️</button>
+          <button type="button" class="btn-outline" data-move-sub="${deptObj.id}:${idx}:1" ${idx === subs.length - 1 ? "disabled" : ""}>⬇️</button>
+        </td>
+        <td>
+          <button type="button" class="btn-outline" data-edit-sub="${deptObj.id}:${idx}">✏️ ویرایش/عکس</button>
+          <button type="button" class="btn-outline" data-del-sub="${deptObj.id}:${idx}" style="color:var(--danger);">🗑</button>
+        </td>
+      </tr>
+    `
+    )
+    .join("");
+}
+
+function bindCategoriesManagerEvents() {
+  document.getElementById("filter-subcat-manager-dept")?.addEventListener("change", renderSubcategoriesManagerTable);
+
+  // افزودن یا ویرایش بخش اصلی
+  document.getElementById("form-add-department")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = slugify(document.getElementById("dept-id-input").value.trim(), "dept");
+    const labelFa = document.getElementById("dept-label-fa").value.trim();
+    const label = document.getElementById("dept-label-en").value.trim();
+    const labelItEs = document.getElementById("dept-label-ites").value.trim();
+    const imgFile = document.getElementById("dept-image-file")?.files?.[0] || null;
+    let image = document.getElementById("dept-image-url").value.trim();
+
+    const btn = document.getElementById("btn-save-dept");
+    if (btn) btn.disabled = true;
+
+    try {
+      if (imgFile) {
+        image = await uploadSingleImageAsset(imgFile, "categories/depts", 700);
+      }
+      const existing = adminState.taxonomy.find((d) => d.id === id);
+      if (existing) {
+        existing.labelFa = labelFa;
+        existing.label = label;
+        existing.labelItEs = labelItEs;
+        if (image) existing.image = image;
+      } else {
+        adminState.taxonomy.push({
+          id,
+          labelFa,
+          label,
+          labelItEs,
+          hidden: false,
+          image: image || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=600&q=80",
+          subcategories: []
+        });
+      }
+      await saveTaxonomyToFirestore();
+      e.target.reset();
+      showAdminToast(`✓ بخش "${labelFa}" ذخیره شد!`);
+    } catch (err) {
+      showAdminToast(`خطا: ${err.message}`);
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  });
+
+  // رویدادهای جدول بخش‌های اصلی (مخفی‌سازی، جابجایی، ویرایش، حذف)
+  document.getElementById("admin-departments-tbody")?.addEventListener("click", async (e) => {
+    const toggleBtn = e.target.closest("[data-toggle-dept-vis]");
+    if (toggleBtn) {
+      const idx = parseInt(toggleBtn.getAttribute("data-toggle-dept-vis"), 10);
+      adminState.taxonomy[idx].hidden = !adminState.taxonomy[idx].hidden;
+      await saveTaxonomyToFirestore();
+      showAdminToast(adminState.taxonomy[idx].hidden ? "بخش در سایت مخفی شد." : "بخش در سایت فعال شد.");
+      return;
+    }
+
+    const moveBtn = e.target.closest("[data-move-dept]");
+    if (moveBtn) {
+      const [idxStr, dirStr] = moveBtn.getAttribute("data-move-dept").split(":");
+      const idx = parseInt(idxStr, 10);
+      const targetIdx = idx + parseInt(dirStr, 10);
+      if (targetIdx < 0 || targetIdx >= adminState.taxonomy.length) return;
+      const temp = adminState.taxonomy[idx];
+      adminState.taxonomy[idx] = adminState.taxonomy[targetIdx];
+      adminState.taxonomy[targetIdx] = temp;
+      await saveTaxonomyToFirestore();
+      return;
+    }
+
+    const editBtn = e.target.closest("[data-edit-dept]");
+    if (editBtn) {
+      const idx = parseInt(editBtn.getAttribute("data-edit-dept"), 10);
+      const d = adminState.taxonomy[idx];
+      document.getElementById("dept-id-input").value = d.id;
+      document.getElementById("dept-label-fa").value = d.labelFa || "";
+      document.getElementById("dept-label-en").value = d.label || "";
+      document.getElementById("dept-label-ites").value = d.labelItEs || "";
+      document.getElementById("dept-image-url").value = d.image || "";
+      return;
+    }
+
+    const delBtn = e.target.closest("[data-del-dept]");
+    if (delBtn) {
+      const idx = parseInt(delBtn.getAttribute("data-del-dept"), 10);
+      if (!confirm(`آیا بخش "${adminState.taxonomy[idx].labelFa}" حذف شود؟`)) return;
+      adminState.taxonomy.splice(idx, 1);
+      await saveTaxonomyToFirestore();
+    }
+  });
+
+  // افزودن یا ویرایش شاخه (مثلاً کلاه مردانه) و زیرمجموعه‌ها (مثلاً جاگر) + عکس اختصاصی
+  document.getElementById("form-add-subcategory")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const deptId = document.getElementById("subcat-parent-dept").value;
+    const deptObj = adminState.taxonomy.find((d) => d.id === deptId);
+    if (!deptObj) return;
+
+    const rawId = document.getElementById("subcat-id-input").value.trim();
+    const id = slugify(rawId.startsWith(deptId) ? rawId : `${deptId}-${rawId}`, `${deptId}-item`);
+    const labelFa = document.getElementById("subcat-label-fa").value.trim();
+    const label = document.getElementById("subcat-label-en").value.trim();
+    const leaves = document
+      .getElementById("subcat-leaves-input")
+      .value.split(/[,،]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const imgFile = document.getElementById("subcat-image-file")?.files?.[0] || null;
+    let image = document.getElementById("subcat-image-url").value.trim();
+
+    const btn = document.getElementById("btn-save-subcat");
+    if (btn) btn.disabled = true;
+
+    try {
+      if (imgFile) {
+        image = await uploadSingleImageAsset(imgFile, "categories/subcats", 600);
+      }
+      if (!Array.isArray(deptObj.subcategories)) deptObj.subcategories = [];
+      const existing = deptObj.subcategories.find((s) => s.id === id);
+
+      if (existing) {
+        existing.labelFa = labelFa;
+        existing.label = label;
+        existing.en = `Luxury Turkish Wholesale ${label}`;
+        existing.leaves = leaves;
+        if (image) existing.image = image;
+      } else {
+        deptObj.subcategories.push({
+          id,
+          labelFa,
+          label,
+          en: `Luxury Turkish Wholesale ${label}`,
+          it: `Ingrosso ${label}`,
+          es: `Mayorista ${label}`,
+          hidden: false,
+          image: image || deptObj.image || "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=500&q=80",
+          leaves
+        });
+      }
+
+      document.getElementById("filter-subcat-manager-dept").value = deptId;
+      await saveTaxonomyToFirestore();
+      e.target.reset();
+      showAdminToast(`✓ شاخه "${labelFa}" ذخیره شد!`);
+    } catch (err) {
+      showAdminToast(`خطا: ${err.message}`);
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  });
+
+  // رویدادهای جدول شاخه‌ها (مخفی‌سازی، جابجایی فصلی ⬆️⬇️، ویرایش عکس، حذف)
+  document.getElementById("admin-subcategories-tbody")?.addEventListener("click", async (e) => {
+    const toggleBtn = e.target.closest("[data-toggle-sub-vis]");
+    if (toggleBtn) {
+      const [deptId, idxStr] = toggleBtn.getAttribute("data-toggle-sub-vis").split(":");
+      const deptObj = adminState.taxonomy.find((d) => d.id === deptId);
+      const sc = deptObj?.subcategories?.[parseInt(idxStr, 10)];
+      if (!sc) return;
+      sc.hidden = !sc.hidden;
+      await saveTaxonomyToFirestore();
+      showAdminToast(sc.hidden ? `شاخه "${sc.labelFa}" در سایت مخفی شد.` : `شاخه "${sc.labelFa}" در سایت فعال شد.`);
+      return;
+    }
+
+    const moveBtn = e.target.closest("[data-move-sub]");
+    if (moveBtn) {
+      const [deptId, idxStr, dirStr] = moveBtn.getAttribute("data-move-sub").split(":");
+      const deptObj = adminState.taxonomy.find((d) => d.id === deptId);
+      const subs = deptObj?.subcategories || [];
+      const idx = parseInt(idxStr, 10);
+      const targetIdx = idx + parseInt(dirStr, 10);
+      if (targetIdx < 0 || targetIdx >= subs.length) return;
+      const temp = subs[idx];
+      subs[idx] = subs[targetIdx];
+      subs[targetIdx] = temp;
+      await saveTaxonomyToFirestore();
+      return;
+    }
+
+    const editBtn = e.target.closest("[data-edit-sub]");
+    if (editBtn) {
+      const [deptId, idxStr] = editBtn.getAttribute("data-edit-sub").split(":");
+      const deptObj = adminState.taxonomy.find((d) => d.id === deptId);
+      const sc = deptObj?.subcategories?.[parseInt(idxStr, 10)];
+      if (!sc) return;
+
+      document.getElementById("subcat-parent-dept").value = deptId;
+      document.getElementById("subcat-id-input").value = sc.id;
+      document.getElementById("subcat-label-fa").value = sc.labelFa || "";
+      document.getElementById("subcat-label-en").value = sc.label || "";
+      document.getElementById("subcat-leaves-input").value = (sc.leaves || []).join(", ");
+      document.getElementById("subcat-image-url").value = sc.image || "";
+      showAdminToast(`شاخه "${sc.labelFa}" در فرم بالا بارگذاری شد.`);
+      return;
+    }
+
+    const delBtn = e.target.closest("[data-del-sub]");
+    if (delBtn) {
+      const [deptId, idxStr] = delBtn.getAttribute("data-del-sub").split(":");
+      const deptObj = adminState.taxonomy.find((d) => d.id === deptId);
+      const idx = parseInt(idxStr, 10);
+      if (!deptObj?.subcategories?.[idx]) return;
+      if (!confirm(`آیا شاخه "${deptObj.subcategories[idx].labelFa}" حذف شود؟`)) return;
+      deptObj.subcategories.splice(idx, 1);
+      await saveTaxonomyToFirestore();
     }
   });
 }
 
 /* ==========================================================================
-   11. TAB 3: ORDERS & CUSTOMERS CRM
+   13. TAB 4: VENDORS CRM (CODE, NAME & SUPER-ADMIN PRIVATE PHONE/ADDRESS)
+   ========================================================================== */
+async function saveOrUpdateVendorRecord(code, name, phone = "", address = "", originalCode = "") {
+  const cleanCode = String(code).trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (!cleanCode) return;
+
+  if (originalCode && originalCode !== cleanCode) {
+    adminState.vendors = adminState.vendors.filter((v) => v.code !== originalCode);
+    delete adminState.vendorSecrets[originalCode];
+  }
+
+  const existing = adminState.vendors.find((v) => v.code === cleanCode);
+  if (existing) {
+    existing.name = name;
+  } else {
+    adminState.vendors.push({ code: cleanCode, name });
+  }
+
+  adminState.publicConfig.vendors = adminState.vendors;
+  await setDoc(doc(db, "settings", "public_config"), { vendors: adminState.vendors }, { merge: true });
+
+  // ذخیره شماره تلفن و آدرس عمده‌فروش فقط در سند محرمانه مدیر کل
+  if (adminState.role === "super_admin") {
+    adminState.vendorSecrets[cleanCode] = {
+      phone: phone || adminState.vendorSecrets[cleanCode]?.phone || "",
+      address: address || adminState.vendorSecrets[cleanCode]?.address || ""
+    };
+    adminState.adminSecrets.vendorSecrets = adminState.vendorSecrets;
+    await setDoc(doc(db, "settings", "admin_secrets"), { vendorSecrets: adminState.vendorSecrets }, { merge: true });
+  }
+
+  renderVendorDropdowns(cleanCode);
+  renderVendorsManagerTable();
+  updateDashboardKPIs();
+  showAdminToast(`✓ اطلاعات عمده‌فروش ${cleanCode} (${name}) ذخیره شد.`);
+}
+
+function renderVendorsManagerTable() {
+  const tbody = document.getElementById("admin-vendors-tbody");
+  if (!tbody) return;
+
+  const isSuper = adminState.role === "super_admin";
+  const counts = {};
+  adminState.products.forEach((p) => {
+    const c = String(p.vendorCode || String(p.sku || "").split("-")[0] || "PRD").toUpperCase();
+    counts[c] = (counts[c] || 0) + 1;
+  });
+
+  tbody.innerHTML = adminState.vendors
+    .map((v) => {
+      const secret = adminState.vendorSecrets[v.code] || {};
+      const cnt = counts[v.code] || 0;
+      return `
+        <tr>
+          <td><strong style="color:var(--gold-dark); font-size:0.92rem; direction:ltr;">${escapeHtml(v.code)}</strong></td>
+          <td><strong>${escapeHtml(v.name)}</strong></td>
+          <td>${cnt} محصول</td>
+          ${
+            isSuper
+              ? `<td>
+                  <div style="font-size:0.78rem;">📞 <strong style="direction:ltr; display:inline-block;">${escapeHtml(secret.phone || "ثبت نشده")}</strong></div>
+                  <div style="font-size:0.75rem; color:var(--text-muted);">📍 ${escapeHtml(secret.address || "آدرس ثبت نشده")}</div>
+                </td>`
+              : ""
+          }
+          <td style="white-space:nowrap;">
+            <button type="button" class="btn-outline" data-edit-vendor="${escapeHtml(v.code)}">✏️ ویرایش</button>
+            ${isSuper ? `<button type="button" class="btn-outline" data-delete-vendor="${escapeHtml(v.code)}" style="color:var(--danger);">🗑 حذف</button>` : ""}
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
+}
+
+function bindVendorsManagerEvents() {
+  document.getElementById("form-manage-vendor")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const origCode = document.getElementById("vendor-original-code").value.trim();
+    const code = document.getElementById("vendor-form-code").value.trim();
+    const name = document.getElementById("vendor-form-name").value.trim();
+    const phone = document.getElementById("vendor-form-phone")?.value.trim() || "";
+    const address = document.getElementById("vendor-form-address")?.value.trim() || "";
+
+    await saveOrUpdateVendorRecord(code, name, phone, address, origCode);
+    e.target.reset();
+    document.getElementById("vendor-original-code").value = "";
+  });
+
+  document.getElementById("btn-reset-vendor-form")?.addEventListener("click", () => {
+    document.getElementById("form-manage-vendor")?.reset();
+    document.getElementById("vendor-original-code").value = "";
+  });
+
+  document.getElementById("admin-vendors-tbody")?.addEventListener("click", async (e) => {
+    const editBtn = e.target.closest("[data-edit-vendor]");
+    if (editBtn) {
+      const code = editBtn.getAttribute("data-edit-vendor");
+      const v = adminState.vendors.find((x) => x.code === code);
+      if (!v) return;
+      const sec = adminState.vendorSecrets[code] || {};
+
+      document.getElementById("vendor-original-code").value = v.code;
+      document.getElementById("vendor-form-code").value = v.code;
+      document.getElementById("vendor-form-name").value = v.name;
+      if (document.getElementById("vendor-form-phone")) document.getElementById("vendor-form-phone").value = sec.phone || "";
+      if (document.getElementById("vendor-form-address")) document.getElementById("vendor-form-address").value = sec.address || "";
+      return;
+    }
+
+    const delBtn = e.target.closest("[data-delete-vendor]");
+    if (delBtn) {
+      const code = delBtn.getAttribute("data-delete-vendor");
+      if (!confirm(`آیا عمده‌فروش ${code} از لیست حذف شود؟`)) return;
+      adminState.vendors = adminState.vendors.filter((x) => x.code !== code);
+      delete adminState.vendorSecrets[code];
+      await setDoc(doc(db, "settings", "public_config"), { vendors: adminState.vendors }, { merge: true });
+      if (adminState.role === "super_admin") {
+        await setDoc(doc(db, "settings", "admin_secrets"), { vendorSecrets: adminState.vendorSecrets }, { merge: true });
+      }
+      renderVendorDropdowns();
+      renderVendorsManagerTable();
+      updateDashboardKPIs();
+    }
+  });
+}
+
+/* ==========================================================================
+   14. TAB 5, 6, 7, 8: ORDERS, VIDEOS, EDITABLE BLOGS & GLOBAL SETTINGS
    ========================================================================== */
 async function loadOrdersAndCustomers() {
   try {
@@ -1845,21 +2907,19 @@ async function loadOrdersAndCustomers() {
 function renderOrdersTable() {
   const tbody = document.getElementById("admin-orders-tbody");
   if (!tbody) return;
-
   const searchQ = (document.getElementById("orders-search-input")?.value || "").trim().toLowerCase();
   const statusFilter = document.getElementById("orders-status-filter")?.value || "all";
 
   const filtered = adminState.orders.filter((o) => {
     if (statusFilter !== "all" && (o.status || "pending_whatsapp") !== statusFilter) return false;
     if (searchQ) {
-      const hay = `${o.orderCode || ""} ${o.buyerName || ""} ${o.buyerCountry || ""} ${o.buyerPhone || ""}`.toLowerCase();
-      if (!hay.includes(searchQ)) return false;
+      return `${o.orderCode || ""} ${o.buyerName || ""} ${o.buyerCountry || ""} ${o.buyerPhone || ""}`.toLowerCase().includes(searchQ);
     }
     return true;
   });
 
-  if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--text-muted);">سفارشی یافت نشد.</td></tr>`;
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:18px; color:var(--text-muted);">سفارشی یافت نشد.</td></tr>`;
     return;
   }
 
@@ -1867,12 +2927,7 @@ function renderOrdersTable() {
     .map((o) => {
       const code = escapeHtml(o.orderCode || o.id);
       const dateStr = o.createdAtIso ? new Date(o.createdAtIso).toLocaleDateString("fa-IR") : "2026";
-      const buyer = escapeHtml(o.buyerName || "خریدار عمده");
-      const country = escapeHtml(o.buyerCountry || "—");
-      const phone = escapeHtml(o.buyerPhone || "—");
       const cleanPhone = String(o.buyerPhone || "").replace(/[^0-9]/g, "");
-      const packs = Number(o.totalPacks) || 0;
-      const pcs = Number(o.totalPieces) || 0;
       const amount = formatMoney(o.totalAmount || 0);
       const status = o.status || "pending_whatsapp";
       const invoiceUrl = `order.html?id=${encodeURIComponent(o.orderCode || o.id)}`;
@@ -1883,15 +2938,15 @@ function renderOrdersTable() {
       return `
         <tr>
           <td><strong>${code}</strong><br><small style="color:var(--text-muted);">${escapeHtml(dateStr)}</small></td>
-          <td><strong>${buyer}</strong></td>
-          <td>${country}</td>
-          <td style="direction:ltr;">${phone}</td>
-          <td>${packs} پک (${pcs} عدد)</td>
+          <td><strong>${escapeHtml(o.buyerName || "—")}</strong></td>
+          <td>${escapeHtml(o.buyerCountry || "—")}</td>
+          <td style="direction:ltr;">${escapeHtml(o.buyerPhone || "—")}</td>
+          <td>${Number(o.totalPacks) || 0} پک (${Number(o.totalPieces) || 0} عدد)</td>
           <td style="font-weight:800; direction:ltr;">${amount}</td>
           <td>
-            <select class="select" data-order-status-change="${code}" style="padding:5px; font-size:0.75rem; width:140px;">
-              <option value="pending_whatsapp" ${status === "pending_whatsapp" ? "selected" : ""}>🟡 در انتظار واتساپ</option>
-              <option value="preparing" ${status === "preparing" ? "selected" : ""}>🔵 در حال آماده‌سازی</option>
+            <select class="select" data-order-status-change="${code}" style="padding:5px; font-size:0.74rem; width:135px;">
+              <option value="pending_whatsapp" ${status === "pending_whatsapp" ? "selected" : ""}>🟡 انتظار واتساپ</option>
+              <option value="preparing" ${status === "preparing" ? "selected" : ""}>🔵 آماده‌سازی</option>
               <option value="shipped" ${status === "shipped" ? "selected" : ""}>🟣 ارسال شده</option>
               <option value="completed" ${status === "completed" ? "selected" : ""}>🟢 تکمیل شده</option>
             </select>
@@ -1909,15 +2964,11 @@ function renderOrdersTable() {
 function renderCustomersTable() {
   const tbody = document.getElementById("admin-customers-tbody");
   if (!tbody) return;
-
   const q = (document.getElementById("customers-search-input")?.value || "").trim().toLowerCase();
-  const filtered = adminState.customers.filter((c) => {
-    if (!q) return true;
-    return `${c.name || ""} ${c.country || ""} ${c.phone || ""}`.toLowerCase().includes(q);
-  });
+  const filtered = adminState.customers.filter((c) => !q || `${c.name || ""} ${c.country || ""} ${c.phone || ""}`.toLowerCase().includes(q));
 
-  if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-muted);">مشتری یافت نشد.</td></tr>`;
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:18px; color:var(--text-muted);">مشتری یافت نشد.</td></tr>`;
     return;
   }
 
@@ -1948,29 +2999,22 @@ function bindOrdersAndCrmEvents() {
     const sel = e.target.closest("[data-order-status-change]");
     if (!sel) return;
     const code = sel.getAttribute("data-order-status-change");
-    try {
-      await updateDoc(doc(db, "orders", code), { status: sel.value, updatedAt: serverTimestamp() });
-      showAdminToast(`✓ وضعیت سفارش ${code} ذخیره شد.`);
-    } catch (err) {}
+    await updateDoc(doc(db, "orders", code), { status: sel.value, updatedAt: serverTimestamp() });
+    showAdminToast(`✓ وضعیت سفارش ${code} ذخیره شد.`);
   });
 
   document.getElementById("btn-export-customers-csv")?.addEventListener("click", () => {
     if (!adminState.customers.length) return;
-    const headers = ["Name,Country,Phone,LastOrder,Amount"];
-    const rows = adminState.customers.map(
-      (c) => `"${c.name || ""}","${c.country || ""}","${c.phone || ""}","${c.lastOrderCode || ""}",${c.lastOrderAmount || 0}`
+    const rows = ["Name,Country,Phone,LastOrder,Amount"].concat(
+      adminState.customers.map((c) => `"${c.name || ""}","${c.country || ""}","${c.phone || ""}","${c.lastOrderCode || ""}",${c.lastOrderAmount || 0}`)
     );
-    const blob = new Blob([headers.concat(rows).join("\n")], { type: "text/csv;charset=utf-8;" });
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
+    a.href = URL.createObjectURL(new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" }));
     a.download = "paradise_customers.csv";
     a.click();
   });
 }
 
-/* ==========================================================================
-   12. TAB 4: VIDEOS MANAGER (HERO, SHOWROOM & CARGO REVIEWS)
-   ========================================================================== */
 function renderShowroomVideosTable() {
   const tbody = document.getElementById("admin-showroom-videos-tbody");
   if (!tbody) return;
@@ -1985,10 +3029,10 @@ function renderShowroomVideosTable() {
       const thumb = ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : "";
       return `
         <tr>
-          <td>${thumb ? `<img src="${thumb}" style="width:48px; height:64px; object-fit:cover; border-radius:6px;" />` : "🎬"}</td>
+          <td>${thumb ? `<img src="${thumb}" style="width:46px; height:60px; object-fit:cover; border-radius:6px;" />` : "🎬 فایل ویدیو"}</td>
           <td><strong>${escapeHtml(v.title || "")}</strong></td>
           <td>${escapeHtml(v.dept || "all")}</td>
-          <td style="direction:ltr;"><code>${ytId || escapeHtml(v.url || "")}</code></td>
+          <td style="direction:ltr;"><code>${ytId || "MP4 Video"}</code></td>
           <td><button type="button" class="btn-outline" data-remove-showroom-vid="${idx}" style="color:var(--danger);">🗑 حذف</button></td>
         </tr>
       `;
@@ -2007,13 +3051,13 @@ function renderCargoVideosTable() {
   tbody.innerHTML = list
     .map((v, idx) => {
       const ytId = escapeHtml(v.ytId || "");
-      const thumb = escapeHtml(v.thumb || `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`);
+      const thumb = ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : "";
       return `
         <tr>
-          <td><img src="${thumb}" style="width:48px; height:64px; object-fit:cover; border-radius:6px;" /></td>
+          <td>${thumb ? `<img src="${thumb}" style="width:46px; height:60px; object-fit:cover; border-radius:6px;" />` : "🎬 ویدیو"}</td>
           <td>${escapeHtml(v.badge || "CARGO")}</td>
           <td><strong>${escapeHtml(v.title || "")}</strong></td>
-          <td style="direction:ltr;"><code>${ytId}</code></td>
+          <td style="direction:ltr;"><code>${ytId || "MP4"}</code></td>
           <td><button type="button" class="btn-outline" data-remove-cargo-vid="${idx}" style="color:var(--danger);">🗑 حذف</button></td>
         </tr>
       `;
@@ -2034,21 +3078,42 @@ function bindVideosManagerEvents() {
     showAdminToast("✓ ویدیوی صفحه اول ذخیره شد!");
   });
 
+  // افزودن ویدیو به ویترین (پشتیبانی از فایل گالری یا لینک یوتیوب)
   document.getElementById("admin-add-showroom-video-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const rawUrl = document.getElementById("showroom-vid-url").value.trim();
-    const ytId = extractYouTubeId(rawUrl);
+    const file = document.getElementById("showroom-vid-file")?.files?.[0] || null;
+    const rawUrl = document.getElementById("showroom-vid-url")?.value.trim() || "";
     const title = document.getElementById("showroom-vid-title").value.trim();
     const dept = document.getElementById("showroom-vid-dept").value || "all";
-    const thumb = ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : "";
 
-    if (!Array.isArray(adminState.publicConfig.showroomVideos)) adminState.publicConfig.showroomVideos = [];
-    adminState.publicConfig.showroomVideos.unshift({ url: rawUrl, ytId, title, dept, thumb });
+    if (!file && !rawUrl) {
+      showAdminToast("لطفاً یک فایل ویدیو از گالری انتخاب کنید یا لینک یوتیوب بدهید.");
+      return;
+    }
 
-    await setDoc(doc(db, "settings", "public_config"), { showroomVideos: adminState.publicConfig.showroomVideos }, { merge: true });
-    renderShowroomVideosTable();
-    e.target.reset();
-    showAdminToast("✓ ویدیو به ویترین اضافه شد!");
+    const btn = document.getElementById("btn-submit-showroom-vid");
+    if (btn) btn.disabled = true;
+
+    try {
+      let finalUrl = rawUrl;
+      if (file) {
+        finalUrl = await uploadVideoFileToStorage(file, "showroom", "SHOWROOM");
+      }
+      const ytId = extractYouTubeId(finalUrl);
+      const thumb = ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : "";
+
+      if (!Array.isArray(adminState.publicConfig.showroomVideos)) adminState.publicConfig.showroomVideos = [];
+      adminState.publicConfig.showroomVideos.unshift({ url: finalUrl, ytId, title, dept, thumb });
+
+      await setDoc(doc(db, "settings", "public_config"), { showroomVideos: adminState.publicConfig.showroomVideos }, { merge: true });
+      renderShowroomVideosTable();
+      e.target.reset();
+      showAdminToast("✓ ویدیو به ویترین سایت اضافه شد!");
+    } catch (err) {
+      showAdminToast(`خطا: ${err.message}`);
+    } finally {
+      if (btn) btn.disabled = false;
+    }
   });
 
   document.getElementById("admin-showroom-videos-tbody")?.addEventListener("click", async (e) => {
@@ -2060,21 +3125,42 @@ function bindVideosManagerEvents() {
     renderShowroomVideosTable();
   });
 
+  // افزودن ویدیوی رضایت مشتریان و ارسال بار (فایل گالری یا لینک یوتیوب)
   document.getElementById("admin-add-cargo-video-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const rawUrl = document.getElementById("cargo-vid-url").value.trim();
-    const ytId = extractYouTubeId(rawUrl) || rawUrl;
+    const file = document.getElementById("cargo-vid-file")?.files?.[0] || null;
+    const rawUrl = document.getElementById("cargo-vid-url")?.value.trim() || "";
     const badge = document.getElementById("cargo-vid-badge").value.trim();
     const title = document.getElementById("cargo-vid-title").value.trim();
-    const thumb = `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`;
 
-    if (!Array.isArray(adminState.publicConfig.cargoVideos)) adminState.publicConfig.cargoVideos = [];
-    adminState.publicConfig.cargoVideos.unshift({ ytId, badge, title, thumb });
+    if (!file && !rawUrl) {
+      showAdminToast("لطفاً فایل ویدیو یا لینک یوتیوب را وارد کنید.");
+      return;
+    }
 
-    await setDoc(doc(db, "settings", "public_config"), { cargoVideos: adminState.publicConfig.cargoVideos }, { merge: true });
-    renderCargoVideosTable();
-    e.target.reset();
-    showAdminToast("✓ ویدیوی ارسال بار اضافه شد!");
+    const btn = document.getElementById("btn-submit-cargo-vid");
+    if (btn) btn.disabled = true;
+
+    try {
+      let finalUrl = rawUrl;
+      if (file) {
+        finalUrl = await uploadVideoFileToStorage(file, "cargo", "CARGO");
+      }
+      const ytId = extractYouTubeId(finalUrl);
+      const thumb = ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : "";
+
+      if (!Array.isArray(adminState.publicConfig.cargoVideos)) adminState.publicConfig.cargoVideos = [];
+      adminState.publicConfig.cargoVideos.unshift({ url: finalUrl, ytId, badge, title, thumb });
+
+      await setDoc(doc(db, "settings", "public_config"), { cargoVideos: adminState.publicConfig.cargoVideos }, { merge: true });
+      renderCargoVideosTable();
+      e.target.reset();
+      showAdminToast("✓ ویدیوی ارسال بار اضافه شد!");
+    } catch (err) {
+      showAdminToast(`خطا: ${err.message}`);
+    } finally {
+      if (btn) btn.disabled = false;
+    }
   });
 
   document.getElementById("admin-cargo-videos-tbody")?.addEventListener("click", async (e) => {
@@ -2087,9 +3173,7 @@ function bindVideosManagerEvents() {
   });
 }
 
-/* ==========================================================================
-   13. TAB 5: 1-CLICK AUTO 3-LANGUAGE BLOG & GITHUB SITEMAP PUBLISHER
-   ========================================================================== */
+/* وبلاگ ۳ زبانه با قابلیت ویرایش توسط مدیر کل */
 async function loadPublishedBlogs() {
   try {
     const snap = await getDocs(collection(db, "blogs"));
@@ -2104,7 +3188,7 @@ function renderPublishedBlogsTable() {
   const tbody = document.getElementById("admin-blogs-tbody");
   if (!tbody) return;
   if (!adminState.blogs.length) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:18px; color:var(--text-muted);">هنوز مقاله‌ای منتشر نشده است.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:18px; color:var(--text-muted);">هنوز مقاله‌ای منتشر نشده است.</td></tr>`;
     return;
   }
   tbody.innerHTML = adminState.blogs
@@ -2114,16 +3198,34 @@ function renderPublishedBlogsTable() {
       const slugEn = escapeHtml(b.slugs?.en || b.slug || id);
       return `
         <tr>
-          <td><img src="${escapeHtml(b.coverImage || "")}" style="width:56px; height:36px; object-fit:cover; border-radius:4px;" /></td>
+          <td><img src="${escapeHtml(b.coverImage || "")}" style="width:52px; height:34px; object-fit:cover; border-radius:4px;" /></td>
           <td><strong>${titleEn}</strong></td>
           <td style="direction:ltr;"><a href="blog.html?slug=${encodeURIComponent(slugEn)}" target="_blank">/en/blog/${slugEn}/ ↗</a></td>
-          <td>${escapeHtml(b.category || "logistics")}</td>
           <td>${escapeHtml(b.publishedAt || "2026")}</td>
-          <td><button type="button" class="btn-outline" data-delete-blog="${id}" style="color:var(--danger);">🗑 حذف</button></td>
+          <td style="white-space:nowrap;">
+            <button type="button" class="btn-outline" data-edit-blog="${id}">✏️ ویرایش</button>
+            <button type="button" class="btn-outline" data-delete-blog="${id}" style="color:var(--danger);">🗑 حذف</button>
+          </td>
         </tr>
       `;
     })
     .join("");
+}
+
+async function syncBlogIndexToFirestore() {
+  await setDoc(doc(db, "settings", "blog_index"), {
+    updatedAtIso: new Date().toISOString(),
+    articles: adminState.blogs.map((b) => ({
+      id: b.id,
+      slug: b.slug,
+      slugs: b.slugs,
+      category: b.category,
+      coverImage: b.coverImage,
+      title: b.title,
+      excerpt: b.excerpt,
+      publishedAt: b.publishedAt
+    }))
+  });
 }
 
 async function commitFileToGitHub(filePath, contentString, commitMessage) {
@@ -2131,7 +3233,7 @@ async function commitFileToGitHub(filePath, contentString, commitMessage) {
   const repo = (document.getElementById("cfg-github-repo")?.value || adminState.adminSecrets.githubRepo || "").trim();
   const branch = (document.getElementById("cfg-github-branch")?.value || adminState.adminSecrets.githubBranch || "main").trim();
 
-  if (!token || !repo) throw new Error("توکن یا ریپازیتوری گیت‌هاب در تب ۶ وارد نشده است.");
+  if (!token || !repo) throw new Error("توکن یا ریپازیتوری گیت‌هاب در تب ۸ وارد نشده است.");
 
   const cleanPath = filePath.replace(/^\/+/, "");
   const apiUrl = `https://api.github.com/repos/${repo}/contents/${cleanPath}`;
@@ -2166,12 +3268,16 @@ async function buildAndPushSitemapAndRobots() {
     { loc: `${SITE_DOMAIN}/blog.html`, priority: "0.8" }
   ];
 
-  DEPARTMENTS_TAXONOMY.forEach((dept) => {
-    urls.push({ loc: `${SITE_DOMAIN}/category.html?dept=${dept.id}`, priority: "0.85" });
-    dept.subcategories.forEach((sc) => {
-      urls.push({ loc: `${SITE_DOMAIN}/category.html?dept=${dept.id}&cat=${sc.id}`, priority: "0.75" });
+  adminState.taxonomy
+    .filter((d) => !d.hidden)
+    .forEach((dept) => {
+      urls.push({ loc: `${SITE_DOMAIN}/category.html?dept=${dept.id}`, priority: "0.85" });
+      (dept.subcategories || [])
+        .filter((s) => !s.hidden)
+        .forEach((sc) => {
+          urls.push({ loc: `${SITE_DOMAIN}/category.html?dept=${dept.id}&cat=${sc.id}`, priority: "0.75" });
+        });
     });
-  });
 
   adminState.blogs.forEach((b) => {
     const sEn = b.slugs?.en || b.slug || b.id;
@@ -2182,7 +3288,8 @@ async function buildAndPushSitemapAndRobots() {
     .map((u) => `  <url><loc>${u.loc}</loc><lastmod>${today}</lastmod><priority>${u.priority}</priority></url>`)
     .join("\n")}\n</urlset>`;
 
-  const robotsTxt = `User-agent: *\nAllow: /\nDisallow: /admin.html\nDisallow: /order.html\nDisallow: /*?q=*\nSitemap: ${SITE_DOMAIN}/sitemap.xml\n`;
+  // عدم درج نام raminreza.html در robots.txt تا هیچ هکری نتواند آدرس مخفی پنل را پیدا کند
+  const robotsTxt = `User-agent: *\nAllow: /\nDisallow: /order.html\nDisallow: /*?q=*\nSitemap: ${SITE_DOMAIN}/sitemap.xml\n`;
 
   await commitFileToGitHub("sitemap.xml", sitemapXml, "Update sitemap.xml");
   await commitFileToGitHub("robots.txt", robotsTxt, "Update robots.txt");
@@ -2204,7 +3311,7 @@ function bindBlogStudioEvents() {
       "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=85";
 
     if (btn) btn.disabled = true;
-    if (statusEl) statusEl.textContent = "⏳ جمنای در حال نگارش و انتشار مقاله ۳ زبانه...";
+    if (statusEl) statusEl.textContent = "⏳ جمنای در حال نگارش مقاله ۳ زبانه...";
 
     const blogPrompt = `
 Write a B2B wholesale SEO article for Paradise Wholesale Clothing Istanbul (${SITE_DOMAIN}) about: "${promptInput}".
@@ -2244,24 +3351,10 @@ Return ONLY valid JSON:
 
       await setDoc(doc(db, "blogs", slugEn), payload, { merge: true });
       adminState.blogs.unshift(payload);
-
-      await setDoc(doc(db, "settings", "blog_index"), {
-        updatedAtIso: nowIso,
-        articles: adminState.blogs.map((b) => ({
-          id: b.id,
-          slug: b.slug,
-          slugs: b.slugs,
-          category: b.category,
-          coverImage: b.coverImage,
-          title: b.title,
-          excerpt: b.excerpt,
-          publishedAt: b.publishedAt
-        }))
-      });
-
+      await syncBlogIndexToFirestore();
       renderPublishedBlogsTable();
       updateDashboardKPIs();
-      if (statusEl) statusEl.textContent = "✓ مقاله ۳ زبانه با موفقیت منتشر شد!";
+      if (statusEl) statusEl.textContent = "✓ مقاله ۳ زبانه منتشر شد!";
       showAdminToast("🚀 مقاله ۳ زبانه تولید و منتشر شد!");
     } catch (err) {
       if (statusEl) statusEl.textContent = `خطا: ${err.message}`;
@@ -2272,34 +3365,98 @@ Return ONLY valid JSON:
   });
 
   document.getElementById("admin-blogs-tbody")?.addEventListener("click", async (e) => {
+    const editBtn = e.target.closest("[data-edit-blog]");
+    if (editBtn) {
+      const id = editBtn.getAttribute("data-edit-blog");
+      const art = adminState.blogs.find((b) => b.id === id);
+      if (!art) return;
+
+      document.getElementById("edit-blog-id").value = art.id;
+      document.getElementById("edit-blog-title-en").value = art.title?.en || "";
+      document.getElementById("edit-blog-html-en").value = art.content?.en || "";
+      document.getElementById("edit-blog-title-it").value = art.title?.it || "";
+      document.getElementById("edit-blog-title-es").value = art.title?.es || "";
+      document.getElementById("edit-blog-html-it").value = art.content?.it || "";
+      document.getElementById("edit-blog-html-es").value = art.content?.es || "";
+      document.getElementById("modal-edit-blog")?.classList.add("open");
+      return;
+    }
+
     const delBtn = e.target.closest("[data-delete-blog]");
-    if (!delBtn) return;
-    const id = delBtn.getAttribute("data-delete-blog");
-    if (!confirm("این مقاله حذف شود؟")) return;
-    await deleteDoc(doc(db, "blogs", id));
-    adminState.blogs = adminState.blogs.filter((b) => b.id !== id);
+    if (delBtn) {
+      const id = delBtn.getAttribute("data-delete-blog");
+      if (!confirm("این مقاله حذف شود؟")) return;
+      await deleteDoc(doc(db, "blogs", id));
+      adminState.blogs = adminState.blogs.filter((b) => b.id !== id);
+      await syncBlogIndexToFirestore();
+      renderPublishedBlogsTable();
+      updateDashboardKPIs();
+    }
+  });
+
+  document.getElementById("btn-close-blog-modal")?.addEventListener("click", () => {
+    document.getElementById("modal-edit-blog")?.classList.remove("open");
+  });
+
+  document.getElementById("form-modal-edit-blog")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = document.getElementById("edit-blog-id").value;
+    const art = adminState.blogs.find((b) => b.id === id);
+    if (!art) return;
+
+    art.title = {
+      en: document.getElementById("edit-blog-title-en").value.trim(),
+      it: document.getElementById("edit-blog-title-it").value.trim(),
+      es: document.getElementById("edit-blog-title-es").value.trim()
+    };
+    art.content = {
+      en: document.getElementById("edit-blog-html-en").value.trim(),
+      it: document.getElementById("edit-blog-html-it").value.trim(),
+      es: document.getElementById("edit-blog-html-es").value.trim()
+    };
+    art.updatedAtIso = new Date().toISOString();
+
+    await setDoc(doc(db, "blogs", id), art, { merge: true });
+    await syncBlogIndexToFirestore();
     renderPublishedBlogsTable();
-    updateDashboardKPIs();
+    document.getElementById("modal-edit-blog")?.classList.remove("open");
+    showAdminToast("✓ تغییرات مقاله با موفقیت ذخیره شد!");
   });
 }
 
-/* ==========================================================================
-   14. TAB 6: GLOBAL LIVE SETTINGS, GEMINI KEYS & GITHUB
-   ========================================================================== */
+/* تنظیمات کلی، آپلود لوگو، فرمول حداقل سفارش (۲۵ عدد) و تشخیص سطح دسترسی */
 async function loadSettingsFromFirestore() {
   try {
     const pubSnap = await getDoc(doc(db, "settings", "public_config"));
     if (pubSnap.exists()) {
-      adminState.publicConfig = { ...adminState.publicConfig, ...pubSnap.data(), currencySymbol: "$", currencyCode: "USD" };
+      const data = pubSnap.data();
+      adminState.publicConfig = { ...adminState.publicConfig, ...data, currencySymbol: "$", currencyCode: "USD" };
+      if (Array.isArray(data.taxonomy) && data.taxonomy.length > 0) {
+        adminState.taxonomy = data.taxonomy;
+      }
     }
   } catch (e) {}
 
-  try {
-    const secSnap = await getDoc(doc(db, "settings", "admin_secrets"));
-    if (secSnap.exists()) {
-      adminState.adminSecrets = { ...adminState.adminSecrets, ...secSnap.data() };
-    }
-  } catch (e) {}
+  const loggedEmail = String(adminState.user?.email || "").trim().toLowerCase();
+  const assistants = (adminState.publicConfig.assistantEmails || []).map((e) => String(e).trim().toLowerCase());
+  const supers = (adminState.publicConfig.superAdminEmails || []).map((e) => String(e).trim().toLowerCase());
+
+  if (assistants.includes(loggedEmail) && !supers.includes(loggedEmail)) {
+    adminState.role = "assistant";
+  } else {
+    adminState.role = "super_admin";
+  }
+  applyRolePermissionsUI();
+
+  if (adminState.role === "super_admin") {
+    try {
+      const secSnap = await getDoc(doc(db, "settings", "admin_secrets"));
+      if (secSnap.exists()) {
+        adminState.adminSecrets = { ...adminState.adminSecrets, ...secSnap.data() };
+        adminState.vendorSecrets = adminState.adminSecrets.vendorSecrets || {};
+      }
+    } catch (e) {}
+  }
 
   populateSettingsFormUI();
   renderShowroomVideosTable();
@@ -2314,9 +3471,14 @@ function populateSettingsFormUI() {
     if (el && val !== undefined && val !== null) el.value = val;
   };
 
+  setVal("cfg-logo-url", pub.logoUrl || "");
   setVal("cfg-whatsapp-raw", pub.whatsappRaw || DEFAULT_WHATSAPP);
   setVal("cfg-whatsapp-display", pub.whatsappDisplay || "+90 545 909 93 95");
   setVal("cfg-bulk-threshold", pub.bestRateThreshold || 25);
+  setVal("cfg-under-moq-markup", pub.underMoqMarkupPercent ?? 15);
+
+  setVal("cfg-super-admin-emails", (pub.superAdminEmails || sec.superAdminEmails || []).join("\n"));
+  setVal("cfg-assistant-emails", (pub.assistantEmails || sec.assistantEmails || []).join("\n"));
 
   setVal("cfg-ga4-id", pub.ga4MeasurementId || "");
   setVal("cfg-gads-id", pub.googleAdsId || "");
@@ -2351,47 +3513,72 @@ function bindSettingsEvents() {
     const btn = document.getElementById("btn-save-global-settings");
     if (btn) btn.disabled = true;
 
-    const updatedPublic = {
-      ...adminState.publicConfig,
-      whatsappRaw: document.getElementById("cfg-whatsapp-raw").value.trim() || DEFAULT_WHATSAPP,
-      whatsappDisplay: document.getElementById("cfg-whatsapp-display").value.trim() || "+90 545 909 93 95",
-      currencySymbol: "$",
-      currencyCode: "USD",
-      bestRateThreshold: Math.max(1, parseInt(document.getElementById("cfg-bulk-threshold").value, 10) || 25),
-      ga4MeasurementId: document.getElementById("cfg-ga4-id").value.trim(),
-      googleAdsId: document.getElementById("cfg-gads-id").value.trim(),
-      googleAdsConversionLabel: document.getElementById("cfg-gads-label").value.trim(),
-      googleSiteVerification: document.getElementById("cfg-gsc-verify").value.trim(),
-      instagramUrl: document.getElementById("cfg-instagram-url").value.trim(),
-      telegramUrl: document.getElementById("cfg-telegram-url").value.trim(),
-      tiktokUrl: document.getElementById("cfg-tiktok-url").value.trim(),
-      androidAppUrl: document.getElementById("cfg-android-app-url").value.trim(),
-      vendors: adminState.vendors,
-      updatedAtIso: new Date().toISOString()
-    };
-
-    const geminiKeys = document
-      .getElementById("cfg-gemini-keys")
-      .value.split(/[\r\n,]+/)
-      .map((k) => k.trim())
-      .filter(Boolean);
-
-    const updatedSecrets = {
-      geminiKeys,
-      geminiModel: document.getElementById("cfg-gemini-model").value || "gemini-2.5-flash",
-      githubToken: document.getElementById("cfg-github-token").value.trim(),
-      githubRepo: document.getElementById("cfg-github-repo").value.trim(),
-      githubBranch: document.getElementById("cfg-github-branch").value.trim() || "main",
-      updatedAtIso: new Date().toISOString()
-    };
-
     try {
+      const logoFile = document.getElementById("cfg-logo-file")?.files?.[0] || null;
+      let logoUrl = document.getElementById("cfg-logo-url")?.value.trim() || adminState.publicConfig.logoUrl || "";
+      if (logoFile) {
+        logoUrl = await uploadSingleImageAsset(logoFile, "branding", 500);
+      }
+
+      const superAdminEmails = (document.getElementById("cfg-super-admin-emails")?.value || "")
+        .split(/[\r\n,]+/)
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean);
+
+      const assistantEmails = (document.getElementById("cfg-assistant-emails")?.value || "")
+        .split(/[\r\n,]+/)
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean);
+
+      const updatedPublic = {
+        ...adminState.publicConfig,
+        logoUrl,
+        whatsappRaw: document.getElementById("cfg-whatsapp-raw").value.trim() || DEFAULT_WHATSAPP,
+        whatsappDisplay: document.getElementById("cfg-whatsapp-display").value.trim() || "+90 545 909 93 95",
+        currencySymbol: "$",
+        currencyCode: "USD",
+        bestRateThreshold: Math.max(1, parseInt(document.getElementById("cfg-bulk-threshold").value, 10) || 25),
+        underMoqMarkupPercent: Math.max(0, parseFloat(document.getElementById("cfg-under-moq-markup").value) || 0),
+        superAdminEmails,
+        assistantEmails,
+        ga4MeasurementId: document.getElementById("cfg-ga4-id").value.trim(),
+        googleAdsId: document.getElementById("cfg-gads-id").value.trim(),
+        googleAdsConversionLabel: document.getElementById("cfg-gads-label").value.trim(),
+        googleSiteVerification: document.getElementById("cfg-gsc-verify").value.trim(),
+        instagramUrl: document.getElementById("cfg-instagram-url").value.trim(),
+        telegramUrl: document.getElementById("cfg-telegram-url").value.trim(),
+        tiktokUrl: document.getElementById("cfg-tiktok-url").value.trim(),
+        androidAppUrl: document.getElementById("cfg-android-app-url").value.trim(),
+        vendors: adminState.vendors,
+        taxonomy: adminState.taxonomy,
+        updatedAtIso: new Date().toISOString()
+      };
+
+      const geminiKeys = (document.getElementById("cfg-gemini-keys")?.value || "")
+        .split(/[\r\n,]+/)
+        .map((k) => k.trim())
+        .filter(Boolean);
+
+      const updatedSecrets = {
+        ...adminState.adminSecrets,
+        geminiKeys,
+        geminiModel: document.getElementById("cfg-gemini-model").value || "gemini-2.5-flash",
+        githubToken: document.getElementById("cfg-github-token").value.trim(),
+        githubRepo: document.getElementById("cfg-github-repo").value.trim(),
+        githubBranch: document.getElementById("cfg-github-branch").value.trim() || "main",
+        superAdminEmails,
+        assistantEmails,
+        vendorSecrets: adminState.vendorSecrets,
+        updatedAtIso: new Date().toISOString()
+      };
+
       await setDoc(doc(db, "settings", "public_config"), updatedPublic, { merge: true });
       await setDoc(doc(db, "settings", "admin_secrets"), updatedSecrets, { merge: true });
+
       adminState.publicConfig = updatedPublic;
       adminState.adminSecrets = updatedSecrets;
       populateSettingsFormUI();
-      showAdminToast("✓ تمام تنظیمات با موفقیت ذخیره شد!");
+      showAdminToast("✓ تمام تنظیمات، لوگو، فرمول حداقل سفارش و دسترسی‌ها ذخیره شد!");
     } catch (err) {
       showAdminToast(`خطا: ${err.message}`);
     } finally {
@@ -2446,7 +3633,7 @@ function bindSettingsEvents() {
   document.getElementById("btn-push-sitemap-robots")?.addEventListener("click", async () => {
     try {
       await buildAndPushSitemapAndRobots();
-      showAdminToast("✓ فایل‌های sitemap.xml و robots.txt در گیت‌هاب ساخته شدند!");
+      showAdminToast("✓ فایل‌های sitemap.xml و robots.txt در گیت‌هاب آپدیت شدند!");
     } catch (err) {
       showAdminToast(`خطا: ${err.message}`);
     }
@@ -2454,14 +3641,17 @@ function bindSettingsEvents() {
 }
 
 /* ==========================================================================
-   15. INITIALIZE MINIMAL PERSIAN ADMIN SUITE
+   15. INITIALIZE ADMIN SUITE
    ========================================================================== */
 function initAdminSuite() {
   cleanDuplicateDomNodes();
+  populateAllTaxonomySelects();
   bindAuthEvents();
   bindNavigationEvents();
   bindProductUploaderEvents();
   bindCatalogManagerEvents();
+  bindCategoriesManagerEvents();
+  bindVendorsManagerEvents();
   bindOrdersAndCrmEvents();
   bindVideosManagerEvents();
   bindBlogStudioEvents();
