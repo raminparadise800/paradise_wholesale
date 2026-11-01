@@ -810,119 +810,226 @@
         <!-- ==================================================================
              تب ۲: مدیریت محصولات (فیلتر قیمت/پک + ویرایش گروهی + انتخاب تیکی پایدار)
              ================================================================== -->
-        <section class="admin-tab-section" id="tab-catalog">
-          <div class="card">
+      <!-- ==================================================================
+             تب ۳: مدیریت گرافیکی و ۳ زبانه بخش‌ها، شاخه‌ها و زیربخش‌های داخلی
+             ================================================================== -->
+        <section class="admin-tab-section" id="tab-categories" data-super-only="true">
+
+          <!-- سطح ۱: مدیریت بخش‌های اصلی (مردانه، زنانه، بچگانه، شاخه تخفیفی و...) -->
+          <div class="card gold-border">
             <div class="card-title">
-              <span>🗂️ مدیریت محصولات، ویرایش گروهی قیمت/پک و حذف انتخابی</span>
-              <button type="button" class="btn btn-gold" id="btn-rebuild-all-shards" style="padding:6px 12px; font-size:0.76rem;">
-                ⚡ همگام‌سازی کاتالوگ سایت
-              </button>
+              <span>🌟 سطح ۱: بخش‌های اصلی سایت (مردانه، زنانه، شاخه تخفیفی...) — ۳ زبانه</span>
+              <button type="button" class="btn-outline" id="btn-reset-dept-form">↺ فرم جدید</button>
             </div>
 
-            <!-- ردیف فیلترهای پیشرفته (عمده‌فروش + بخش + شاخه + قیمت فعلی + تعداد پک + جستجو) -->
-            <div class="grid-5" style="margin-bottom:12px;">
-              <div class="field">
-                <label>۱. عمده‌فروش</label>
-                <select id="catalog-filter-vendor" class="select">
-                  <option value="all">همه عمده‌فروش‌ها</option>
-                </select>
-              </div>
+            <form id="form-add-department" style="margin-bottom:14px; background:#f8fafc; padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+              <input type="hidden" id="dept-edit-original-id" value="" />
 
-              <div class="field">
-                <label>۲. بخش اصلی</label>
-                <select id="catalog-filter-dept" class="select">
-                  <option value="all">همه بخش‌ها</option>
-                </select>
-              </div>
-
-              <div class="field">
-                <label>۳. شاخه (تیشرت، هودی...)</label>
-                <select id="catalog-filter-subcat" class="select">
-                  <option value="all">همه شاخه‌ها</option>
-                </select>
-              </div>
-
-              <div class="field">
-                <label>۴. فیلتر قیمت واحد ($)</label>
-                <input type="number" id="catalog-filter-price" class="input" step="0.5" placeholder="مثلاً: 10 (فقط ۱۰ دلاری‌ها)" style="direction:ltr;" />
-              </div>
-
-              <div class="field">
-                <label>۵. جستجوی کد یا تگ</label>
-                <input type="search" id="catalog-search-input" class="input" placeholder="کد، برند یا تگ..." />
-              </div>
-            </div>
-
-            <!-- نوار عملیات گروهی (تغییر یکجای قیمت، تغییر یکجای تعداد در پک، و حذف انتخاب‌شده‌ها) -->
-            <div style="background:#f8fafc; border:1.5px solid #cbd5e1; padding:12px; border-radius:var(--radius-sm); margin-bottom:14px;">
-              <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:10px; padding-bottom:8px; border-bottom:1px dashed #cbd5e1;">
-                <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-                  <label style="display:inline-flex; align-items:center; gap:6px; font-weight:800; cursor:pointer;">
-                    <input type="checkbox" id="catalog-select-all-filtered" style="width:17px; height:17px;" />
-                    <span>انتخاب همه فیلتر شده‌ها (<strong id="catalog-showing-count">0</strong> محصول)</span>
-                  </label>
-                  <span style="background:#090d16; color:var(--gold); padding:2px 10px; border-radius:20px; font-size:0.76rem; font-weight:800;">
-                    تیک‌خورده‌ها: <strong id="catalog-selected-count">0</strong> مورد
-                  </span>
-                  <button type="button" class="btn-outline" id="btn-clear-selected-checks" style="font-size:0.72rem;">پاک کردن تیک‌ها</button>
+              <div class="grid-5" style="margin-bottom:10px;">
+                <div class="field">
+                  <label>شناسه انگلیسی (ID) *</label>
+                  <input type="text" id="dept-id-input" class="input" placeholder="مثلاً: men یا sale" required style="direction:ltr; font-weight:800;" />
                 </div>
-
-                <div style="display:flex; gap:8px; flex-wrap:wrap;" data-super-only="true">
-                  <button type="button" class="btn btn-danger" id="btn-delete-selected-products" style="padding:7px 13px; font-size:0.78rem;">
-                    🗑️ حذف تیک‌خورده‌ها
-                  </button>
-                  <button type="button" class="btn-outline" id="btn-bulk-delete-filtered" style="color:var(--danger); border-color:#fecaca;">
-                    🗑️ حذف کل فیلتر فعلی
-                  </button>
+                <div class="field">
+                  <label>🇮🇷 نام فارسی (در پنل) *</label>
+                  <input type="text" id="dept-label-fa" class="input" placeholder="مثلاً: مردانه" required />
+                </div>
+                <div class="field">
+                  <label>🇬🇧 نام انگلیسی (EN) *</label>
+                  <input type="text" id="dept-label-en" class="input" placeholder="Men" required style="direction:ltr;" />
+                </div>
+                <div class="field">
+                  <label>🇮🇹 نام ایتالیایی (IT) *</label>
+                  <input type="text" id="dept-label-it" class="input" placeholder="Uomo" required style="direction:ltr;" />
+                </div>
+                <div class="field">
+                  <label>🇪🇸 نام اسپانیایی (ES) *</label>
+                  <input type="text" id="dept-label-es" class="input" placeholder="Hombre" required style="direction:ltr;" />
                 </div>
               </div>
 
-              <!-- ابزار تغییر دسته‌جمعی قیمت (مثلاً ۵۰۰ تیشرت ۱۰ دلاری) و تغییر دسته‌جمعی تعداد در پک (مثلاً ۵تایی به ۶تایی) -->
-              <div class="grid-2" data-super-only="true">
-                <div style="display:flex; align-items:center; gap:8px; background:#fff; padding:8px; border-radius:8px; border:1px solid var(--border);">
-                  <span style="font-size:0.78rem; font-weight:800; white-space:nowrap;">💲 قیمت جدید ($):</span>
-                  <input type="number" id="bulk-new-unit-price" class="input" step="0.5" min="0.5" placeholder="مثلاً: 8" style="width:95px; padding:6px; direction:ltr;" />
-                  <button type="button" class="btn btn-emerald" id="btn-apply-bulk-price" style="padding:7px 12px; font-size:0.76rem; flex:1;">
-                    اعمال روی تیک‌خورده‌ها / فیلتر
-                  </button>
+              <div class="grid-3" style="align-items:end;">
+                <div class="field">
+                  <label>📸 انتخاب عکس کاور بخش از گالری</label>
+                  <input type="file" id="dept-image-file" class="input" accept="image/*" />
                 </div>
-
-                <div style="display:flex; align-items:center; gap:8px; background:#fff; padding:8px; border-radius:8px; border:1px solid var(--border);">
-                  <span style="font-size:0.78rem; font-weight:800; white-space:nowrap;">📦 تعداد جدید در پک:</span>
-                  <input type="number" id="bulk-new-pcs-pack" class="input" step="1" min="1" placeholder="مثلاً: 6" style="width:85px; padding:6px; direction:ltr;" />
-                  <button type="button" class="btn btn-blue" id="btn-apply-bulk-pcs" style="padding:7px 12px; font-size:0.76rem; flex:1;">
-                    تبدیل یکجای تعداد پک
-                  </button>
+                <div class="field">
+                  <label>یا لینک مستقیم عکس</label>
+                  <input type="url" id="dept-image-url" class="input" placeholder="https://..." style="direction:ltr;" />
+                </div>
+                <div class="field">
+                  <button type="submit" class="btn btn-emerald" id="btn-save-dept" style="width:100%;">💾 ذخیره بخش اصلی (۳ زبانه)</button>
                 </div>
               </div>
-            </div>
+            </form>
 
-            <!-- جدول فشرده محصولات (بدون شلوغی عنوان، لود ۱۰۰تایی بدون پریدن تیک‌ها) -->
             <div class="table-wrap">
               <table class="adm-table">
                 <thead>
                   <tr>
-                    <th style="width:36px; text-align:center;">☑️</th>
                     <th>عکس</th>
-                    <th>کد و عمده‌فروش</th>
-                    <th>قیمت ($)</th>
-                    <th>تعداد پک</th>
-                    <th>جمع پک</th>
-                    <th>وضعیت</th>
-                    <th>ابزارها (عنوان / ویدیو / حذف)</th>
+                    <th>نام فارسی و شناسه</th>
+                    <th>ترجمه ۳ زبان (EN / IT / ES)</th>
+                    <th>تعداد شاخه</th>
+                    <th>وضعیت نمایش</th>
+                    <th>ترتیب (⬆️⬇️)</th>
+                    <th>ویرایش / حذف</th>
                   </tr>
                 </thead>
-                <tbody id="admin-catalog-tbody"></tbody>
+                <tbody id="admin-departments-tbody"></tbody>
               </table>
             </div>
+          </div>
 
-            <!-- دکمه بارگذاری ۱۰۰ محصول بعدی (بدون پاک شدن تیک‌های قبلی) -->
-            <div style="text-align:center; margin-top:14px;">
-              <button type="button" class="btn btn-gold" id="btn-load-more-catalog" style="display:none; padding:10px 24px;">
-                ⬇️ نمایش ۱۰۰ محصول بعدی (حفظ تیک‌های قبلی)
-              </button>
+          <!-- سطح ۲: مدیریت شاخه‌ها (تیشرت، هودی، شلوار، کلاه...) به ۳ زبان + عکس -->
+          <div class="card">
+            <div class="card-title">
+              <span>🌿 سطح ۲: شاخه‌های محصولات (تیشرت، هودی، ترک‌سوئیت، کلاه...) — ۳ زبانه + عکس</span>
+              <button type="button" class="btn-outline" id="btn-reset-subcat-form">↺ فرم جدید</button>
+            </div>
+
+            <form id="form-add-subcategory" style="margin-bottom:14px; background:#f8fafc; padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+              <input type="hidden" id="subcat-edit-original-id" value="" />
+
+              <div class="grid-5" style="margin-bottom:10px;">
+                <div class="field">
+                  <label>۱. انتخاب بخش اصلی *</label>
+                  <select id="subcat-parent-dept" class="select" required></select>
+                </div>
+                <div class="field">
+                  <label>۲. شناسه انگلیسی (ID) *</label>
+                  <input type="text" id="subcat-id-input" class="input" placeholder="مثلاً: men-tshirts" required style="direction:ltr; font-weight:800;" />
+                </div>
+                <div class="field">
+                  <label>🇮🇷 نام فارسی شاخه *</label>
+                  <input type="text" id="subcat-label-fa" class="input" placeholder="مثلاً: تیشرت مردانه" required />
+                </div>
+                <div class="field">
+                  <label>🇬🇧 نام انگلیسی (EN) *</label>
+                  <input type="text" id="subcat-label-en" class="input" placeholder="T-Shirts" required style="direction:ltr;" />
+                </div>
+                <div class="field">
+                  <label>🇮🇹 نام ایتالیایی (IT) *</label>
+                  <input type="text" id="subcat-label-it" class="input" placeholder="T-Shirt & Magliette" required style="direction:ltr;" />
+                </div>
+              </div>
+
+              <div class="grid-4" style="align-items:end;">
+                <div class="field">
+                  <label>🇪🇸 نام اسپانیایی (ES) *</label>
+                  <input type="text" id="subcat-label-es" class="input" placeholder="Camisetas" required style="direction:ltr;" />
+                </div>
+                <div class="field">
+                  <label>📸 آپلود عکس شاخه از گالری</label>
+                  <input type="file" id="subcat-image-file" class="input" accept="image/*" />
+                </div>
+                <div class="field">
+                  <label>یا لینک مستقیم عکس شاخه</label>
+                  <input type="url" id="subcat-image-url" class="input" placeholder="https://..." style="direction:ltr;" />
+                </div>
+                <div class="field">
+                  <button type="submit" class="btn btn-gold" id="btn-save-subcat" style="width:100%;">💾 ذخیره شاخه (۳ زبانه)</button>
+                </div>
+              </div>
+            </form>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <strong>فیلتر نمایش شاخه‌های بخش:</strong>
+                <select id="filter-subcat-manager-dept" class="select" style="width:200px;"></select>
+              </div>
+              <small style="color:var(--text-muted);">💡 با ⬆️ و ⬇️ ترتیب فصلی (مثلاً هودی در زمستان یا تیشرت در تابستان) را جابجا کنید و با 👁️ شاخه را موقتاً مخفی کنید.</small>
+            </div>
+
+            <div class="table-wrap">
+              <table class="adm-table">
+                <thead>
+                  <tr>
+                    <th>عکس شاخه</th>
+                    <th>نام فارسی و شناسه</th>
+                    <th>ترجمه ۳ زبان (EN / IT / ES)</th>
+                    <th>تعداد زیربخش</th>
+                    <th>وضعیت نمایش</th>
+                    <th>جابجایی (⬆️⬇️)</th>
+                    <th>ویرایش / حذف</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-subcategories-tbody"></tbody>
+              </table>
             </div>
           </div>
+
+          <!-- سطح ۳: مدیریت گرافیکی زیربخش‌های داخلی (یقه گرد، یقه‌دار پلو، جاگر، ست شورت...) بدون کاما -->
+          <div class="card gold-border">
+            <div class="card-title">
+              <span>🎯 سطح ۳: زیربخش‌ها و مدل‌های داخلی (مثلاً: یقه گرد، یقه‌دار پلو، جاگر، ست شورت...) — کاملاً گرافیکی و ۳ زبانه</span>
+              <button type="button" class="btn-outline" id="btn-reset-leaf-form">↺ فرم جدید</button>
+            </div>
+
+            <form id="form-add-leaf" style="margin-bottom:14px; background:#fffbeb; padding:14px; border-radius:var(--radius-sm); border:1px solid rgba(212,175,55,0.45);">
+              <input type="hidden" id="leaf-edit-original-id" value="" />
+
+              <div class="grid-4" style="margin-bottom:10px;">
+                <div class="field">
+                  <label>۱. انتخاب بخش اصلی *</label>
+                  <select id="leaf-parent-dept" class="select" required></select>
+                </div>
+                <div class="field">
+                  <label>۲. انتخاب شاخه (مثلاً تیشرت یا شلوار) *</label>
+                  <select id="leaf-parent-subcat" class="select" required></select>
+                </div>
+                <div class="field">
+                  <label>۳. شناسه انگلیسی زیربخش (ID) *</label>
+                  <input type="text" id="leaf-id-input" class="input" placeholder="مثلاً: crewneck یا polo یا jogger" required style="direction:ltr; font-weight:800;" />
+                </div>
+                <div class="field">
+                  <label>🇮🇷 نام فارسی زیربخش *</label>
+                  <input type="text" id="leaf-label-fa" class="input" placeholder="مثلاً: تیشرت یقه گرد" required />
+                </div>
+              </div>
+
+              <div class="grid-5" style="align-items:end;">
+                <div class="field">
+                  <label>🇬🇧 نام انگلیسی (EN) *</label>
+                  <input type="text" id="leaf-label-en" class="input" placeholder="Crewneck T-Shirts" required style="direction:ltr;" />
+                </div>
+                <div class="field">
+                  <label>🇮🇹 نام ایتالیایی (IT) *</label>
+                  <input type="text" id="leaf-label-it" class="input" placeholder="T-Shirt Girocollo" required style="direction:ltr;" />
+                </div>
+                <div class="field">
+                  <label>🇪🇸 نام اسپانیایی (ES) *</label>
+                  <input type="text" id="leaf-label-es" class="input" placeholder="Camisetas Cuello Redondo" required style="direction:ltr;" />
+                </div>
+                <div class="field">
+                  <label>📸 عکس زیربخش (اختیاری)</label>
+                  <input type="file" id="leaf-image-file" class="input" accept="image/*" />
+                </div>
+                <div class="field">
+                  <button type="submit" class="btn btn-emerald" id="btn-save-leaf" style="width:100%;">+ ذخیره زیربخش</button>
+                </div>
+              </div>
+              <input type="hidden" id="leaf-image-url" value="" />
+            </form>
+
+            <div class="table-wrap">
+              <table class="adm-table">
+                <thead>
+                  <tr>
+                    <th>عکس</th>
+                    <th>شاخه مادر</th>
+                    <th>نام فارسی و شناسه</th>
+                    <th>ترجمه ۳ زبان (EN / IT / ES)</th>
+                    <th>وضعیت نمایش</th>
+                    <th>جابجایی (⬆️⬇️)</th>
+                    <th>ویرایش / حذف</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-leaves-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
         </section>
 <!-- === پایان بلوک ۱ از ۲ فایل admin.html — بلوک ۲ را دقیقاً زیر این خط پیست کنید === -->
         <!-- === شروع بلوک ۲ از ۲ فایل raminreza.html — دقیقاً زیر بلوک ۱ پیست کنید === -->
