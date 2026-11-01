@@ -1030,9 +1030,205 @@ async function callGeminiWithRotator(contentsPayload, expectJson = true) {
 /* === پایان بلوک ۱ از ۲ فایل admin.js — بلوک ۲ را دقیقاً زیر این خط پیست کنید === */
 /* === شروع بلوک ۲ از ۲ فایل admin.js — دقیقاً زیر بلوک ۱ پیست کنید === */
 
+/* === شروع بلوک ۲ از ۲ فایل admin.js — قطعه ۱ (بخش‌های ۸، ۹ و ۱۰) === */
+
 /* ==========================================================================
-   8. VENDOR MANAGER, TAXONOMY DROPDOWNS & INSTANT GALLERY SELECTION
+   8. 3-LANGUAGE TAXONOMY NORMALIZER, SYNONYM ENGINE & DROPDOWNS
    ========================================================================== */
+
+/**
+ * تبدیل خودکار ساختار دسته‌بندی‌ها به فرمت ۳ زبانه کامل در هر ۳ سطح (بخش اصلی، شاخه، زیربخش)
+ */
+function normalizeTaxonomyStructure() {
+  if (!Array.isArray(adminState.taxonomy) || adminState.taxonomy.length === 0) {
+    adminState.taxonomy = structuredClone(DEFAULT_TAXONOMY);
+  }
+
+  adminState.taxonomy.forEach((dept) => {
+    dept.labelFa = dept.labelFa || dept.label || dept.id;
+    dept.labelEn = dept.labelEn || dept.label || dept.id;
+    dept.label = dept.labelEn;
+
+    if (!dept.labelIt || !dept.labelEs) {
+      const parts = String(dept.labelItEs || "").split("/").map((s) => s.trim());
+      dept.labelIt = dept.labelIt || parts[0] || dept.labelEn;
+      dept.labelEs = dept.labelEs || parts[1] || parts[0] || dept.labelEn;
+    }
+
+    if (!Array.isArray(dept.subcategories)) dept.subcategories = [];
+
+    dept.subcategories.forEach((sub) => {
+      sub.labelFa = sub.labelFa || sub.label || sub.id;
+      sub.labelEn = sub.labelEn || sub.label || sub.id;
+      sub.label = sub.labelEn;
+      sub.labelIt = sub.labelIt || sub.it || sub.labelEn;
+      sub.labelEs = sub.labelEs || sub.es || sub.labelEn;
+
+      if (!Array.isArray(sub.leaves)) sub.leaves = [];
+      sub.leaves = sub.leaves.map((lf) => {
+        if (typeof lf === "string") {
+          const cleanId = slugify(lf, "sub");
+          return {
+            id: cleanId,
+            labelFa: lf,
+            labelEn: lf,
+            labelIt: lf,
+            labelEs: lf,
+            image: "",
+            hidden: false
+          };
+        }
+        return {
+          id: lf.id || slugify(lf.labelEn || lf.labelFa, "sub"),
+          labelFa: lf.labelFa || lf.labelEn || lf.id,
+          labelEn: lf.labelEn || lf.labelFa || lf.id,
+          labelIt: lf.labelIt || lf.labelEn || lf.id,
+          labelEs: lf.labelEs || lf.labelEn || lf.id,
+          image: lf.image || "",
+          hidden: Boolean(lf.hidden)
+        };
+      });
+    });
+  });
+}
+
+/**
+ * ساخت عنوان و توضیحات ۳ زبانه «پرمیوم» در صورت عدم اجرای جمنای یا خطای کلید
+ */
+function buildRich3LangFallback(deptId, subcatId, leafId, sku, pcsPerPack) {
+  normalizeTaxonomyStructure();
+  const deptObj = adminState.taxonomy.find((d) => d.id === deptId) || adminState.taxonomy[0];
+  const subObj = (deptObj?.subcategories || []).find((s) => s.id === subcatId) || deptObj?.subcategories?.[0] || {};
+  const leafObj = (subObj?.leaves || []).find((l) => l.id === leafId || l.labelEn === leafId);
+
+  const enName = leafObj?.labelEn || subObj.labelEn || "Luxury Garment";
+  const itName = leafObj?.labelIt || subObj.labelIt || enName;
+  const esName = leafObj?.labelEs || subObj.labelEs || enName;
+
+  const enTitle = `Premium ${enName} • Code ${sku}`;
+  const itTitle = `${itName} Premium • Cod. ${sku}`;
+  const esTitle = `${esName} Premium • Cód. ${sku}`;
+
+  return {
+    publicTitle: { en: enTitle, it: itTitle, es: esTitle },
+    brandTitle: { en: enTitle, it: itTitle, es: esTitle },
+    description: {
+      en: `Direct Istanbul factory wholesale serie pack (${pcsPerPack} pcs/pack). Premium combed fabric & master tailoring. Fast 3-5 day express air cargo.`,
+      it: `Pacco serie ingrosso diretto da Istanbul (${pcsPerPack} pz/pacco). Tessuto premium di qualità master e spedizione espressa in 3-5 giorni.`,
+      es: `Paquete serie mayorista directo desde Estambul (${pcsPerPack} uds/paquete). Tejido premium de calidad maestra y envío exprés en 3-5 días.`
+    }
+  };
+}
+
+/**
+ * دیکشنری مترادف‌های ۴ زبانه (بدون مصرف توکن جمنای!)
+ * تمام املاهای مشابه (tshirt/t-shirt, jogger/pants, polo/collared, shorts tracksuit vs hoodie tracksuit) را به تگ‌های سرچ اضافه می‌کند
+ */
+const GARMENT_SYNONYMS_DICT = {
+  polo: ["polo", "polo tshirt", "polo t-shirt", "polo shirt", "collared tshirt", "collared shirt", "pique polo", "maglia polo", "t-shirt polo", "camiseta polo", "تیشرت یقه دار", "تیشرت پولو", "پولوشرت", "یقه دار"],
+  crewneck: ["tshirt", "t-shirt", "tshirts", "t-shirts", "tee", "crewneck", "crew neck", "round neck", "maglietta", "t-shirt girocollo", "camiseta", "cuello redondo", "تیشرت", "تی شرت", "تیشرت یقه گرد", "یقه گرد"],
+  vneck: ["tshirt", "t-shirt", "v-neck", "v neck", "scollo a v", "cuello pico", "تیشرت یقه هفت", "یقه هفت"],
+  shorts_tracksuit: ["tracksuit", "shorts tracksuit", "summer tracksuit", "short set", "shorts set", "tshirt and shorts", "2 piece short set", "completo estivo", "tuta corta", "chandal corto", "conjunto verano", "ترک سوئیت", "ترکسوییت", "ست تیشرت و شورت", "ست شورت", "ست تابستانی"],
+  sweatshirt_tracksuit: ["tracksuit", "winter tracksuit", "full tracksuit", "hoodie tracksuit", "sweatshirt tracksuit", "sweatsuit", "jogger set", "2 piece tracksuit", "tuta completa", "tuta felpa", "chandal completo", "ترک سوئیت", "ترکسوییت", "ست ورزشی", "ست سویشرت و شلوار", "ست هودی و شلوار", "ست زمستانی"],
+  hoodie: ["hoodie", "hoodies", "sweatshirt", "sweatshirts", "pullover", "fleece", "felpa", "felpa con cappuccio", "sudadera", "sudadera con capucha", "هودی", "سویشرت", "دورس"],
+  jogger: ["jogger", "joggers", "sweatpants", "track pants", "pants", "trousers", "bottoms", "pantaloni", "pantaloni tuta", "pantalones", "شلوار", "شلوار جاگر", "شلوار اسلش", "اسلش", "جاگر"],
+  jeans: ["jeans", "denim", "denim pants", "trousers", "pants", "pantaloni jeans", "vaqueros", "pantalon vaquero", "شلوار جین", "شلوار لی", "جین"],
+  cargo: ["cargo", "cargo pants", "cargo trousers", "pants", "trousers", "pantaloni cargo", "pantalon cargo", "شلوار کارگو", "شلوار شش جیب", "کارگو"],
+  jacket: ["jacket", "coat", "outerwear", "puffer", "bomber", "giacca", "piumino", "chaqueta", "abrigo", "کاپشن", "پالتو", "کت"],
+  shirt: ["shirt", "shirts", "button down", "dress shirt", "camicia", "camisa", "پیراهن", "شومیز"],
+  shoes: ["shoes", "sneakers", "trainers", "loafers", "footwear", "scarpe", "zapatos", "zapatillas", "کفش", "کتانی", "کتونی"],
+  bag: ["bag", "bags", "handbag", "tote", "crossbody", "backpack", "borsa", "bolso", "کیف"]
+};
+
+const SEASON_SYNONYMS_DICT = {
+  summer: ["summer", "spring", "lightweight", "estate", "estivo", "verano", "تابستانی", "تابستانه", "بهاره", "خنک"],
+  winter: ["winter", "autumn", "fall", "heavyweight", "warm", "inverno", "invernale", "invierno", "زمستانی", "زمستانه", "پاییزه", "ضخیم"]
+};
+
+const GENDER_SYNONYMS_DICT = {
+  men: ["men", "mens", "man", "male", "uomo", "hombre", "مردانه", "پسرانه"],
+  women: ["women", "womens", "woman", "female", "lady", "donna", "mujer", "زنانه", "دخترانه"],
+  kids: ["kids", "child", "children", "baby", "boys", "girls", "bambini", "ninos", "بچگانه", "بچه گانه", "نوزادی"]
+};
+
+function expandProductSearchIndex({ sku, vendorCode, department, subcategory, leafSub, aiData }) {
+  const tagSet = new Set();
+  const addToken = (str) => {
+    if (!str) return;
+    String(str)
+      .toLowerCase()
+      .split(/[,،/|]+/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .forEach((t) => tagSet.add(t));
+  };
+
+  addToken(sku);
+  addToken(vendorCode);
+  addToken(department);
+  addToken(subcategory);
+  addToken(leafSub);
+
+  // ۱. افزودن نام‌های ۳ زبانه بخش، شاخه و زیربخش از ساختار دسته‌بندی
+  const deptObj = adminState.taxonomy.find((d) => d.id === department);
+  const subObj = (deptObj?.subcategories || []).find((s) => s.id === subcategory);
+  const leafObj = (subObj?.leaves || []).find((l) => l.id === leafSub || l.labelEn === leafSub);
+
+  if (deptObj) {
+    addToken(deptObj.labelFa);
+    addToken(deptObj.labelEn);
+    addToken(deptObj.labelIt);
+    addToken(deptObj.labelEs);
+  }
+  if (subObj) {
+    addToken(subObj.labelFa);
+    addToken(subObj.labelEn);
+    addToken(subObj.labelIt);
+    addToken(subObj.labelEs);
+  }
+  if (leafObj) {
+    addToken(leafObj.labelFa);
+    addToken(leafObj.labelEn);
+    addToken(leafObj.labelIt);
+    addToken(leafObj.labelEs);
+  }
+
+  // ۲. افزودن اطلاعات استخراج‌شده توسط جمنای (برند، رنگ، فصل، نوع دوخت)
+  if (aiData) {
+    if (aiData.brand && aiData.brand.toLowerCase() !== "none") {
+      addToken(aiData.brand);
+    }
+    if (aiData.colors) {
+      Object.values(aiData.colors).forEach(addToken);
+    }
+    if (Array.isArray(aiData.searchTags)) {
+      aiData.searchTags.forEach(addToken);
+    }
+    const gType = String(aiData.garmentType || "").toLowerCase();
+    Object.keys(GARMENT_SYNONYMS_DICT).forEach((key) => {
+      if (gType.includes(key) || String(subcategory).includes(key) || String(leafSub).toLowerCase().includes(key)) {
+        GARMENT_SYNONYMS_DICT[key].forEach(addToken);
+      }
+    });
+
+    const seasonKey = String(aiData.season || "").toLowerCase();
+    if (SEASON_SYNONYMS_DICT[seasonKey]) {
+      SEASON_SYNONYMS_DICT[seasonKey].forEach(addToken);
+    }
+  }
+
+  // ۳. افزودن مترادف‌های جنسیت و شاخه حتی قبل از اجرای جمنای
+  if (GENDER_SYNONYMS_DICT[department]) {
+    GENDER_SYNONYMS_DICT[department].forEach(addToken);
+  }
+  if (String(subcategory).includes("tshirt")) GARMENT_SYNONYMS_DICT.crewneck.forEach(addToken);
+  if (String(subcategory).includes("trousers")) GARMENT_SYNONYMS_DICT.jogger.forEach(addToken);
+  if (String(subcategory).includes("jeans")) GARMENT_SYNONYMS_DICT.jeans.forEach(addToken);
+  if (String(subcategory).includes("hoodie")) GARMENT_SYNONYMS_DICT.hoodie.forEach(addToken);
+
+  return Array.from(tagSet);
+}
+
 function syncVendorsFromProductsAndConfig() {
   const vendorMap = new Map();
 
@@ -1100,10 +1296,13 @@ function getSelectedVendorObj() {
 }
 
 function populateAllTaxonomySelects(selectedDept = "", selectedSub = "", selectedLeaf = "") {
+  normalizeTaxonomyStructure();
+
   const deptSel = document.getElementById("prod-department");
   const catFilterDept = document.getElementById("catalog-filter-dept");
   const subcatParentDept = document.getElementById("subcat-parent-dept");
   const filterSubcatMgrDept = document.getElementById("filter-subcat-manager-dept");
+  const leafParentDept = document.getElementById("leaf-parent-dept");
 
   const activeDepts = adminState.taxonomy;
   const targetDeptId = selectedDept || deptSel?.value || activeDepts[0]?.id || "men";
@@ -1112,7 +1311,7 @@ function populateAllTaxonomySelects(selectedDept = "", selectedSub = "", selecte
     deptSel.innerHTML = activeDepts
       .map(
         (d) =>
-          `<option value="${escapeHtml(d.id)}" ${d.id === targetDeptId ? "selected" : ""}>${escapeHtml(d.labelFa || d.label)} (${escapeHtml(d.label)})${d.hidden ? " [مخفی]" : ""}</option>`
+          `<option value="${escapeHtml(d.id)}" ${d.id === targetDeptId ? "selected" : ""}>${escapeHtml(d.labelFa)} (${escapeHtml(d.labelEn)})${d.hidden ? " [مخفی]" : ""}</option>`
       )
       .join("");
   }
@@ -1122,26 +1321,36 @@ function populateAllTaxonomySelects(selectedDept = "", selectedSub = "", selecte
     catFilterDept.innerHTML =
       `<option value="all">همه بخش‌ها</option>` +
       activeDepts
-        .map((d) => `<option value="${escapeHtml(d.id)}" ${d.id === cur ? "selected" : ""}>${escapeHtml(d.labelFa || d.label)}</option>`)
+        .map((d) => `<option value="${escapeHtml(d.id)}" ${d.id === cur ? "selected" : ""}>${escapeHtml(d.labelFa)}</option>`)
         .join("");
   }
 
-  if (subcatParentDept) {
-    const cur = subcatParentDept.value || activeDepts[0]?.id || "men";
-    subcatParentDept.innerHTML = activeDepts
-      .map((d) => `<option value="${escapeHtml(d.id)}" ${d.id === cur ? "selected" : ""}>${escapeHtml(d.labelFa || d.label)}</option>`)
+  [subcatParentDept, filterSubcatMgrDept, leafParentDept].forEach((sel) => {
+    if (!sel) return;
+    const cur = sel.value || activeDepts[0]?.id || "men";
+    sel.innerHTML = activeDepts
+      .map((d) => `<option value="${escapeHtml(d.id)}" ${d.id === cur ? "selected" : ""}>${escapeHtml(d.labelFa)} (${escapeHtml(d.labelEn)})</option>`)
       .join("");
-  }
-
-  if (filterSubcatMgrDept) {
-    const cur = filterSubcatMgrDept.value || activeDepts[0]?.id || "men";
-    filterSubcatMgrDept.innerHTML = activeDepts
-      .map((d) => `<option value="${escapeHtml(d.id)}" ${d.id === cur ? "selected" : ""}>${escapeHtml(d.labelFa || d.label)}</option>`)
-      .join("");
-  }
+  });
 
   populateSubcategoryDropdown(targetDeptId, selectedSub, selectedLeaf);
   populateCatalogFilterSubcategories(catFilterDept?.value || "all");
+  populateLeafManagerSubcatSelect(leafParentDept?.value || activeDepts[0]?.id || "men");
+}
+
+function populateLeafManagerSubcatSelect(deptId, selectedSubcatId = "") {
+  const leafSubSel = document.getElementById("leaf-parent-subcat");
+  if (!leafSubSel) return;
+  const deptObj = adminState.taxonomy.find((d) => d.id === deptId) || adminState.taxonomy[0];
+  const subs = deptObj?.subcategories || [];
+  const cur = selectedSubcatId || leafSubSel.value || subs[0]?.id || "";
+
+  leafSubSel.innerHTML = subs
+    .map(
+      (sc) =>
+        `<option value="${escapeHtml(sc.id)}" ${sc.id === cur ? "selected" : ""}>${escapeHtml(sc.labelFa)} (${escapeHtml(sc.labelEn)})</option>`
+    )
+    .join("");
 }
 
 function populateSubcategoryDropdown(deptId, selectedSubId = "", selectedLeaf = "") {
@@ -1154,7 +1363,7 @@ function populateSubcategoryDropdown(deptId, selectedSubId = "", selectedLeaf = 
   subSelect.innerHTML = subs
     .map(
       (sc) =>
-        `<option value="${escapeHtml(sc.id)}" ${sc.id === targetSub ? "selected" : ""}>${escapeHtml(sc.labelFa || sc.label)} (${escapeHtml(sc.label)})${sc.hidden ? " [مخفی]" : ""}</option>`
+        `<option value="${escapeHtml(sc.id)}" ${sc.id === targetSub ? "selected" : ""}>${escapeHtml(sc.labelFa)} (${escapeHtml(sc.labelEn)})${sc.hidden ? " [مخفی]" : ""}</option>`
     )
     .join("");
 
@@ -1166,12 +1375,15 @@ function populateLeafSubDropdown(deptId, subcatId, selectedLeaf = "") {
   if (!leafSelect) return;
   const deptObj = adminState.taxonomy.find((d) => d.id === deptId) || adminState.taxonomy[0];
   const subObj = (deptObj?.subcategories || []).find((s) => s.id === subcatId);
-  const leaves = Array.isArray(subObj?.leaves) ? subObj.leaves : [];
+  const leaves = (subObj?.leaves || []).filter((l) => !l.hidden);
 
   leafSelect.innerHTML =
     `<option value="">— عمومی شاخه —</option>` +
     leaves
-      .map((lf) => `<option value="${escapeHtml(lf)}" ${lf === selectedLeaf ? "selected" : ""}>${escapeHtml(lf)}</option>`)
+      .map(
+        (lf) =>
+          `<option value="${escapeHtml(lf.id)}" ${lf.id === selectedLeaf || lf.labelEn === selectedLeaf ? "selected" : ""}>${escapeHtml(lf.labelFa)} (${escapeHtml(lf.labelEn)})</option>`
+      )
       .join("");
 }
 
@@ -1184,7 +1396,7 @@ function populateCatalogFilterSubcategories(deptId = "all") {
   adminState.taxonomy.forEach((d) => {
     if (deptId !== "all" && d.id !== deptId) return;
     (d.subcategories || []).forEach((sc) => {
-      html += `<option value="${escapeHtml(sc.id)}" ${sc.id === currentVal ? "selected" : ""}>${escapeHtml(sc.labelFa || sc.label)}</option>`;
+      html += `<option value="${escapeHtml(sc.id)}" ${sc.id === currentVal ? "selected" : ""}>${escapeHtml(sc.labelFa)}</option>`;
     });
   });
   filterSub.innerHTML = html;
@@ -1354,7 +1566,6 @@ async function executeParallelBatchUpload(itemsToProcess, isRetry = false) {
   let completedCounter = 0;
   const totalCount = itemsToProcess.length;
 
-  // پردازش موازی ۸تا ۸تا همزمان
   for (let startIdx = 0; startIdx < totalCount; startIdx += PARALLEL_UPLOAD_LIMIT) {
     const chunk = itemsToProcess.slice(startIdx, startIdx + PARALLEL_UPLOAD_LIMIT);
 
@@ -1364,7 +1575,6 @@ async function executeParallelBatchUpload(itemsToProcess, isRetry = false) {
         const fileName = item.fileName || item.file?.name || `عکس_${globalIdx + 1}`;
         const fp = item.fingerprint || getFileFingerprint(item.file);
 
-        // ۱. بررسی ضد تکراری
         const dupProd = findDuplicateProductByFingerprint(fp);
         if (dupProd && !isRetry) {
           adminState.lastUploadReport.duplicateItems.push({
@@ -1375,7 +1585,6 @@ async function executeParallelBatchUpload(itemsToProcess, isRetry = false) {
           return;
         }
 
-        // ۲. ساخت کد یکتا بر اساس کد اختصاصی عمده‌فروش
         const randNum = Math.floor(1000 + Math.random() * 9000);
         const sku =
           totalCount === 1 && document.getElementById("prod-sku")?.value.trim()
@@ -1384,7 +1593,6 @@ async function executeParallelBatchUpload(itemsToProcess, isRetry = false) {
         item.assignedSku = sku;
 
         try {
-          // ۳. تبدیل دوگانه (نسخه HD + نسخه Thumbnail سبک + حک فقط کد محصول بدون قیمت)
           let dualImg = item;
           if (item.file && !item.blob) {
             dualImg = await compressImageToDualWebP(item.file, watermarkEnabled ? sku : "");
@@ -1395,11 +1603,17 @@ async function executeParallelBatchUpload(itemsToProcess, isRetry = false) {
             adminState.sessionAiBase64Map.set(sku, item.aiBase64);
           }
 
-          // ۴. آپلود همزمان عکس HD و عکس Thumbnail در Storage
           const { hdUrl, thumbUrl } = await uploadDualWebPToStorage(item, department, sku, 0);
 
-          // ۵. تولید عنوان و متن ۳ زبانه استاندارد اولیه
-          const fallbackText = buildSmartFallbackContent(department, subcategory, leafSub, sku, pcsPerPack);
+          const fallbackText = buildRich3LangFallback(department, subcategory, leafSub, sku, pcsPerPack);
+          const initialTags = expandProductSearchIndex({
+            sku,
+            vendorCode: vendor.code,
+            department,
+            subcategory,
+            leafSub,
+            aiData: null
+          });
 
           const productPayload = {
             id: sku,
@@ -1422,7 +1636,7 @@ async function executeParallelBatchUpload(itemsToProcess, isRetry = false) {
             publicTitle: fallbackText.publicTitle,
             brandTitle: fallbackText.brandTitle,
             description: fallbackText.description,
-            searchTags: [sku.toLowerCase(), vendor.code.toLowerCase(), department, subcategory, leafSub.toLowerCase()].filter(Boolean),
+            searchTags: initialTags,
             imageUrl: hdUrl,
             thumbUrl: thumbUrl || hdUrl,
             images: [hdUrl],
@@ -1486,9 +1700,6 @@ async function executeParallelBatchUpload(itemsToProcess, isRetry = false) {
   }
 }
 
-/**
- * ثبت تک محصول (با چند عکس از زوایای مختلف) یا ثبت ویدیو به عنوان محصول مستقل
- */
 async function handleSaveProductForm(e) {
   e.preventDefault();
 
@@ -1570,7 +1781,15 @@ async function handleSaveProductForm(e) {
     const finalThumbUrl = primaryThumbUrl || primaryImageUrl;
 
     const existingProd = adminState.products.find((p) => p.id === docId);
-    const fallbackText = buildSmartFallbackContent(department, subcategory, leafSub, sku, pcsPerPack);
+    const fallbackText = buildRich3LangFallback(department, subcategory, leafSub, sku, pcsPerPack);
+    const initialTags = expandProductSearchIndex({
+      sku,
+      vendorCode: vendor.code,
+      department,
+      subcategory,
+      leafSub,
+      aiData: null
+    });
 
     const productPayload = {
       id: docId,
@@ -1593,7 +1812,7 @@ async function handleSaveProductForm(e) {
       publicTitle: existingProd?.publicTitle || fallbackText.publicTitle,
       brandTitle: existingProd?.brandTitle || fallbackText.brandTitle,
       description: existingProd?.description || fallbackText.description,
-      searchTags: existingProd?.searchTags || [sku.toLowerCase(), vendor.code.toLowerCase(), department, subcategory, leafSub.toLowerCase()].filter(Boolean),
+      searchTags: existingProd?.searchTags || initialTags,
       imageUrl: primaryImageUrl,
       thumbUrl: finalThumbUrl,
       images: uploadedHdUrls.length > 0 ? uploadedHdUrls : [primaryImageUrl],
@@ -1634,7 +1853,7 @@ async function handleSaveProductForm(e) {
 }
 
 /* ==========================================================================
-   10. CORS-FREE BACKGROUND AI WORKER
+   10. PRECISION FREE-TIER GEMINI VISION WORKER + AUTO SYNONYM EXPANDER
    ========================================================================== */
 function updateAiQueueCounters() {
   const pendingCount = adminState.products.filter((p) => p.aiStatus === "pending").length;
@@ -1688,7 +1907,7 @@ async function startBackgroundAiWorker() {
     if (!nextProd) break;
 
     updateAiQueueCounters();
-    if (miniStatus) miniStatus.textContent = `در حال تگ‌گذاری ${nextProd.sku}...`;
+    if (miniStatus) miniStatus.textContent = `در حال آنالیز دقیق ${nextProd.sku}...`;
 
     try {
       const base64Data = await getProductBase64ForAi(nextProd);
@@ -1696,32 +1915,26 @@ async function startBackgroundAiWorker() {
       if (base64Data) {
         parts.push({ inlineData: { mimeType: "image/webp", data: base64Data } });
       }
+
+      // پرامپت فشرده و فوق‌دقیق (کمترین مصرف توکن برای کلید رایگان، بیشترین دقت در تشخیص برند، رنگ، یقه‌دار/یقه‌گرد و شورت/شلوار)
       parts.push({
         text: `
-Analyze this B2B wholesale item (Code: ${nextProd.sku}, Category: ${nextProd.subcategory} ${nextProd.leafSub || ""}).
-Return ONLY valid JSON:
-{
-  "publicTitle": {
-    "en": "Luxury B2B wholesale title describing fabric & cut WITHOUT brand names (append • Code ${nextProd.sku})",
-    "it": "Italian luxury wholesale title WITHOUT brand names (append • Cod. ${nextProd.sku})",
-    "es": "Spanish luxury wholesale title WITHOUT brand names (append • Cód. ${nextProd.sku})"
-  },
-  "brandTitle": {
-    "en": "Detected brand + model title for internal search (append • ${nextProd.sku})",
-    "it": "Italian brand title",
-    "es": "Spanish brand title"
-  },
-  "searchTags": ["12 lowercase keywords in en, it, es, and Persian"],
-  "description": {
-    "en": "2-sentence B2B wholesale description (${nextProd.pcsPerPack} pcs serie pack, Istanbul direct)",
-    "it": "2-sentence Italian wholesale description",
-    "es": "2-sentence Spanish wholesale description"
-  }
-}`.trim()
+Inspect garment photo (Code:${nextProd.sku}, Dept:${nextProd.department}, Cat:${nextProd.subcategory}).
+Identify:
+1. "brand": Exact visible brand/logo (e.g. Gucci, Prada, LV, Dior, Amiri, Balenciaga, Fendi, Moncler, Nike, Zara) or "none".
+2. "garmentType": Choose closest: "polo" (collared t-shirt), "crewneck" (round neck t-shirt), "vneck", "shorts_tracksuit" (t-shirt + shorts set), "sweatshirt_tracksuit" (hoodie/sweatshirt + long pants set), "hoodie", "jogger" (sweatpants/track pants), "jeans", "cargo", "shirt", "jacket", "shoes", "bag".
+3. "season": "summer" or "winter" or "all-season".
+4. "colors": {"en":"e.g. Black","it":"Nero","es":"Negro","fa":"مشکی"}.
+5. "publicTitle": MUST start with "Premium" + Color + Garment style WITHOUT any brand name, ending with "• Code ${nextProd.sku}" in en, it, es (e.g. "Premium Black Piqué Polo T-Shirt • Code ${nextProd.sku}").
+6. "brandTitle": If brand detected, write "[Brand] [Color] [Garment Type] • ${nextProd.sku}" in en, it, es (e.g. "Gucci Black Polo T-Shirt • ${nextProd.sku}"). If no brand, same as publicTitle.
+7. "description": 2 short wholesale sentences (${nextProd.pcsPerPack} pcs/pack, Istanbul direct) in en, it, es.
+8. "searchTags": 8 specific visual keywords (print, fit, collar, sleeve, فارسی).
+Return ONLY JSON:
+{"brand":"...","garmentType":"...","season":"...","colors":{"en":"...","it":"...","es":"...","fa":"..."},"publicTitle":{"en":"...","it":"...","es":"..."},"brandTitle":{"en":"...","it":"...","es":"..."},"description":{"en":"...","it":"...","es":"..."},"searchTags":["..."]}`.trim()
       });
 
       const aiRes = await callGeminiWithRotator([{ role: "user", parts }], true);
-      const fallback = buildSmartFallbackContent(
+      const fallback = buildRich3LangFallback(
         nextProd.department,
         nextProd.subcategory,
         nextProd.leafSub,
@@ -1729,7 +1942,21 @@ Return ONLY valid JSON:
         nextProd.pcsPerPack
       );
 
+      // ترکیب تگ‌های جمنای با دیکشنری مترادف‌های ۴ زبانه (بدون مصرف توکن اضافه)
+      const fullSearchTags = expandProductSearchIndex({
+        sku: nextProd.sku,
+        vendorCode: nextProd.vendorCode,
+        department: nextProd.department,
+        subcategory: nextProd.subcategory,
+        leafSub: nextProd.leafSub,
+        aiData: aiRes
+      });
+
       const updates = {
+        detectedBrand: aiRes?.brand && aiRes.brand !== "none" ? aiRes.brand : "",
+        garmentType: aiRes?.garmentType || "",
+        season: aiRes?.season || "all-season",
+        colors: aiRes?.colors || {},
         publicTitle: {
           en: aiRes?.publicTitle?.en || fallback.publicTitle.en,
           it: aiRes?.publicTitle?.it || fallback.publicTitle.it,
@@ -1745,12 +1972,7 @@ Return ONLY valid JSON:
           it: aiRes?.description?.it || fallback.description.it,
           es: aiRes?.description?.es || fallback.description.es
         },
-        searchTags: Array.from(
-          new Set([
-            ...(Array.isArray(nextProd.searchTags) ? nextProd.searchTags : []),
-            ...(Array.isArray(aiRes?.searchTags) ? aiRes.searchTags.map((t) => String(t).toLowerCase()) : [])
-          ])
-        ),
+        searchTags: fullSearchTags,
         aiStatus: "completed",
         updatedAtIso: new Date().toISOString()
       };
@@ -1762,12 +1984,13 @@ Return ONLY valid JSON:
       updateAiQueueCounters();
       renderCatalogTable();
 
-      await new Promise((r) => setTimeout(r, 1500));
+      // مکث کوتاه برای رعایت سقف رایگان جمنای (Free Tier RPM)
+      await new Promise((r) => setTimeout(r, 2200));
     } catch (err) {
       nextProd.aiStatus = "completed";
       await updateDoc(doc(db, "products", nextProd.id), { aiStatus: "completed" }).catch(() => {});
       updateAiQueueCounters();
-      await new Promise((r) => setTimeout(r, 1500));
+      await new Promise((r) => setTimeout(r, 2000));
     }
   }
 
