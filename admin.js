@@ -2,9 +2,11 @@
  * ============================================================================
  * PARADISE WHOLESALE CLOTHING (Paradise Turkey Wholesale)
  * Domain: https://paradisewholesaler.com
- * File: admin.js (BLOCK 1 OF 2 — AUDITED & OPTIMIZED)
- *       8x Parallel Uploader, Dual-WebP (Thumb + HD), CORS-Free Gemini Vision,
- *       Visual Category Manager, Vendor CRM & Strict Role Security
+ * File: admin.js (BLOCK 1 OF 2 — FINAL UNIFIED EDITION)
+ *       - Auto 3-Language SEO URL & Slug Generator (Depts, Subcats, Leaves, Products)
+ *       - 8x Parallel Uploader + Dual-WebP (Thumbnail + HD) + Code-Only Watermark
+ *       - Precision Free-Tier Gemini Vision + 4-Language Synonym Dictionary
+ *       - GitHub Actions SSG Wake-Up Trigger & Strict Role Security (RBAC)
  * ============================================================================
  */
 
@@ -40,7 +42,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-storage.js";
 
 /* ==========================================================================
-   1. CORE CONFIGURATION & DEFAULT VISUAL TAXONOMY
+   1. CORE CONFIGURATION & 3-LANGUAGE DEFAULT VISUAL TAXONOMY
    ========================================================================== */
 export const firebaseConfig = {
   apiKey: "AIzaSyCQyBszaUZ4FJX2OJw4YrcLMwUbk2BtxL4",
@@ -61,341 +63,353 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-/* درخت پیش‌فرض بخش‌ها، شاخه‌ها، زیرمجموعه‌ها و عکس‌های کاتالوگ (قابل ویرایش کامل از تب ۳) */
+/* درخت پیش‌فرض ۳ سطحی و ۳ زبانه کامل (قابل ویرایش ۱۰۰٪ گرافیکی از تب ۳) */
 export const DEFAULT_TAXONOMY = [
   {
     id: "men",
     labelFa: "مردانه",
-    label: "Men",
-    labelItEs: "Uomo / Hombre",
+    labelEn: "Men",
+    labelIt: "Uomo",
+    labelEs: "Hombre",
     hidden: false,
     image: "https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?auto=format&fit=crop&w=600&q=80",
     subcategories: [
       {
         id: "men-tshirts",
         labelFa: "تیشرت مردانه",
-        label: "T-Shirts",
-        en: "Premium Turkish Cotton Men's T-Shirt",
-        it: "T-Shirt Uomo in Cotone Turco Premium",
-        es: "Camiseta Hombre de Algodón Turco Premium",
+        labelEn: "T-Shirts",
+        labelIt: "T-Shirt Uomo",
+        labelEs: "Camisetas Hombre",
         hidden: false,
         image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Oversize", "Regular", "Polo"]
+        leaves: [
+          { id: "crewneck", labelFa: "تیشرت یقه گرد", labelEn: "Crewneck T-Shirts", labelIt: "T-Shirt Girocollo", labelEs: "Camisetas Cuello Redondo", image: "", hidden: false },
+          { id: "polo", labelFa: "تیشرت یقه‌دار پلو", labelEn: "Polo T-Shirts", labelIt: "Maglie Polo", labelEs: "Camisetas Polo", image: "", hidden: false },
+          { id: "oversize", labelFa: "تیشرت اورسایز", labelEn: "Oversize T-Shirts", labelIt: "T-Shirt Oversize", labelEs: "Camisetas Oversize", image: "", hidden: false }
+        ]
       },
       {
         id: "men-sweatshirts-hoodies",
         labelFa: "هودی و دورس مردانه",
-        label: "Sweatshirts & Hoodies",
-        en: "Heavyweight Turkish Cotton Men's Hoodie & Sweatshirt",
-        it: "Felpa e Hoodie Uomo Cotone Turco",
-        es: "Sudadera y Hoodie Hombre Algodón Turco",
+        labelEn: "Sweatshirts & Hoodies",
+        labelIt: "Felpe e Hoodie",
+        labelEs: "Sudaderas y Hoodies",
         hidden: false,
         image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Hoodie", "Sweatshirt", "Zip-Up"]
+        leaves: [
+          { id: "hoodie", labelFa: "هودی کلاه‌دار", labelEn: "Hoodies", labelIt: "Felpe con Cappuccio", labelEs: "Sudaderas con Capucha", image: "", hidden: false },
+          { id: "sweatshirt", labelFa: "دورس یقه گرد", labelEn: "Crewneck Sweatshirts", labelIt: "Felpe Girocollo", labelEs: "Sudaderas Sin Capucha", image: "", hidden: false },
+          { id: "zip-hoodie", labelFa: "سویشرت زیپ‌دار", labelEn: "Zip-Up Hoodies", labelIt: "Felpe con Zip", labelEs: "Sudaderas con Cremallera", image: "", hidden: false }
+        ]
       },
       {
         id: "men-tracksuits",
         labelFa: "ست ورزشی و ترک‌سوئیت مردانه",
-        label: "Tracksuits",
-        en: "2-Piece Luxury Men's Tracksuit Set",
-        it: "Tuta Completa Uomo 2 Pezzi",
-        es: "Conjunto Chándal Hombre 2 Piezas",
+        labelEn: "Tracksuits",
+        labelIt: "Tute Complete Uomo",
+        labelEs: "Conjuntos Chándal",
         hidden: false,
         image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=500&q=80",
-        leaves: ["2-Piece Set", "3-Piece Set"]
+        leaves: [
+          { id: "sweatshirt-tracksuit", labelFa: "ست سویشرت و شلوار", labelEn: "Sweatshirt & Pants Tracksuit", labelIt: "Tuta Felpa e Pantaloni", labelEs: "Chándal Sudadera y Pantalón", image: "", hidden: false },
+          { id: "shorts-tracksuit", labelFa: "ست تیشرت و شورت", labelEn: "T-Shirt & Shorts Set", labelIt: "Completo T-Shirt e Shorts", labelEs: "Conjunto Camiseta y Pantalón Corto", image: "", hidden: false }
+        ]
       },
       {
         id: "men-shirts",
         labelFa: "پیراهن مردانه",
-        label: "Shirts",
-        en: "Luxury Tailored Men's Shirt",
-        it: "Camicia Uomo Sartoriale",
-        es: "Camisa Hombre Corte Sastre",
+        labelEn: "Shirts",
+        labelIt: "Camicie Uomo",
+        labelEs: "Camisas Hombre",
         hidden: false,
         image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Classic", "Linen", "Casual"]
+        leaves: [
+          { id: "classic-shirt", labelFa: "پیراهن کلاسیک", labelEn: "Classic Shirts", labelIt: "Camicie Classiche", labelEs: "Camisas Clásicas", image: "", hidden: false },
+          { id: "casual-shirt", labelFa: "پیراهن اسپرت", labelEn: "Casual Shirts", labelIt: "Camicie Casual", labelEs: "Camisas Casual", image: "", hidden: false }
+        ]
       },
       {
         id: "men-knitwear",
         labelFa: "بافت و پلیور مردانه",
-        label: "Knitwear",
-        en: "Fine Turkish Men's Knitwear & Sweater",
-        it: "Maglieria Uomo Fine",
-        es: "Punto y Jersey Hombre",
+        labelEn: "Knitwear",
+        labelIt: "Maglieria Uomo",
+        labelEs: "Punto y Jerseys",
         hidden: false,
         image: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Pullover", "Turtleneck", "Cardigan"]
+        leaves: [
+          { id: "pullover", labelFa: "پلیور بافت", labelEn: "Pullover Sweaters", labelIt: "Maglioni Pullover", labelEs: "Jerseys de Punto", image: "", hidden: false },
+          { id: "turtleneck", labelFa: "بافت یقه اسکی", labelEn: "Turtleneck Knitwear", labelIt: "Dolcevita Uomo", labelEs: "Cuello Alto", image: "", hidden: false }
+        ]
       },
       {
         id: "men-jeans",
         labelFa: "شلوار جین مردانه",
-        label: "Jeans",
-        en: "Turkish Denim Men's Jeans",
-        it: "Jeans Uomo Denim Turco",
-        es: "Pantalón Vaquero Denim Hombre",
+        labelEn: "Jeans",
+        labelIt: "Jeans Uomo",
+        labelEs: "Vaqueros Hombre",
         hidden: false,
         image: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Slim Fit", "Baggy", "Straight"]
+        leaves: [
+          { id: "slim-jeans", labelFa: "جین اسلیم فیت", labelEn: "Slim Fit Jeans", labelIt: "Jeans Slim Fit", labelEs: "Vaqueros Slim Fit", image: "", hidden: false },
+          { id: "baggy-jeans", labelFa: "جین بگ و راسته", labelEn: "Baggy & Straight Jeans", labelIt: "Jeans Baggy e Regular", labelEs: "Vaqueros Anchos y Rectos", image: "", hidden: false }
+        ]
       },
       {
         id: "men-trousers",
-        labelFa: "شلوار کتان، پارچه‌ای و جاگر مردانه",
-        label: "Trousers & Joggers",
-        en: "Tailored Men's Trousers & Joggers",
-        it: "Pantaloni e Jogger Uomo",
-        es: "Pantalón y Jogger Hombre",
+        labelFa: "شلوار کتان، پارچه‌ای و جاگر",
+        labelEn: "Trousers & Joggers",
+        labelIt: "Pantaloni e Jogger",
+        labelEs: "Pantalones y Joggers",
         hidden: false,
         image: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Jogger", "Cargo", "Chino"]
+        leaves: [
+          { id: "jogger", labelFa: "شلوار جاگر و اسلش", labelEn: "Joggers & Sweatpants", labelIt: "Pantaloni Jogger", labelEs: "Pantalones Jogger", image: "", hidden: false },
+          { id: "cargo", labelFa: "شلوار کارگو شش‌جیب", labelEn: "Cargo Pants", labelIt: "Pantaloni Cargo", labelEs: "Pantalones Cargo", image: "", hidden: false },
+          { id: "chino", labelFa: "شلوار کتان و پارچه‌ای", labelEn: "Chino Trousers", labelIt: "Pantaloni Chino", labelEs: "Pantalones Chinos", image: "", hidden: false }
+        ]
       },
       {
         id: "men-jackets-coats",
         labelFa: "کاپشن و پالتو مردانه",
-        label: "Jackets & Coats",
-        en: "Designer Men's Outerwear Jacket",
-        it: "Giacca e Capospalla Uomo",
-        es: "Chaqueta y Abrigo Hombre",
+        labelEn: "Jackets & Coats",
+        labelIt: "Giacche e Cappotti",
+        labelEs: "Chaquetas y Abrigos",
         hidden: false,
         image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Puffer", "Bomber", "Leather Jacket"]
+        leaves: [
+          { id: "puffer", labelFa: "کاپشن پافر و بادی", labelEn: "Puffer Jackets", labelIt: "Piumini Uomo", labelEs: "Chaquetas Acolchadas", image: "", hidden: false },
+          { id: "bomber", labelFa: "کت و کاپشن بامبر", labelEn: "Bomber & Leather Jackets", labelIt: "Giacche Bomber e Pelle", labelEs: "Cazadoras Bomber y Piel", image: "", hidden: false }
+        ]
       },
       {
         id: "men-suits-blazers",
         labelFa: "کت و شلوار مردانه",
-        label: "Suits & Blazers",
-        en: "Executive Men's Suit & Blazer",
-        it: "Abito e Blazer Uomo",
-        es: "Traje y Blazer Hombre",
+        labelEn: "Suits & Blazers",
+        labelIt: "Abiti e Blazer",
+        labelEs: "Trajes y Blazers",
         hidden: false,
         image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Full Suit", "Blazer"]
+        leaves: [
+          { id: "full-suit", labelFa: "کت و شلوار کامل", labelEn: "Full Suits", labelIt: "Abiti Completi", labelEs: "Trajes Completos", image: "", hidden: false },
+          { id: "blazer", labelFa: "کت تک اسپرت", labelEn: "Blazers", labelIt: "Giacche Blazer", labelEs: "Americanas y Blazers", image: "", hidden: false }
+        ]
       }
     ]
   },
   {
     id: "women",
     labelFa: "زنانه",
-    label: "Women",
-    labelItEs: "Donna / Mujer",
+    labelEn: "Women",
+    labelIt: "Donna",
+    labelEs: "Mujer",
     hidden: false,
     image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=600&q=80",
     subcategories: [
       {
         id: "women-tops-tshirts",
         labelFa: "تاپ و تیشرت زنانه",
-        label: "Tops & T-Shirts",
-        en: "Boutique Women's Cotton Top & T-Shirt",
-        it: "Top e T-Shirt Donna Boutique",
-        es: "Top y Camiseta Mujer Boutique",
+        labelEn: "Tops & T-Shirts",
+        labelIt: "Top e T-Shirt Donna",
+        labelEs: "Tops y Camisetas Mujer",
         hidden: false,
         image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=500&q=80",
-        leaves: ["T-Shirt", "Crop Top", "Bodysuit"]
+        leaves: [
+          { id: "women-tshirt", labelFa: "تیشرت زنانه", labelEn: "Women's T-Shirts", labelIt: "T-Shirt Donna", labelEs: "Camisetas Mujer", image: "", hidden: false },
+          { id: "crop-top", labelFa: "کراپ و تاپ", labelEn: "Crop Tops", labelIt: "Crop Top", labelEs: "Tops Cortos", image: "", hidden: false }
+        ]
       },
       {
         id: "women-blouses-shirts",
         labelFa: "بلوز و شومیز زنانه",
-        label: "Blouses & Shirts",
-        en: "Elegant Women's Satin & Poplin Blouse",
-        it: "Camicia e Blusa Elegante Donna",
-        es: "Blusa y Camisa Elegante Mujer",
+        labelEn: "Blouses & Shirts",
+        labelIt: "Camicie e Bluse",
+        labelEs: "Blusas y Camisas",
         hidden: false,
         image: "https://images.unsplash.com/photo-1551163943-3f6a855d1153?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Satin Blouse", "Shirt"]
+        leaves: []
       },
       {
         id: "women-sweatshirts-hoodies",
         labelFa: "هودی و سوئیشرت زنانه",
-        label: "Sweatshirts & Hoodies",
-        en: "Luxury Women's Hoodie & Sweatshirt",
-        it: "Felpa e Hoodie Donna",
-        es: "Sudadera y Hoodie Mujer",
+        labelEn: "Sweatshirts & Hoodies",
+        labelIt: "Felpe Donna",
+        labelEs: "Sudaderas Mujer",
         hidden: false,
         image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Hoodie", "Sweatshirt"]
+        leaves: []
       },
       {
         id: "women-dresses-jumpsuits",
         labelFa: "پیراهن، مجلسی و سرهمی",
-        label: "Dresses & Jumpsuits",
-        en: "Boutique Women's Evening & Day Dress",
-        it: "Abito Elegante Donna",
-        es: "Vestido Elegante Mujer",
+        labelEn: "Dresses & Jumpsuits",
+        labelIt: "Abiti e Tute Eleganti",
+        labelEs: "Vestidos y Monos",
         hidden: false,
         image: "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Midi Dress", "Maxi Dress", "Jumpsuit"]
+        leaves: []
       },
       {
         id: "women-tracksuits-loungewear",
         labelFa: "ست راحتی و ترک‌سوئیت زنانه",
-        label: "Tracksuits & Loungewear",
-        en: "2-Piece Women's Tracksuit Set",
-        it: "Completo Tuta Donna",
-        es: "Conjunto Chándal Mujer",
+        labelEn: "Tracksuits & Loungewear",
+        labelIt: "Tute Complete Donna",
+        labelEs: "Conjuntos Chándal Mujer",
         hidden: false,
         image: "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Tracksuit", "Lounge Set"]
+        leaves: []
       },
       {
         id: "women-jeans-trousers",
         labelFa: "شلوار و جین زنانه",
-        label: "Jeans & Trousers",
-        en: "High-Waist Women's Denim & Trousers",
-        it: "Jeans e Pantaloni Donna",
-        es: "Jeans y Pantalón Mujer",
+        labelEn: "Jeans & Trousers",
+        labelIt: "Jeans e Pantaloni Donna",
+        labelEs: "Vaqueros y Pantalones Mujer",
         hidden: false,
         image: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Wide Leg", "Jogger", "Skinny"]
+        leaves: []
       },
       {
         id: "women-skirts",
         labelFa: "دامن زنانه",
-        label: "Skirts",
-        en: "Tailored Women's Boutique Skirt",
-        it: "Gonna Sartoriale Donna",
-        es: "Falda de Boutique Mujer",
+        labelEn: "Skirts",
+        labelIt: "Gonne Donna",
+        labelEs: "Faldas Mujer",
         hidden: false,
         image: "https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Mini", "Midi"]
+        leaves: []
       },
       {
         id: "women-knitwear",
         labelFa: "بافت زنانه",
-        label: "Knitwear",
-        en: "Soft Touch Women's Knitwear",
-        it: "Maglieria Morbida Donna",
-        es: "Punto Suave Mujer",
+        labelEn: "Knitwear",
+        labelIt: "Maglieria Donna",
+        labelEs: "Punto Mujer",
         hidden: false,
         image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Cardigan", "Sweater"]
+        leaves: []
       },
       {
         id: "women-jackets-coats",
         labelFa: "کاپشن و پالتو زنانه",
-        label: "Jackets & Coats",
-        en: "Boutique Women's Coat & Jacket",
-        it: "Cappotto e Giacca Donna",
-        es: "Abrigo y Chaqueta Mujer",
+        labelEn: "Jackets & Coats",
+        labelIt: "Cappotti e Giacche Donna",
+        labelEs: "Abrigos y Chaquetas Mujer",
         hidden: false,
         image: "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Trench Coat", "Puffer"]
+        leaves: []
       },
       {
         id: "women-suits-coord",
         labelFa: "ست دو تکه و کت‌شلوار زنانه",
-        label: "Suits & Co-ord Sets",
-        en: "2-Piece Women's Tailored Co-ord Suit",
-        it: "Tailleur e Completo Donna",
-        es: "Conjunto Sastre Mujer",
+        labelEn: "Suits & Co-ord Sets",
+        labelIt: "Tailleur e Completi Donna",
+        labelEs: "Conjuntos Sastre Mujer",
         hidden: false,
         image: "https://images.unsplash.com/photo-1548624313-0396c75e4b1a?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Blazer Set", "Skirt Set"]
+        leaves: []
       }
     ]
   },
   {
     id: "kids-baby",
     labelFa: "بچگانه",
-    label: "Kids & Baby",
-    labelItEs: "Bambini / Niños",
+    labelEn: "Kids & Baby",
+    labelIt: "Bambini",
+    labelEs: "Niños y Bebés",
     hidden: false,
     image: "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?auto=format&fit=crop&w=600&q=80",
     subcategories: [
       {
         id: "kids-boys",
         labelFa: "پسرانه",
-        label: "Boys Clothing",
-        en: "Turkish Cotton Boys Wholesale Set",
-        it: "Completo Bambino Cotone Turco",
-        es: "Conjunto Niño Algodón Turco",
+        labelEn: "Boys Clothing",
+        labelIt: "Abbigliamento Bambino",
+        labelEs: "Ropa Niño",
         hidden: false,
         image: "https://images.unsplash.com/photo-1519457431-44ccd64a579b?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Tracksuit", "T-Shirt Set"]
+        leaves: []
       },
       {
         id: "kids-girls",
         labelFa: "دخترانه",
-        label: "Girls Clothing",
-        en: "Boutique Girls Dress & Set",
-        it: "Completo e Abito Bambina",
-        es: "Conjunto y Vestido Niña",
+        labelEn: "Girls Clothing",
+        labelIt: "Abbigliamento Bambina",
+        labelEs: "Ropa Niña",
         hidden: false,
         image: "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Dress", "2-Piece Set"]
+        leaves: []
       },
       {
         id: "kids-baby-sets",
         labelFa: "ست نوزادی",
-        label: "Baby Sets",
-        en: "Organic Combed Cotton Baby Serie Pack",
-        it: "Set Neonato Cotone Organico",
-        es: "Set Bebé Algodón Orgánico",
+        labelEn: "Baby Sets",
+        labelIt: "Set Neonato",
+        labelEs: "Conjuntos Bebé",
         hidden: false,
         image: "https://images.unsplash.com/photo-1522771930-78848d9293e8?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Newborn Set", "Romper"]
+        leaves: []
       }
     ]
   },
   {
     id: "shoes",
     labelFa: "کفش",
-    label: "Shoes",
-    labelItEs: "Scarpe / Calzado",
+    labelEn: "Shoes",
+    labelIt: "Scarpe",
+    labelEs: "Calzado",
     hidden: false,
     image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=600&q=80",
     subcategories: [
       {
         id: "shoes-men",
         labelFa: "کفش و کتانی مردانه",
-        label: "Men's Shoes",
-        en: "Handcrafted Leather Men's Sneaker & Loafer",
-        it: "Sneaker e Mocassino Uomo",
-        es: "Zapatilla y Mocasín Hombre",
+        labelEn: "Men's Shoes",
+        labelIt: "Scarpe Uomo",
+        labelEs: "Zapatos Hombre",
         hidden: false,
         image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Sneakers", "Loafers", "Boots"]
+        leaves: []
       },
       {
         id: "shoes-women",
         labelFa: "کفش و کتانی زنانه",
-        label: "Women's Shoes",
-        en: "Luxury Women's Footwear & Sneakers",
-        it: "Calzature e Sneaker Donna",
-        es: "Calzado y Zapatilla Mujer",
+        labelEn: "Women's Shoes",
+        labelIt: "Scarpe Donna",
+        labelEs: "Zapatos Mujer",
         hidden: false,
         image: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Sneakers", "Heels", "Boots"]
+        leaves: []
       }
     ]
   },
   {
     id: "bags-accessories",
     labelFa: "کیف و اکسسوری",
-    label: "Bags & Accessories",
-    labelItEs: "Borse / Bolsos",
+    labelEn: "Bags & Accessories",
+    labelIt: "Borse e Accessori",
+    labelEs: "Bolsos y Accesorios",
     hidden: false,
     image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=600&q=80",
     subcategories: [
       {
         id: "bags-main",
         labelFa: "کیف",
-        label: "Bags",
-        en: "Structured Luxury Leather Handbag & Tote",
-        it: "Borsa in Pelle di Lusso",
-        es: "Bolso de Piel de Lujo",
+        labelEn: "Bags",
+        labelIt: "Borse",
+        labelEs: "Bolsos",
         hidden: false,
         image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Handbag", "Crossbody", "Backpack"]
+        leaves: []
       },
       {
         id: "accessories-main",
         labelFa: "اکسسوری، کمربند و کلاه",
-        label: "Accessories",
-        en: "Luxury Belt, Cap & Boutique Accessory",
-        it: "Cintura, Cappello e Accessori",
-        es: "Cinturón, Gorra y Accesorios",
+        labelEn: "Accessories & Hats",
+        labelIt: "Accessori e Cappelli",
+        labelEs: "Accesorios y Gorras",
         hidden: false,
         image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=500&q=80",
-        leaves: ["Belts", "Hats & Caps", "Wallets"]
+        leaves: []
       }
     ]
   }
@@ -415,10 +429,10 @@ const adminState = {
   products: [],
   blogs: [],
   vendors: [{ code: "PRD", name: "تامین‌کننده اصلی پارادایس" }],
-  vendorSecrets: {}, // { [code]: { phone, address } } -> فقط برای مدیر کل
-  selectedProductIds: new Set(), // حفظ تیک محصولات در اسکرول و صفحه‌بندی ۱۰۰تایی
+  vendorSecrets: {},
+  selectedProductIds: new Set(),
   catalogDisplayLimit: 100,
-  sessionAiBase64Map: new Map(), // کش موقت تصویر برای جلوگیری ۱۰۰٪ از خطای CORS در جمنای
+  sessionAiBase64Map: new Map(),
   stagedImages: [],
   failedUploadQueue: [],
   lastUploadReport: {
@@ -471,7 +485,7 @@ const adminState = {
 };
 
 /* ==========================================================================
-   3. UTILITIES, SMART FALLBACK TITLES & FINGERPRINT
+   3. UTILITIES, AUTO 3-LANGUAGE SEO PATH GENERATOR & SYNONYM DICTIONARY
    ========================================================================== */
 function cleanDuplicateDomNodes() {
   const seenIds = new Set();
@@ -506,7 +520,7 @@ function showAdminToast(message, duration = 3800) {
   }, duration);
 }
 
-function slugify(text, fallback = "wholesale-item") {
+function slugify(text, fallback = "item") {
   const s = String(text || "")
     .toLowerCase()
     .normalize("NFD")
@@ -548,28 +562,236 @@ function findDuplicateProductByFingerprint(fingerprint) {
   );
 }
 
-function buildSmartFallbackContent(deptId, subcatId, leafSub, sku, pcsPerPack) {
+/**
+ * ساخت خودکار اسلاگ‌ها و لینک‌های فیزیکی ۳ زبانه (EN / IT / ES) بر اساس نامی که مدیر وارد می‌کند!
+ * این تابع تضمین می‌کند هر بخش، هر شاخه و هر زیربخش در دیتابیس دارای ۳ آدرس مجزا و سئو شده باشد.
+ */
+function normalizeTaxonomyStructure() {
+  if (!Array.isArray(adminState.taxonomy) || adminState.taxonomy.length === 0) {
+    adminState.taxonomy = structuredClone(DEFAULT_TAXONOMY);
+  }
+
+  adminState.taxonomy.forEach((dept) => {
+    dept.id = slugify(dept.id || dept.labelEn || "dept", "dept");
+    dept.labelFa = dept.labelFa || dept.label || dept.id;
+    dept.labelEn = dept.labelEn || dept.label || dept.id;
+    dept.label = dept.labelEn;
+
+    if (!dept.labelIt || !dept.labelEs) {
+      const parts = String(dept.labelItEs || "").split("/").map((s) => s.trim());
+      dept.labelIt = dept.labelIt || parts[0] || dept.labelEn;
+      dept.labelEs = dept.labelEs || parts[1] || parts[0] || dept.labelEn;
+    }
+
+    // تولید خودکار لینک‌های ۳ زبانه سطح ۱ (بخش اصلی)
+    dept.slugs = {
+      en: slugify(dept.labelEn, dept.id),
+      it: slugify(dept.labelIt, dept.id),
+      es: slugify(dept.labelEs, dept.id)
+    };
+    dept.paths = {
+      en: `/en/${dept.slugs.en}/`,
+      it: `/it/${dept.slugs.it}/`,
+      es: `/es/${dept.slugs.es}/`
+    };
+
+    if (!Array.isArray(dept.subcategories)) dept.subcategories = [];
+
+    dept.subcategories.forEach((sub) => {
+      sub.id = slugify(sub.id || sub.labelEn || "cat", `${dept.id}-cat`);
+      sub.labelFa = sub.labelFa || sub.label || sub.id;
+      sub.labelEn = sub.labelEn || sub.label || sub.id;
+      sub.label = sub.labelEn;
+      sub.labelIt = sub.labelIt || sub.it || sub.labelEn;
+      sub.labelEs = sub.labelEs || sub.es || sub.labelEn;
+
+      // تولید خودکار لینک‌های ۳ زبانه سطح ۲ (شاخه محصولات)
+      sub.slugs = {
+        en: slugify(sub.labelEn, sub.id),
+        it: slugify(sub.labelIt, sub.id),
+        es: slugify(sub.labelEs, sub.id)
+      };
+      sub.paths = {
+        en: `${dept.paths.en}${sub.slugs.en}/`,
+        it: `${dept.paths.it}${sub.slugs.it}/`,
+        es: `${dept.paths.es}${sub.slugs.es}/`
+      };
+
+      if (!Array.isArray(sub.leaves)) sub.leaves = [];
+      sub.leaves = sub.leaves.map((lf) => {
+        const obj =
+          typeof lf === "string"
+            ? { id: slugify(lf, "style"), labelFa: lf, labelEn: lf, labelIt: lf, labelEs: lf, image: "", hidden: false }
+            : {
+                id: slugify(lf.id || lf.labelEn || lf.labelFa, "style"),
+                labelFa: lf.labelFa || lf.labelEn || lf.id,
+                labelEn: lf.labelEn || lf.labelFa || lf.id,
+                labelIt: lf.labelIt || lf.labelEn || lf.id,
+                labelEs: lf.labelEs || lf.labelEn || lf.id,
+                image: lf.image || "",
+                hidden: Boolean(lf.hidden)
+              };
+
+        // تولید خودکار لینک‌های ۳ زبانه سطح ۳ (زیربخش داخلی مثل یقه گرد / پلو / جاگر)
+        obj.slugs = {
+          en: slugify(obj.labelEn, obj.id),
+          it: slugify(obj.labelIt, obj.id),
+          es: slugify(obj.labelEs, obj.id)
+        };
+        obj.paths = {
+          en: `${sub.paths.en}${obj.slugs.en}/`,
+          it: `${sub.paths.it}${obj.slugs.it}/`,
+          es: `${sub.paths.es}${obj.slugs.es}/`
+        };
+        return obj;
+      });
+    });
+  });
+}
+
+/**
+ * ساخت لینک‌های فیزیکی ۳ زبانه برای هر تک‌محصول (عکس)
+ */
+function buildProductSeoPaths(sku) {
+  const cleanSkuSlug = slugify(sku, "item");
+  return {
+    en: `/en/product/${cleanSkuSlug}/`,
+    it: `/it/product/${cleanSkuSlug}/`,
+    es: `/es/product/${cleanSkuSlug}/`
+  };
+}
+
+/**
+ * ساخت عنوان و توضیحات ۳ زبانه «پرمیوم» در صورت عدم اجرای جمنای یا خطای کلید
+ */
+function buildRich3LangFallback(deptId, subcatId, leafId, sku, pcsPerPack) {
+  normalizeTaxonomyStructure();
   const deptObj = adminState.taxonomy.find((d) => d.id === deptId) || adminState.taxonomy[0];
-  const subObj = deptObj?.subcategories?.find((s) => s.id === subcatId) || deptObj?.subcategories?.[0] || {};
-  const leafSuffix = leafSub ? ` (${leafSub})` : "";
+  const subObj = (deptObj?.subcategories || []).find((s) => s.id === subcatId) || deptObj?.subcategories?.[0] || {};
+  const leafObj = (subObj?.leaves || []).find((l) => l.id === leafId || l.labelEn === leafId);
 
-  const enBase = subObj.en || `Luxury Turkish Wholesale ${subObj.label || "Garment"}`;
-  const itBase = subObj.it || `Abbigliamento Ingrosso Turco ${subObj.label || ""}`;
-  const esBase = subObj.es || `Ropa Mayorista Turca ${subObj.label || ""}`;
+  const enName = leafObj?.labelEn || subObj.labelEn || "Luxury Garment";
+  const itName = leafObj?.labelIt || subObj.labelIt || enName;
+  const esName = leafObj?.labelEs || subObj.labelEs || enName;
 
-  const enTitle = `${enBase}${leafSuffix} • Code ${sku}`;
-  const itTitle = `${itBase}${leafSuffix} • Cod. ${sku}`;
-  const esTitle = `${esBase}${leafSuffix} • Cód. ${sku}`;
+  const enTitle = `Premium ${enName} • Code ${sku}`;
+  const itTitle = `${itName} Premium • Cod. ${sku}`;
+  const esTitle = `${esName} Premium • Cód. ${sku}`;
 
   return {
     publicTitle: { en: enTitle, it: itTitle, es: esTitle },
     brandTitle: { en: enTitle, it: itTitle, es: esTitle },
     description: {
-      en: `Direct Istanbul factory wholesale pack (${pcsPerPack} pcs serie pack). Master quality fabric & stitching. Fast 3-5 day express air cargo to Europe, UK & USA.`,
-      it: `Pacco serie ingrosso diretto da Istanbul (${pcsPerPack} pezzi per pacco). Qualità master e spedizione espressa in 3-5 giorni in tutta Italia ed Europa.`,
-      es: `Paquete serie al por mayor directo desde Estambul (${pcsPerPack} piezas por paquete). Calidad maestra y envío exprés en 3-5 días a España y Europa.`
+      en: `Direct Istanbul factory wholesale serie pack (${pcsPerPack} pcs/pack). Premium combed fabric & master tailoring. Fast 3-5 day express air cargo.`,
+      it: `Pacco serie ingrosso diretto da Istanbul (${pcsPerPack} pz/pacco). Tessuto premium di qualità master e spedizione espressa in 3-5 giorni.`,
+      es: `Paquete serie mayorista directo desde Estambul (${pcsPerPack} uds/paquete). Tejido premium de calidad maestra y envío exprés en 3-5 días.`
     }
   };
+}
+
+/**
+ * دیکشنری مترادف‌های ۴ زبانه (بدون مصرف سهمیه رایگان جمنای!)
+ */
+const GARMENT_SYNONYMS_DICT = {
+  polo: ["polo", "polo tshirt", "polo t-shirt", "polo shirt", "collared tshirt", "collared shirt", "pique polo", "maglia polo", "t-shirt polo", "camiseta polo", "تیشرت یقه دار", "تیشرت پولو", "پولوشرت", "یقه دار"],
+  crewneck: ["tshirt", "t-shirt", "tshirts", "t-shirts", "tee", "crewneck", "crew neck", "round neck", "maglietta", "t-shirt girocollo", "camiseta", "cuello redondo", "تیشرت", "تی شرت", "تیشرت یقه گرد", "یقه گرد"],
+  vneck: ["tshirt", "t-shirt", "v-neck", "v neck", "scollo a v", "cuello pico", "تیشرت یقه هفت", "یقه هفت"],
+  shorts_tracksuit: ["tracksuit", "shorts tracksuit", "summer tracksuit", "short set", "shorts set", "tshirt and shorts", "2 piece short set", "completo estivo", "tuta corta", "chandal corto", "conjunto verano", "ترک سوئیت", "ترکسوییت", "ست تیشرت و شورت", "ست شورت", "ست تابستانی"],
+  sweatshirt_tracksuit: ["tracksuit", "winter tracksuit", "full tracksuit", "hoodie tracksuit", "sweatshirt tracksuit", "sweatsuit", "jogger set", "2 piece tracksuit", "tuta completa", "tuta felpa", "chandal completo", "ترک سوئیت", "ترکسوییت", "ست ورزشی", "ست سویشرت و شلوار", "ست هودی و شلوار", "ست زمستانی"],
+  hoodie: ["hoodie", "hoodies", "sweatshirt", "sweatshirts", "pullover", "fleece", "felpa", "felpa con cappuccio", "sudadera", "sudadera con capucha", "هودی", "سویشرت", "دورس"],
+  jogger: ["jogger", "joggers", "sweatpants", "track pants", "pants", "trousers", "bottoms", "pantaloni", "pantaloni tuta", "pantalones", "شلوار", "شلوار جاگر", "شلوار اسلش", "اسلش", "جاگر"],
+  jeans: ["jeans", "denim", "denim pants", "trousers", "pants", "pantaloni jeans", "vaqueros", "pantalon vaquero", "شلوار جین", "شلوار لی", "جین"],
+  cargo: ["cargo", "cargo pants", "cargo trousers", "pants", "trousers", "pantaloni cargo", "pantalon cargo", "شلوار کارگو", "شلوار شش جیب", "کارگو"],
+  jacket: ["jacket", "coat", "outerwear", "puffer", "bomber", "giacca", "piumino", "chaqueta", "abrigo", "کاپشن", "پالتو", "کت"],
+  shirt: ["shirt", "shirts", "button down", "dress shirt", "camicia", "camisa", "پیراهن", "شومیز"],
+  shoes: ["shoes", "sneakers", "trainers", "loafers", "footwear", "scarpe", "zapatos", "zapatillas", "کفش", "کتانی", "کتونی"],
+  bag: ["bag", "bags", "handbag", "tote", "crossbody", "backpack", "borsa", "bolso", "کیف"]
+};
+
+const SEASON_SYNONYMS_DICT = {
+  summer: ["summer", "spring", "lightweight", "estate", "estivo", "verano", "تابستانی", "تابستانه", "بهاره", "خنک"],
+  winter: ["winter", "autumn", "fall", "heavyweight", "warm", "inverno", "invernale", "invierno", "زمستانی", "زمستانه", "پاییزه", "ضخیم"]
+};
+
+const GENDER_SYNONYMS_DICT = {
+  men: ["men", "mens", "man", "male", "uomo", "hombre", "مردانه", "پسرانه"],
+  women: ["women", "womens", "woman", "female", "lady", "donna", "mujer", "زنانه", "دخترانه"],
+  kids: ["kids", "child", "children", "baby", "boys", "girls", "bambini", "ninos", "بچگانه", "بچه گانه", "نوزادی"]
+};
+
+function expandProductSearchIndex({ sku, vendorCode, department, subcategory, leafSub, aiData }) {
+  const tagSet = new Set();
+  const addToken = (str) => {
+    if (!str) return;
+    String(str)
+      .toLowerCase()
+      .split(/[,،/|]+/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .forEach((t) => tagSet.add(t));
+  };
+
+  addToken(sku);
+  addToken(vendorCode);
+  addToken(department);
+  addToken(subcategory);
+  addToken(leafSub);
+
+  const deptObj = adminState.taxonomy.find((d) => d.id === department);
+  const subObj = (deptObj?.subcategories || []).find((s) => s.id === subcategory);
+  const leafObj = (subObj?.leaves || []).find((l) => l.id === leafSub || l.labelEn === leafSub);
+
+  if (deptObj) {
+    addToken(deptObj.labelFa);
+    addToken(deptObj.labelEn);
+    addToken(deptObj.labelIt);
+    addToken(deptObj.labelEs);
+  }
+  if (subObj) {
+    addToken(subObj.labelFa);
+    addToken(subObj.labelEn);
+    addToken(subObj.labelIt);
+    addToken(subObj.labelEs);
+  }
+  if (leafObj) {
+    addToken(leafObj.labelFa);
+    addToken(leafObj.labelEn);
+    addToken(leafObj.labelIt);
+    addToken(leafObj.labelEs);
+  }
+
+  if (aiData) {
+    if (aiData.brand && aiData.brand.toLowerCase() !== "none") {
+      addToken(aiData.brand);
+    }
+    if (aiData.colors) {
+      Object.values(aiData.colors).forEach(addToken);
+    }
+    if (Array.isArray(aiData.searchTags)) {
+      aiData.searchTags.forEach(addToken);
+    }
+    const gType = String(aiData.garmentType || "").toLowerCase();
+    Object.keys(GARMENT_SYNONYMS_DICT).forEach((key) => {
+      if (gType.includes(key) || String(subcategory).includes(key) || String(leafSub).toLowerCase().includes(key)) {
+        GARMENT_SYNONYMS_DICT[key].forEach(addToken);
+      }
+    });
+
+    const seasonKey = String(aiData.season || "").toLowerCase();
+    if (SEASON_SYNONYMS_DICT[seasonKey]) {
+      SEASON_SYNONYMS_DICT[seasonKey].forEach(addToken);
+    }
+  }
+
+  if (GENDER_SYNONYMS_DICT[department]) {
+    GENDER_SYNONYMS_DICT[department].forEach(addToken);
+  }
+  if (String(subcategory).includes("tshirt")) GARMENT_SYNONYMS_DICT.crewneck.forEach(addToken);
+  if (String(subcategory).includes("trousers")) GARMENT_SYNONYMS_DICT.jogger.forEach(addToken);
+  if (String(subcategory).includes("jeans")) GARMENT_SYNONYMS_DICT.jeans.forEach(addToken);
+  if (String(subcategory).includes("hoodie")) GARMENT_SYNONYMS_DICT.hoodie.forEach(addToken);
+
+  return Array.from(tagSet);
 }
 
 /* ==========================================================================
@@ -584,7 +806,6 @@ function applyRolePermissionsUI() {
     badge.style.color = isSuper ? "#6ee7b7" : "#fde047";
   }
 
-  // اگر کاربر دستیار است، تمام بخش‌های حساس مدیر کل به طور کامل از DOM حذف می‌شوند
   if (!isSuper) {
     document.querySelectorAll('[data-super-only="true"]').forEach((el) => {
       el.remove();
@@ -674,6 +895,7 @@ async function loadAllAdminData() {
   ]);
 
   syncVendorsFromProductsAndConfig();
+  populateAllTaxonomySelects();
   renderCategoriesManagerUI();
   updateDashboardKPIs();
   updateAiQueueCounters();
@@ -728,7 +950,7 @@ function bindNavigationEvents() {
   const tabTitles = {
     "ai-uploader": "➕ ۱. آپلود سریع محصول (۸تایی موازی)",
     catalog: "🗂️ ۲. مدیریت محصولات، قیمت و انتخاب تیکی",
-    categories: "🌿 ۳. مدیریت بخش‌ها، شاخه‌ها و عکس دسته‌ها",
+    categories: "🌿 ۳. مدیریت بخش‌ها، شاخه‌ها و لینک‌های ۳ زبانه",
     vendors: "🏪 ۴. مدیریت عمده‌فروشان و کدهای اختصاصی",
     orders: "📦 ۵. سفارشات و مشتریان واتساپ",
     videos: "🎬 ۶. ویدیوهای ویترین و رضایت مشتریان",
@@ -759,6 +981,11 @@ function bindNavigationEvents() {
         titleEl.textContent = tabTitles[targetTab];
       }
 
+      if (targetTab === "categories") {
+        populateAllTaxonomySelects();
+        renderCategoriesManagerUI();
+      }
+
       closeMobileSidebar();
     });
   });
@@ -767,12 +994,6 @@ function bindNavigationEvents() {
 /* ==========================================================================
    6. DUAL-WEBP COMPRESSOR (HD + THUMBNAIL + AI BASE64) & CODE-ONLY WATERMARK
    ========================================================================== */
-/**
- * در یک مرحله واحد روی موبایل/دسکتاپ:
- * 1) نسخه HD (عرض 1200px) با واترمارکِ فقط کد محصول (بدون قیمت)
- * 2) نسخه Thumbnail فوق‌سبک (عرض 420px) برای اسکرول سریع مشتریان
- * 3) رشته Base64 سبک (`aiBase64`) برای ارسال مستقیم به جمنای بدون خطای CORS فایربیس
- */
 async function compressImageToDualWebP(file, watermarkCode = "") {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -782,19 +1003,16 @@ async function compressImageToDualWebP(file, watermarkCode = "") {
       img.onerror = () => reject(new Error("فرمت عکس پشتیبانی نمی‌شود"));
       img.onload = async () => {
         try {
-          const origW = img.naturalWidth || img.width;
-          const origH = img.naturalHeight || img.height;
+          const origW = img.naturalWidth || img.width || 1;
+          const origH = img.naturalHeight || img.height || 1;
 
           const renderCanvasBlob = (maxW, qual, includeBase64 = false) =>
             new Promise((resBlob, rejBlob) => {
               let w = origW;
               let h = origH;
               if (w > maxW) {
-                h = Math.round((h * maxW) / widthOrOrig(origW));
+                h = Math.round((h * maxW) / origW);
                 w = maxW;
-              }
-              function widthOrOrig(val) {
-                return val || 1;
               }
               const canvas = document.createElement("canvas");
               canvas.width = w;
@@ -874,9 +1092,6 @@ async function compressImageToDualWebP(file, watermarkCode = "") {
   });
 }
 
-/**
- * آپلود همزمان نسخه HD و نسخه Thumbnail در Firebase Storage
- */
 async function uploadDualWebPToStorage(stagedItem, dept, skuCode, index = 0) {
   if (stagedItem.remoteUrl && stagedItem.remoteThumbUrl) {
     return { hdUrl: stagedItem.remoteUrl, thumbUrl: stagedItem.remoteThumbUrl };
@@ -911,9 +1126,6 @@ async function uploadDualWebPToStorage(stagedItem, dept, skuCode, index = 0) {
   return { hdUrl, thumbUrl };
 }
 
-/**
- * آپلود عکس‌های دسته‌بندی یا لوگو در استوریج
- */
 async function uploadSingleImageAsset(file, folder = "categories", maxW = 700) {
   const processed = await compressImageToDualWebP(file, "");
   const cleanName = slugify(file.name.replace(/\.[^.]+$/, ""), "asset");
@@ -926,9 +1138,6 @@ async function uploadSingleImageAsset(file, folder = "categories", maxW = 700) {
   return await getDownloadURL(fileRef);
 }
 
-/**
- * آپلود مستقیم فایل ویدیو از گالری گوشی
- */
 async function uploadVideoFileToStorage(videoFile, dept, skuCode) {
   if (!videoFile) return "";
   const cleanCode = String(skuCode || "VID").replace(/[^a-zA-Z0-9_-]/g, "");
@@ -1027,208 +1236,9 @@ async function callGeminiWithRotator(contentsPayload, expectJson = true) {
   throw lastError || new Error("خطا در ارتباط با جمنای");
 }
 
-/* === پایان بلوک ۱ از ۲ فایل admin.js — بلوک ۲ را دقیقاً زیر این خط پیست کنید === */
-/* === شروع بلوک ۲ از ۲ فایل admin.js — دقیقاً زیر بلوک ۱ پیست کنید === */
-
-/* === شروع بلوک ۲ از ۲ فایل admin.js — قطعه ۱ (بخش‌های ۸، ۹ و ۱۰) === */
-
 /* ==========================================================================
-   8. 3-LANGUAGE TAXONOMY NORMALIZER, SYNONYM ENGINE & DROPDOWNS
+   8. VENDOR SYNC, 3-LEVEL TAXONOMY DROPDOWNS & GALLERY STAGING
    ========================================================================== */
-
-/**
- * تبدیل خودکار ساختار دسته‌بندی‌ها به فرمت ۳ زبانه کامل در هر ۳ سطح (بخش اصلی، شاخه، زیربخش)
- */
-function normalizeTaxonomyStructure() {
-  if (!Array.isArray(adminState.taxonomy) || adminState.taxonomy.length === 0) {
-    adminState.taxonomy = structuredClone(DEFAULT_TAXONOMY);
-  }
-
-  adminState.taxonomy.forEach((dept) => {
-    dept.labelFa = dept.labelFa || dept.label || dept.id;
-    dept.labelEn = dept.labelEn || dept.label || dept.id;
-    dept.label = dept.labelEn;
-
-    if (!dept.labelIt || !dept.labelEs) {
-      const parts = String(dept.labelItEs || "").split("/").map((s) => s.trim());
-      dept.labelIt = dept.labelIt || parts[0] || dept.labelEn;
-      dept.labelEs = dept.labelEs || parts[1] || parts[0] || dept.labelEn;
-    }
-
-    if (!Array.isArray(dept.subcategories)) dept.subcategories = [];
-
-    dept.subcategories.forEach((sub) => {
-      sub.labelFa = sub.labelFa || sub.label || sub.id;
-      sub.labelEn = sub.labelEn || sub.label || sub.id;
-      sub.label = sub.labelEn;
-      sub.labelIt = sub.labelIt || sub.it || sub.labelEn;
-      sub.labelEs = sub.labelEs || sub.es || sub.labelEn;
-
-      if (!Array.isArray(sub.leaves)) sub.leaves = [];
-      sub.leaves = sub.leaves.map((lf) => {
-        if (typeof lf === "string") {
-          const cleanId = slugify(lf, "sub");
-          return {
-            id: cleanId,
-            labelFa: lf,
-            labelEn: lf,
-            labelIt: lf,
-            labelEs: lf,
-            image: "",
-            hidden: false
-          };
-        }
-        return {
-          id: lf.id || slugify(lf.labelEn || lf.labelFa, "sub"),
-          labelFa: lf.labelFa || lf.labelEn || lf.id,
-          labelEn: lf.labelEn || lf.labelFa || lf.id,
-          labelIt: lf.labelIt || lf.labelEn || lf.id,
-          labelEs: lf.labelEs || lf.labelEn || lf.id,
-          image: lf.image || "",
-          hidden: Boolean(lf.hidden)
-        };
-      });
-    });
-  });
-}
-
-/**
- * ساخت عنوان و توضیحات ۳ زبانه «پرمیوم» در صورت عدم اجرای جمنای یا خطای کلید
- */
-function buildRich3LangFallback(deptId, subcatId, leafId, sku, pcsPerPack) {
-  normalizeTaxonomyStructure();
-  const deptObj = adminState.taxonomy.find((d) => d.id === deptId) || adminState.taxonomy[0];
-  const subObj = (deptObj?.subcategories || []).find((s) => s.id === subcatId) || deptObj?.subcategories?.[0] || {};
-  const leafObj = (subObj?.leaves || []).find((l) => l.id === leafId || l.labelEn === leafId);
-
-  const enName = leafObj?.labelEn || subObj.labelEn || "Luxury Garment";
-  const itName = leafObj?.labelIt || subObj.labelIt || enName;
-  const esName = leafObj?.labelEs || subObj.labelEs || enName;
-
-  const enTitle = `Premium ${enName} • Code ${sku}`;
-  const itTitle = `${itName} Premium • Cod. ${sku}`;
-  const esTitle = `${esName} Premium • Cód. ${sku}`;
-
-  return {
-    publicTitle: { en: enTitle, it: itTitle, es: esTitle },
-    brandTitle: { en: enTitle, it: itTitle, es: esTitle },
-    description: {
-      en: `Direct Istanbul factory wholesale serie pack (${pcsPerPack} pcs/pack). Premium combed fabric & master tailoring. Fast 3-5 day express air cargo.`,
-      it: `Pacco serie ingrosso diretto da Istanbul (${pcsPerPack} pz/pacco). Tessuto premium di qualità master e spedizione espressa in 3-5 giorni.`,
-      es: `Paquete serie mayorista directo desde Estambul (${pcsPerPack} uds/paquete). Tejido premium de calidad maestra y envío exprés en 3-5 días.`
-    }
-  };
-}
-
-/**
- * دیکشنری مترادف‌های ۴ زبانه (بدون مصرف توکن جمنای!)
- * تمام املاهای مشابه (tshirt/t-shirt, jogger/pants, polo/collared, shorts tracksuit vs hoodie tracksuit) را به تگ‌های سرچ اضافه می‌کند
- */
-const GARMENT_SYNONYMS_DICT = {
-  polo: ["polo", "polo tshirt", "polo t-shirt", "polo shirt", "collared tshirt", "collared shirt", "pique polo", "maglia polo", "t-shirt polo", "camiseta polo", "تیشرت یقه دار", "تیشرت پولو", "پولوشرت", "یقه دار"],
-  crewneck: ["tshirt", "t-shirt", "tshirts", "t-shirts", "tee", "crewneck", "crew neck", "round neck", "maglietta", "t-shirt girocollo", "camiseta", "cuello redondo", "تیشرت", "تی شرت", "تیشرت یقه گرد", "یقه گرد"],
-  vneck: ["tshirt", "t-shirt", "v-neck", "v neck", "scollo a v", "cuello pico", "تیشرت یقه هفت", "یقه هفت"],
-  shorts_tracksuit: ["tracksuit", "shorts tracksuit", "summer tracksuit", "short set", "shorts set", "tshirt and shorts", "2 piece short set", "completo estivo", "tuta corta", "chandal corto", "conjunto verano", "ترک سوئیت", "ترکسوییت", "ست تیشرت و شورت", "ست شورت", "ست تابستانی"],
-  sweatshirt_tracksuit: ["tracksuit", "winter tracksuit", "full tracksuit", "hoodie tracksuit", "sweatshirt tracksuit", "sweatsuit", "jogger set", "2 piece tracksuit", "tuta completa", "tuta felpa", "chandal completo", "ترک سوئیت", "ترکسوییت", "ست ورزشی", "ست سویشرت و شلوار", "ست هودی و شلوار", "ست زمستانی"],
-  hoodie: ["hoodie", "hoodies", "sweatshirt", "sweatshirts", "pullover", "fleece", "felpa", "felpa con cappuccio", "sudadera", "sudadera con capucha", "هودی", "سویشرت", "دورس"],
-  jogger: ["jogger", "joggers", "sweatpants", "track pants", "pants", "trousers", "bottoms", "pantaloni", "pantaloni tuta", "pantalones", "شلوار", "شلوار جاگر", "شلوار اسلش", "اسلش", "جاگر"],
-  jeans: ["jeans", "denim", "denim pants", "trousers", "pants", "pantaloni jeans", "vaqueros", "pantalon vaquero", "شلوار جین", "شلوار لی", "جین"],
-  cargo: ["cargo", "cargo pants", "cargo trousers", "pants", "trousers", "pantaloni cargo", "pantalon cargo", "شلوار کارگو", "شلوار شش جیب", "کارگو"],
-  jacket: ["jacket", "coat", "outerwear", "puffer", "bomber", "giacca", "piumino", "chaqueta", "abrigo", "کاپشن", "پالتو", "کت"],
-  shirt: ["shirt", "shirts", "button down", "dress shirt", "camicia", "camisa", "پیراهن", "شومیز"],
-  shoes: ["shoes", "sneakers", "trainers", "loafers", "footwear", "scarpe", "zapatos", "zapatillas", "کفش", "کتانی", "کتونی"],
-  bag: ["bag", "bags", "handbag", "tote", "crossbody", "backpack", "borsa", "bolso", "کیف"]
-};
-
-const SEASON_SYNONYMS_DICT = {
-  summer: ["summer", "spring", "lightweight", "estate", "estivo", "verano", "تابستانی", "تابستانه", "بهاره", "خنک"],
-  winter: ["winter", "autumn", "fall", "heavyweight", "warm", "inverno", "invernale", "invierno", "زمستانی", "زمستانه", "پاییزه", "ضخیم"]
-};
-
-const GENDER_SYNONYMS_DICT = {
-  men: ["men", "mens", "man", "male", "uomo", "hombre", "مردانه", "پسرانه"],
-  women: ["women", "womens", "woman", "female", "lady", "donna", "mujer", "زنانه", "دخترانه"],
-  kids: ["kids", "child", "children", "baby", "boys", "girls", "bambini", "ninos", "بچگانه", "بچه گانه", "نوزادی"]
-};
-
-function expandProductSearchIndex({ sku, vendorCode, department, subcategory, leafSub, aiData }) {
-  const tagSet = new Set();
-  const addToken = (str) => {
-    if (!str) return;
-    String(str)
-      .toLowerCase()
-      .split(/[,،/|]+/)
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .forEach((t) => tagSet.add(t));
-  };
-
-  addToken(sku);
-  addToken(vendorCode);
-  addToken(department);
-  addToken(subcategory);
-  addToken(leafSub);
-
-  // ۱. افزودن نام‌های ۳ زبانه بخش، شاخه و زیربخش از ساختار دسته‌بندی
-  const deptObj = adminState.taxonomy.find((d) => d.id === department);
-  const subObj = (deptObj?.subcategories || []).find((s) => s.id === subcategory);
-  const leafObj = (subObj?.leaves || []).find((l) => l.id === leafSub || l.labelEn === leafSub);
-
-  if (deptObj) {
-    addToken(deptObj.labelFa);
-    addToken(deptObj.labelEn);
-    addToken(deptObj.labelIt);
-    addToken(deptObj.labelEs);
-  }
-  if (subObj) {
-    addToken(subObj.labelFa);
-    addToken(subObj.labelEn);
-    addToken(subObj.labelIt);
-    addToken(subObj.labelEs);
-  }
-  if (leafObj) {
-    addToken(leafObj.labelFa);
-    addToken(leafObj.labelEn);
-    addToken(leafObj.labelIt);
-    addToken(leafObj.labelEs);
-  }
-
-  // ۲. افزودن اطلاعات استخراج‌شده توسط جمنای (برند، رنگ، فصل، نوع دوخت)
-  if (aiData) {
-    if (aiData.brand && aiData.brand.toLowerCase() !== "none") {
-      addToken(aiData.brand);
-    }
-    if (aiData.colors) {
-      Object.values(aiData.colors).forEach(addToken);
-    }
-    if (Array.isArray(aiData.searchTags)) {
-      aiData.searchTags.forEach(addToken);
-    }
-    const gType = String(aiData.garmentType || "").toLowerCase();
-    Object.keys(GARMENT_SYNONYMS_DICT).forEach((key) => {
-      if (gType.includes(key) || String(subcategory).includes(key) || String(leafSub).toLowerCase().includes(key)) {
-        GARMENT_SYNONYMS_DICT[key].forEach(addToken);
-      }
-    });
-
-    const seasonKey = String(aiData.season || "").toLowerCase();
-    if (SEASON_SYNONYMS_DICT[seasonKey]) {
-      SEASON_SYNONYMS_DICT[seasonKey].forEach(addToken);
-    }
-  }
-
-  // ۳. افزودن مترادف‌های جنسیت و شاخه حتی قبل از اجرای جمنای
-  if (GENDER_SYNONYMS_DICT[department]) {
-    GENDER_SYNONYMS_DICT[department].forEach(addToken);
-  }
-  if (String(subcategory).includes("tshirt")) GARMENT_SYNONYMS_DICT.crewneck.forEach(addToken);
-  if (String(subcategory).includes("trousers")) GARMENT_SYNONYMS_DICT.jogger.forEach(addToken);
-  if (String(subcategory).includes("jeans")) GARMENT_SYNONYMS_DICT.jeans.forEach(addToken);
-  if (String(subcategory).includes("hoodie")) GARMENT_SYNONYMS_DICT.hoodie.forEach(addToken);
-
-  return Array.from(tagSet);
-}
-
 function syncVendorsFromProductsAndConfig() {
   const vendorMap = new Map();
 
@@ -1518,8 +1528,11 @@ function renderBatchUploadReport() {
   }
 }
 
+/* === پایان بلوک ۱ از ۲ فایل admin.js — بلوک ۲ را دقیقاً زیر این خط پیست کنید === */
+/* === شروع بلوک ۲ از ۲ فایل admin.js — دقیقاً زیر بلوک ۱ پیست کنید === */
+
 /* ==========================================================================
-   9. 8x PARALLEL BATCH UPLOADER + VIDEO-AS-PRODUCT + AI WORKER
+   9. 8x PARALLEL BATCH UPLOADER + AUTO 3-LANG PRODUCT SEO PATHS
    ========================================================================== */
 async function executeParallelBatchUpload(itemsToProcess, isRetry = false) {
   const submitBtn = document.getElementById("btn-save-product-submit");
@@ -1619,6 +1632,7 @@ async function executeParallelBatchUpload(itemsToProcess, isRetry = false) {
             id: sku,
             code: sku,
             sku,
+            seoPaths: buildProductSeoPaths(sku),
             vendorCode: vendor.code,
             vendorName: vendor.name,
             fileFingerprint: fp,
@@ -1795,6 +1809,7 @@ async function handleSaveProductForm(e) {
       id: docId,
       code: sku,
       sku,
+      seoPaths: buildProductSeoPaths(sku),
       vendorCode: vendor.code,
       vendorName: vendor.name,
       fileFingerprint: fingerprints[0] || existingProd?.fileFingerprint || "",
@@ -1916,7 +1931,6 @@ async function startBackgroundAiWorker() {
         parts.push({ inlineData: { mimeType: "image/webp", data: base64Data } });
       }
 
-      // پرامپت فشرده و فوق‌دقیق (کمترین مصرف توکن برای کلید رایگان، بیشترین دقت در تشخیص برند، رنگ، یقه‌دار/یقه‌گرد و شورت/شلوار)
       parts.push({
         text: `
 Inspect garment photo (Code:${nextProd.sku}, Dept:${nextProd.department}, Cat:${nextProd.subcategory}).
@@ -1942,7 +1956,6 @@ Return ONLY JSON:
         nextProd.pcsPerPack
       );
 
-      // ترکیب تگ‌های جمنای با دیکشنری مترادف‌های ۴ زبانه (بدون مصرف توکن اضافه)
       const fullSearchTags = expandProductSearchIndex({
         sku: nextProd.sku,
         vendorCode: nextProd.vendorCode,
@@ -1984,7 +1997,6 @@ Return ONLY JSON:
       updateAiQueueCounters();
       renderCatalogTable();
 
-      // مکث کوتاه برای رعایت سقف رایگان جمنای (Free Tier RPM)
       await new Promise((r) => setTimeout(r, 2200));
     } catch (err) {
       nextProd.aiStatus = "completed";
@@ -2111,15 +2123,9 @@ function bindProductUploaderEvents() {
   document.getElementById("admin-product-form")?.addEventListener("submit", handleSaveProductForm);
 }
 
-/* === شروع قطعه ۲ (بخش‌های ۱۱ و ۱۲) — جایگزین بخش‌های ۱۱ و ۱۲ قبلی تا بالای بخش ۱۳ === */
-
 /* ==========================================================================
    11. TAB 2: CATALOG MANAGER, PRICE-TIERS EXTRACTOR & PERSISTENT CHECKBOXES
    ========================================================================== */
-/**
- * بازسازی شاردهای ۱۰۰تایی کاتالوگ + استخراج خودکار رنج قیمت‌ها (priceTiers)
- * برای نمایش دکمه‌های فیلتر قیمت (مثلاً $5 | $9 | $12) در بالای صفحه محصولات
- */
 async function rebuildAllCatalogShards() {
   try {
     normalizeTaxonomyStructure();
@@ -2137,7 +2143,6 @@ async function rebuildAllCatalogShards() {
       });
     });
 
-    // فقط محصولاتی که بخش، شاخه یا زیربخش آن‌ها مخفی نیست در ویترین عمومی قرار می‌گیرند
     const visibleProducts = adminState.products.filter((p) => {
       if (hiddenDeptIds.has(p.department)) return false;
       if (hiddenSubcatIds.has(p.subcategory)) return false;
@@ -2145,44 +2150,45 @@ async function rebuildAllCatalogShards() {
       return true;
     });
 
-    const items = visibleProducts.map((p) => ({
-      id: p.id || p.sku,
-      sku: p.sku || p.code || p.id,
-      vendorCode: p.vendorCode || "PRD",
-      department: p.department || "men",
-      subcategory: p.subcategory || "men-tshirts",
-      leafSub: p.leafSub || "",
-      garmentType: p.garmentType || "",
-      season: p.season || "all-season",
-      detectedBrand: p.detectedBrand || "",
-      colors: p.colors || {},
-      unitPrice: Number(p.unitPrice) || 0,
-      pcsPerPack: Math.max(1, parseInt(p.pcsPerPack, 10) || 6),
-      sizeRange: p.sizeRange || "S - M - L - XL",
-      stockStatus: p.stockStatus || "in_stock",
-      isFeatured: Boolean(p.isFeatured),
-      publicTitle: p.publicTitle || { en: `Premium Garment • Code ${p.sku}` },
-      brandTitle: p.brandTitle || p.publicTitle || { en: `Premium Garment • Code ${p.sku}` },
-      searchTags: Array.isArray(p.searchTags) ? p.searchTags : [],
-      imageUrl: p.imageUrl || "",
-      thumbUrl: p.thumbUrl || p.imageUrl || "",
-      images: Array.isArray(p.images) ? p.images : [p.imageUrl],
-      videoUrl: p.videoUrl || "",
-      youtubeId: p.youtubeId || "",
-      createdAtMillis: p.createdAtMillis || Date.now()
-    }));
+    const items = visibleProducts.map((p) => {
+      const sku = p.sku || p.code || p.id;
+      return {
+        id: p.id || sku,
+        sku,
+        seoPaths: p.seoPaths || buildProductSeoPaths(sku),
+        vendorCode: p.vendorCode || "PRD",
+        department: p.department || "men",
+        subcategory: p.subcategory || "men-tshirts",
+        leafSub: p.leafSub || "",
+        garmentType: p.garmentType || "",
+        season: p.season || "all-season",
+        detectedBrand: p.detectedBrand || "",
+        colors: p.colors || {},
+        unitPrice: Number(p.unitPrice) || 0,
+        pcsPerPack: Math.max(1, parseInt(p.pcsPerPack, 10) || 6),
+        sizeRange: p.sizeRange || "S - M - L - XL",
+        stockStatus: p.stockStatus || "in_stock",
+        isFeatured: Boolean(p.isFeatured),
+        publicTitle: p.publicTitle || { en: `Premium Garment • Code ${sku}` },
+        brandTitle: p.brandTitle || p.publicTitle || { en: `Premium Garment • Code ${sku}` },
+        searchTags: Array.isArray(p.searchTags) ? p.searchTags : [],
+        imageUrl: p.imageUrl || "",
+        thumbUrl: p.thumbUrl || p.imageUrl || "",
+        images: Array.isArray(p.images) ? p.images : [p.imageUrl],
+        videoUrl: p.videoUrl || "",
+        youtubeId: p.youtubeId || "",
+        createdAtMillis: p.createdAtMillis || Date.now()
+      };
+    });
 
-    // تابع کمکی استخراج رنج قیمت‌های موجود (مرتب‌شده از ارزان‌ترین به گران‌ترین)
     const extractSortedPrices = (list) =>
       Array.from(new Set(list.map((i) => Number(i.unitPrice)).filter((n) => n > 0))).sort((a, b) => a - b);
 
-    // ۱. شارد جدیدترین‌ها
     await setDoc(doc(db, "catalog_shards", "latest"), {
       updatedAtIso: new Date().toISOString(),
       items: items.slice(0, 24)
     });
 
-    // ۲. شارد اصلی کاتالوگ + رنج قیمت‌های کل سایت
     const masterTotalPages = Math.max(1, Math.ceil(items.length / SHARD_CHUNK_SIZE));
     await setDoc(doc(db, "catalog_shards", "master_catalog"), {
       updatedAtIso: new Date().toISOString(),
@@ -2193,7 +2199,6 @@ async function rebuildAllCatalogShards() {
       items: items.slice(0, 200)
     });
 
-    // ۳. شاردهای ۱۰۰تایی هر بخش اصلی + نقشه دقیق قیمت‌های هر شاخه و هر زیربخش (مثلاً تیشرت > یقه گرد -> [$5, $9])
     for (const deptObj of adminState.taxonomy) {
       const deptItems = items.filter((i) => i.department === deptObj.id);
       const totalPages = Math.max(1, Math.ceil(deptItems.length / SHARD_CHUNK_SIZE));
@@ -2528,7 +2533,8 @@ function bindCatalogManagerEvents() {
 
   document.getElementById("btn-rebuild-all-shards")?.addEventListener("click", async () => {
     await rebuildAllCatalogShards();
-    showAdminToast("✓ کاتالوگ و رنج قیمت‌های سایت بروزرسانی شد!");
+    await triggerGitHubSeoFactory().catch(() => {});
+    showAdminToast("✓ کاتالوگ، رنج قیمت‌ها و سیگنال سئوی گیت‌هاب بروزرسانی شد!");
   });
 
   document.getElementById("admin-catalog-tbody")?.addEventListener("change", (e) => {
@@ -2714,7 +2720,7 @@ function bindCatalogManagerEvents() {
 }
 
 /* ==========================================================================
-   12. TAB 3: 3-LEVEL GRAPHICAL & 3-LANGUAGE CATEGORY MANAGER (NO SLASH/COMMA)
+   12. TAB 3: 3-LEVEL GRAPHICAL & 3-LANGUAGE CATEGORY MANAGER + AUTO URLS
    ========================================================================== */
 async function saveTaxonomyToFirestore() {
   normalizeTaxonomyStructure();
@@ -2728,7 +2734,7 @@ async function saveTaxonomyToFirestore() {
 function renderCategoriesManagerUI() {
   normalizeTaxonomyStructure();
 
-  // ۱. رندر جدول سطح ۱ (بخش‌های اصلی)
+  // ۱. جدول سطح ۱ (بخش‌های اصلی + نمایش ۳ لینک اتوماتیک)
   const deptTbody = document.getElementById("admin-departments-tbody");
   if (deptTbody) {
     deptTbody.innerHTML = adminState.taxonomy
@@ -2740,9 +2746,10 @@ function renderCategoriesManagerUI() {
             <strong>${escapeHtml(d.labelFa)}</strong><br>
             <code style="font-size:0.7rem; color:var(--text-muted);">${escapeHtml(d.id)}</code>
           </td>
-          <td style="direction:ltr; text-align:right; font-size:0.76rem;">
-            <div>🇬🇧 <strong>${escapeHtml(d.labelEn)}</strong></div>
-            <div>🇮🇹 ${escapeHtml(d.labelIt)} | 🇪🇸 ${escapeHtml(d.labelEs)}</div>
+          <td style="direction:ltr; text-align:right; font-size:0.74rem;">
+            <div>🇬🇧 <strong>${escapeHtml(d.labelEn)}</strong> <code style="color:var(--emerald-dark);">${escapeHtml(d.paths?.en || "")}</code></div>
+            <div>🇮🇹 ${escapeHtml(d.labelIt)} <code style="color:#64748b;">${escapeHtml(d.paths?.it || "")}</code></div>
+            <div>🇪🇸 ${escapeHtml(d.labelEs)} <code style="color:#64748b;">${escapeHtml(d.paths?.es || "")}</code></div>
           </td>
           <td>${(d.subcategories || []).length} شاخه</td>
           <td>
@@ -2789,9 +2796,10 @@ function renderSubcategoriesManagerTable() {
           <strong>${escapeHtml(sc.labelFa)}</strong><br>
           <code style="font-size:0.7rem; color:var(--text-muted);">${escapeHtml(sc.id)}</code>
         </td>
-        <td style="direction:ltr; text-align:right; font-size:0.76rem;">
-          <div>🇬🇧 <strong>${escapeHtml(sc.labelEn)}</strong></div>
-          <div>🇮🇹 ${escapeHtml(sc.labelIt)} | 🇪🇸 ${escapeHtml(sc.labelEs)}</div>
+        <td style="direction:ltr; text-align:right; font-size:0.74rem;">
+          <div>🇬🇧 <strong>${escapeHtml(sc.labelEn)}</strong> <code style="color:var(--emerald-dark);">${escapeHtml(sc.paths?.en || "")}</code></div>
+          <div>🇮🇹 ${escapeHtml(sc.labelIt)} <code style="color:#64748b;">${escapeHtml(sc.paths?.it || "")}</code></div>
+          <div>🇪🇸 ${escapeHtml(sc.labelEs)} <code style="color:#64748b;">${escapeHtml(sc.paths?.es || "")}</code></div>
         </td>
         <td>${(sc.leaves || []).length} زیربخش</td>
         <td>
@@ -2837,9 +2845,10 @@ function renderLeavesManagerTable() {
           <strong>${escapeHtml(lf.labelFa)}</strong><br>
           <code style="font-size:0.7rem; color:var(--text-muted);">${escapeHtml(lf.id)}</code>
         </td>
-        <td style="direction:ltr; text-align:right; font-size:0.76rem;">
-          <div>🇬🇧 <strong>${escapeHtml(lf.labelEn)}</strong></div>
-          <div>🇮🇹 ${escapeHtml(lf.labelIt)} | 🇪🇸 ${escapeHtml(lf.labelEs)}</div>
+        <td style="direction:ltr; text-align:right; font-size:0.74rem;">
+          <div>🇬🇧 <strong>${escapeHtml(lf.labelEn)}</strong> <code style="color:var(--emerald-dark);">${escapeHtml(lf.paths?.en || "")}</code></div>
+          <div>🇮🇹 ${escapeHtml(lf.labelIt)} <code style="color:#64748b;">${escapeHtml(lf.paths?.it || "")}</code></div>
+          <div>🇪🇸 ${escapeHtml(lf.labelEs)} <code style="color:#64748b;">${escapeHtml(lf.paths?.es || "")}</code></div>
         </td>
         <td>
           <button type="button" class="btn-outline" data-toggle-leaf-vis="${deptObj.id}:${subObj.id}:${idx}" style="background:${lf.hidden ? "#fef2f2" : "#ecfdf5"}; color:${lf.hidden ? "#991b1b" : "#065f46"};">
@@ -2861,6 +2870,26 @@ function renderLeavesManagerTable() {
 }
 
 function bindCategoriesManagerEvents() {
+  // تولید خودکار شناسه (ID) به محض تایپ نام انگلیسی (برای راحتی کار با گوشی)
+  document.getElementById("dept-label-en")?.addEventListener("input", (e) => {
+    const idInp = document.getElementById("dept-id-input");
+    const orig = document.getElementById("dept-edit-original-id")?.value;
+    if (idInp && !orig) idInp.value = slugify(e.target.value, "");
+  });
+
+  document.getElementById("subcat-label-en")?.addEventListener("input", (e) => {
+    const idInp = document.getElementById("subcat-id-input");
+    const orig = document.getElementById("subcat-edit-original-id")?.value;
+    const deptId = document.getElementById("subcat-parent-dept")?.value || "men";
+    if (idInp && !orig) idInp.value = `${deptId}-${slugify(e.target.value, "")}`;
+  });
+
+  document.getElementById("leaf-label-en")?.addEventListener("input", (e) => {
+    const idInp = document.getElementById("leaf-id-input");
+    const orig = document.getElementById("leaf-edit-original-id")?.value;
+    if (idInp && !orig) idInp.value = slugify(e.target.value, "");
+  });
+
   document.getElementById("filter-subcat-manager-dept")?.addEventListener("change", renderSubcategoriesManagerTable);
 
   document.getElementById("leaf-parent-dept")?.addEventListener("change", (e) => {
@@ -2886,15 +2915,15 @@ function bindCategoriesManagerEvents() {
     document.getElementById("leaf-image-url").value = "";
   });
 
-  // ۱. ذخیره یا ویرایش سطح ۱ (بخش اصلی ۳ زبانه)
+  // ۱. ذخیره سطح ۱ (بخش اصلی ۳ زبانه)
   document.getElementById("form-add-department")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const origId = document.getElementById("dept-edit-original-id").value.trim();
-    const id = slugify(document.getElementById("dept-id-input").value.trim(), "dept");
     const labelFa = document.getElementById("dept-label-fa").value.trim();
     const labelEn = document.getElementById("dept-label-en").value.trim();
     const labelIt = document.getElementById("dept-label-it").value.trim() || labelEn;
     const labelEs = document.getElementById("dept-label-es").value.trim() || labelEn;
+    const id = slugify(document.getElementById("dept-id-input").value.trim() || labelEn, "dept");
     const imgFile = document.getElementById("dept-image-file")?.files?.[0] || null;
     let image = document.getElementById("dept-image-url").value.trim();
 
@@ -2916,7 +2945,6 @@ function bindCategoriesManagerEvents() {
         existing.label = labelEn;
         existing.labelIt = labelIt;
         existing.labelEs = labelEs;
-        existing.labelItEs = `${labelIt} / ${labelEs}`;
         if (image) existing.image = image;
       } else {
         adminState.taxonomy.push({
@@ -2926,7 +2954,6 @@ function bindCategoriesManagerEvents() {
           label: labelEn,
           labelIt,
           labelEs,
-          labelItEs: `${labelIt} / ${labelEs}`,
           hidden: false,
           image: image || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=600&q=80",
           subcategories: []
@@ -2936,7 +2963,7 @@ function bindCategoriesManagerEvents() {
       await saveTaxonomyToFirestore();
       e.target.reset();
       document.getElementById("dept-edit-original-id").value = "";
-      showAdminToast(`✓ بخش "${labelFa}" به ۳ زبان ذخیره و در کل سایت بروزرسانی شد!`);
+      showAdminToast(`✓ بخش "${labelFa}" همراه با ۳ لینک سئو در دیتابیس ذخیره شد!`);
     } catch (err) {
       showAdminToast(`خطا: ${err.message}`);
     } finally {
@@ -2944,7 +2971,6 @@ function bindCategoriesManagerEvents() {
     }
   });
 
-  // رویدادهای جدول سطح ۱ (بخش‌های اصلی)
   document.getElementById("admin-departments-tbody")?.addEventListener("click", async (e) => {
     const toggleBtn = e.target.closest("[data-toggle-dept-vis]");
     if (toggleBtn) {
@@ -2992,7 +3018,7 @@ function bindCategoriesManagerEvents() {
     }
   });
 
-  // ۲. ذخیره یا ویرایش سطح ۲ (شاخه محصولات ۳ زبانه + عکس)
+  // ۲. ذخیره سطح ۲ (شاخه محصولات ۳ زبانه + عکس)
   document.getElementById("form-add-subcategory")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const deptId = document.getElementById("subcat-parent-dept").value;
@@ -3000,12 +3026,12 @@ function bindCategoriesManagerEvents() {
     if (!deptObj) return;
 
     const origId = document.getElementById("subcat-edit-original-id").value.trim();
-    const rawId = document.getElementById("subcat-id-input").value.trim();
-    const id = slugify(rawId.startsWith(deptId) ? rawId : `${deptId}-${rawId}`, `${deptId}-item`);
     const labelFa = document.getElementById("subcat-label-fa").value.trim();
     const labelEn = document.getElementById("subcat-label-en").value.trim();
     const labelIt = document.getElementById("subcat-label-it").value.trim() || labelEn;
     const labelEs = document.getElementById("subcat-label-es").value.trim() || labelEn;
+    const rawId = document.getElementById("subcat-id-input").value.trim() || labelEn;
+    const id = slugify(rawId.startsWith(deptId) ? rawId : `${deptId}-${rawId}`, `${deptId}-item`);
     const imgFile = document.getElementById("subcat-image-file")?.files?.[0] || null;
     let image = document.getElementById("subcat-image-url").value.trim();
 
@@ -3028,9 +3054,6 @@ function bindCategoriesManagerEvents() {
         existing.label = labelEn;
         existing.labelIt = labelIt;
         existing.labelEs = labelEs;
-        existing.en = `Premium ${labelEn}`;
-        existing.it = `${labelIt} Premium`;
-        existing.es = `${labelEs} Premium`;
         if (image) existing.image = image;
       } else {
         deptObj.subcategories.push({
@@ -3040,9 +3063,6 @@ function bindCategoriesManagerEvents() {
           label: labelEn,
           labelIt,
           labelEs,
-          en: `Premium ${labelEn}`,
-          it: `${labelIt} Premium`,
-          es: `${labelEs} Premium`,
           hidden: false,
           image: image || deptObj.image || "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=500&q=80",
           leaves: []
@@ -3053,7 +3073,7 @@ function bindCategoriesManagerEvents() {
       await saveTaxonomyToFirestore();
       e.target.reset();
       document.getElementById("subcat-edit-original-id").value = "";
-      showAdminToast(`✓ شاخه "${labelFa}" به ۳ زبان ذخیره شد!`);
+      showAdminToast(`✓ شاخه "${labelFa}" همراه با ۳ لینک سئو در دیتابیس ذخیره شد!`);
     } catch (err) {
       showAdminToast(`خطا: ${err.message}`);
     } finally {
@@ -3061,7 +3081,6 @@ function bindCategoriesManagerEvents() {
     }
   });
 
-  // رویدادهای جدول سطح ۲ (شاخه‌ها)
   document.getElementById("admin-subcategories-tbody")?.addEventListener("click", async (e) => {
     const toggleBtn = e.target.closest("[data-toggle-sub-vis]");
     if (toggleBtn) {
@@ -3121,7 +3140,7 @@ function bindCategoriesManagerEvents() {
     }
   });
 
-  // ۳. ذخیره یا ویرایش سطح ۳ (زیربخش‌های داخلی مثل یقه گرد، یقه‌دار پلو، جاگر...) به ۳ زبان و بدون کاما
+  // ۳. ذخیره سطح ۳ (زیربخش‌های داخلی ۳ زبانه)
   document.getElementById("form-add-leaf")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const deptId = document.getElementById("leaf-parent-dept").value;
@@ -3131,11 +3150,11 @@ function bindCategoriesManagerEvents() {
     if (!subObj) return;
 
     const origId = document.getElementById("leaf-edit-original-id").value.trim();
-    const id = slugify(document.getElementById("leaf-id-input").value.trim(), "style");
     const labelFa = document.getElementById("leaf-label-fa").value.trim();
     const labelEn = document.getElementById("leaf-label-en").value.trim();
     const labelIt = document.getElementById("leaf-label-it").value.trim() || labelEn;
     const labelEs = document.getElementById("leaf-label-es").value.trim() || labelEn;
+    const id = slugify(document.getElementById("leaf-id-input").value.trim() || labelEn, "style");
     const imgFile = document.getElementById("leaf-image-file")?.files?.[0] || null;
     let image = document.getElementById("leaf-image-url")?.value.trim() || "";
 
@@ -3185,7 +3204,7 @@ function bindCategoriesManagerEvents() {
       const fileInp = document.getElementById("leaf-image-file");
       if (fileInp) fileInp.value = "";
 
-      showAdminToast(`✓ زیربخش "${labelFa}" به ۳ زبان ذخیره شد!`);
+      showAdminToast(`✓ زیربخش "${labelFa}" همراه با ۳ لینک سئو در دیتابیس ذخیره شد!`);
     } catch (err) {
       showAdminToast(`خطا: ${err.message}`);
     } finally {
@@ -3193,7 +3212,6 @@ function bindCategoriesManagerEvents() {
     }
   });
 
-  // رویدادهای جدول سطح ۳ (زیربخش‌ها)
   document.getElementById("admin-leaves-tbody")?.addEventListener("click", async (e) => {
     const toggleBtn = e.target.closest("[data-toggle-leaf-vis]");
     if (toggleBtn) {
@@ -3259,8 +3277,6 @@ function bindCategoriesManagerEvents() {
   });
 }
 
-/* === پایان قطعه ۲ — بخش ۱۳ (VENDORS CRM) و ادامه فایل بدون تغییر در زیر این خط قرار می‌گیرند === */
-
 /* ==========================================================================
    13. TAB 4: VENDORS CRM (CODE, NAME & SUPER-ADMIN PRIVATE PHONE/ADDRESS)
    ========================================================================== */
@@ -3283,7 +3299,6 @@ async function saveOrUpdateVendorRecord(code, name, phone = "", address = "", or
   adminState.publicConfig.vendors = adminState.vendors;
   await setDoc(doc(db, "settings", "public_config"), { vendors: adminState.vendors }, { merge: true });
 
-  // ذخیره شماره تلفن و آدرس عمده‌فروش فقط در سند محرمانه مدیر کل
   if (adminState.role === "super_admin") {
     adminState.vendorSecrets[cleanCode] = {
       phone: phone || adminState.vendorSecrets[cleanCode]?.phone || "",
@@ -3390,7 +3405,7 @@ function bindVendorsManagerEvents() {
 }
 
 /* ==========================================================================
-   14. TAB 5, 6, 7, 8: ORDERS, VIDEOS, EDITABLE BLOGS & GLOBAL SETTINGS
+   14. TAB 5, 6, 7, 8: ORDERS, VIDEOS, BLOGS, SETTINGS & GITHUB SSG WAKE-UP
    ========================================================================== */
 async function loadOrdersAndCustomers() {
   try {
@@ -3585,7 +3600,6 @@ function bindVideosManagerEvents() {
     showAdminToast("✓ ویدیوی صفحه اول ذخیره شد!");
   });
 
-  // افزودن ویدیو به ویترین (پشتیبانی از فایل گالری یا لینک یوتیوب)
   document.getElementById("admin-add-showroom-video-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const file = document.getElementById("showroom-vid-file")?.files?.[0] || null;
@@ -3632,7 +3646,6 @@ function bindVideosManagerEvents() {
     renderShowroomVideosTable();
   });
 
-  // افزودن ویدیوی رضایت مشتریان و ارسال بار (فایل گالری یا لینک یوتیوب)
   document.getElementById("admin-add-cargo-video-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const file = document.getElementById("cargo-vid-file")?.files?.[0] || null;
@@ -3680,7 +3693,6 @@ function bindVideosManagerEvents() {
   });
 }
 
-/* وبلاگ ۳ زبانه با قابلیت ویرایش توسط مدیر کل */
 async function loadPublishedBlogs() {
   try {
     const snap = await getDocs(collection(db, "blogs"));
@@ -3767,38 +3779,79 @@ async function commitFileToGitHub(filePath, contentString, commitMessage) {
   return await putRes.json();
 }
 
-async function buildAndPushSitemapAndRobots() {
+/**
+ * تولید نقشه سایت ۳ زبانه کامل (شامل تمام بخش‌ها، شاخه‌ها، زیربخش‌ها، مقالات و تک‌تک عکس‌ها/محصولات)
+ * + ارسال سیگنال بیدارباش به GitHub Actions برای ساخت صفحات فیزیکی سئو
+ */
+async function triggerGitHubSeoFactory() {
+  normalizeTaxonomyStructure();
   const today = new Date().toISOString().slice(0, 10);
+
   const urls = [
     { loc: `${SITE_DOMAIN}/`, priority: "1.0" },
+    { loc: `${SITE_DOMAIN}/en/`, priority: "1.0" },
+    { loc: `${SITE_DOMAIN}/it/`, priority: "1.0" },
+    { loc: `${SITE_DOMAIN}/es/`, priority: "1.0" },
     { loc: `${SITE_DOMAIN}/category.html`, priority: "0.9" },
-    { loc: `${SITE_DOMAIN}/blog.html`, priority: "0.8" }
+    { loc: `${SITE_DOMAIN}/blog.html`, priority: "0.85" }
   ];
 
+  // ۱. افزودن لینک‌های ۳ زبانه تمام بخش‌ها، شاخه‌ها و زیربخش‌های فعال
   adminState.taxonomy
     .filter((d) => !d.hidden)
     .forEach((dept) => {
-      urls.push({ loc: `${SITE_DOMAIN}/category.html?dept=${dept.id}`, priority: "0.85" });
+      ["en", "it", "es"].forEach((lang) => {
+        if (dept.paths?.[lang]) {
+          urls.push({ loc: `${SITE_DOMAIN}${dept.paths[lang]}`, priority: "0.9" });
+        }
+      });
+
       (dept.subcategories || [])
         .filter((s) => !s.hidden)
         .forEach((sc) => {
-          urls.push({ loc: `${SITE_DOMAIN}/category.html?dept=${dept.id}&cat=${sc.id}`, priority: "0.75" });
+          ["en", "it", "es"].forEach((lang) => {
+            if (sc.paths?.[lang]) {
+              urls.push({ loc: `${SITE_DOMAIN}${sc.paths[lang]}`, priority: "0.85" });
+            }
+          });
+
+          (sc.leaves || [])
+            .filter((lf) => !lf.hidden)
+            .forEach((lf) => {
+              ["en", "it", "es"].forEach((lang) => {
+                if (lf.paths?.[lang]) {
+                  urls.push({ loc: `${SITE_DOMAIN}${lf.paths[lang]}`, priority: "0.8" });
+                }
+              });
+            });
         });
     });
 
+  // ۲. افزودن لینک‌های ۳ زبانه مقالات وبلاگ
   adminState.blogs.forEach((b) => {
-    const sEn = b.slugs?.en || b.slug || b.id;
-    urls.push({ loc: `${SITE_DOMAIN}/en/blog/${encodeURIComponent(sEn)}/`, priority: "0.8" });
+    ["en", "it", "es"].forEach((lang) => {
+      const slug = b.slugs?.[lang] || b.slug || b.id;
+      urls.push({ loc: `${SITE_DOMAIN}/${lang}/blog/${encodeURIComponent(slug)}/`, priority: "0.8" });
+    });
+  });
+
+  // ۳. افزودن لینک‌های فیزیکی ۳ زبانه برای تک‌تک محصولات (عکس‌ها)
+  adminState.products.slice(0, 3000).forEach((p) => {
+    const paths = p.seoPaths || buildProductSeoPaths(p.sku || p.id);
+    ["en", "it", "es"].forEach((lang) => {
+      if (paths[lang]) {
+        urls.push({ loc: `${SITE_DOMAIN}${paths[lang]}`, priority: "0.7" });
+      }
+    });
   });
 
   const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
     .map((u) => `  <url><loc>${u.loc}</loc><lastmod>${today}</lastmod><priority>${u.priority}</priority></url>`)
     .join("\n")}\n</urlset>`;
 
-  // عدم درج نام raminreza.html در robots.txt تا هیچ هکری نتواند آدرس مخفی پنل را پیدا کند
   const robotsTxt = `User-agent: *\nAllow: /\nDisallow: /order.html\nDisallow: /*?q=*\nSitemap: ${SITE_DOMAIN}/sitemap.xml\n`;
 
-  await commitFileToGitHub("sitemap.xml", sitemapXml, "Update sitemap.xml");
+  await commitFileToGitHub("sitemap.xml", sitemapXml, "Auto-update 3-language sitemap.xml & trigger SSG");
   await commitFileToGitHub("robots.txt", robotsTxt, "Update robots.txt");
 }
 
@@ -3931,7 +3984,6 @@ Return ONLY valid JSON:
   });
 }
 
-/* تنظیمات کلی، آپلود لوگو، فرمول حداقل سفارش (۲۵ عدد) و تشخیص سطح دسترسی */
 async function loadSettingsFromFirestore() {
   try {
     const pubSnap = await getDoc(doc(db, "settings", "public_config"));
@@ -3943,6 +3995,8 @@ async function loadSettingsFromFirestore() {
       }
     }
   } catch (e) {}
+
+  normalizeTaxonomyStructure();
 
   const loggedEmail = String(adminState.user?.email || "").trim().toLowerCase();
   const assistants = (adminState.publicConfig.assistantEmails || []).map((e) => String(e).trim().toLowerCase());
@@ -4036,6 +4090,8 @@ function bindSettingsEvents() {
         .split(/[\r\n,]+/)
         .map((s) => s.trim().toLowerCase())
         .filter(Boolean);
+
+      normalizeTaxonomyStructure();
 
       const updatedPublic = {
         ...adminState.publicConfig,
@@ -4139,8 +4195,8 @@ function bindSettingsEvents() {
 
   document.getElementById("btn-push-sitemap-robots")?.addEventListener("click", async () => {
     try {
-      await buildAndPushSitemapAndRobots();
-      showAdminToast("✓ فایل‌های sitemap.xml و robots.txt در گیت‌هاب آپدیت شدند!");
+      await triggerGitHubSeoFactory();
+      showAdminToast("✓ نقشه سایت ۳ زبانه در گیت‌هاب آپدیت شد و سیگنال ساخت صفحات ارسال گردید!");
     } catch (err) {
       showAdminToast(`خطا: ${err.message}`);
     }
@@ -4152,7 +4208,9 @@ function bindSettingsEvents() {
    ========================================================================== */
 function initAdminSuite() {
   cleanDuplicateDomNodes();
+  normalizeTaxonomyStructure();
   populateAllTaxonomySelects();
+  renderCategoriesManagerUI();
   bindAuthEvents();
   bindNavigationEvents();
   bindProductUploaderEvents();
