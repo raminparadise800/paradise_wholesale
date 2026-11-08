@@ -2,11 +2,11 @@
  * ============================================================================
  * PARADISE WHOLESALE CLOTHING (Paradise Turkey Wholesale)
  * Domain: https://paradisewholesaler.com
- * File: admin.js (BLOCK 1 OF 2 — FINAL UNIFIED EDITION)
- *       - Auto 3-Language SEO URL & Slug Generator (Depts, Subcats, Leaves, Products)
+ * File: admin.js (BLOCK 1 OF 2 — FINAL UNIFIED EDITION WITH AUTO-PREFIX HEALER)
+ *       - Auto-Healing Department Prefix for All Subcategory IDs (Zero Collision)
+ *       - Auto 3-Language SEO URL & Hierarchical Title Generator (Dept + Cat + Leaf)
  *       - 8x Parallel Uploader + Dual-WebP (Thumbnail + HD) + Code-Only Watermark
  *       - Precision Free-Tier Gemini Vision + 4-Language Synonym Dictionary
- *       - GitHub Actions SSG Wake-Up Trigger & Strict Role Security (RBAC)
  * ============================================================================
  */
 
@@ -320,7 +320,7 @@ export const DEFAULT_TAXONOMY = [
     image: "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?auto=format&fit=crop&w=600&q=80",
     subcategories: [
       {
-        id: "kids-boys",
+        id: "kids-baby-boys",
         labelFa: "پسرانه",
         labelEn: "Boys Clothing",
         labelIt: "Abbigliamento Bambino",
@@ -330,7 +330,7 @@ export const DEFAULT_TAXONOMY = [
         leaves: []
       },
       {
-        id: "kids-girls",
+        id: "kids-baby-girls",
         labelFa: "دخترانه",
         labelEn: "Girls Clothing",
         labelIt: "Abbigliamento Bambina",
@@ -392,7 +392,7 @@ export const DEFAULT_TAXONOMY = [
     image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=600&q=80",
     subcategories: [
       {
-        id: "bags-main",
+        id: "bags-accessories-bags",
         labelFa: "کیف",
         labelEn: "Bags",
         labelIt: "Borse",
@@ -402,7 +402,7 @@ export const DEFAULT_TAXONOMY = [
         leaves: []
       },
       {
-        id: "accessories-main",
+        id: "bags-accessories-hats",
         labelFa: "اکسسوری، کمربند و کلاه",
         labelEn: "Accessories & Hats",
         labelIt: "Accessori e Cappelli",
@@ -485,7 +485,7 @@ const adminState = {
 };
 
 /* ==========================================================================
-   3. UTILITIES, AUTO 3-LANGUAGE SEO PATH GENERATOR & SYNONYM DICTIONARY
+   3. UTILITIES, AUTO-PREFIX HEALER & 3-LANGUAGE SEO PATH GENERATOR
    ========================================================================== */
 function cleanDuplicateDomNodes() {
   const seenIds = new Set();
@@ -530,6 +530,34 @@ function slugify(text, fallback = "item") {
   return s || fallback;
 }
 
+/**
+ * تابع تضمین‌کننده پیشوند بخش مادر (مثلاً men- یا women-) در اول شناسه شاخه‌ها
+ * حتی اگر قبلاً بدون پیشوند ذخیره شده باشد یا پیشوند تکراری داشته باشد، آن را استاندارد می‌کند.
+ */
+function buildPrefixedSubcatId(deptId, rawSubIdOrLabel) {
+  const cleanDept = slugify(deptId || "men", "men");
+  let base = slugify(rawSubIdOrLabel || "item", "item");
+
+  // حذف پیشوندهای تکراری یا قدیمی از ابتدای رشته تا دو بار تکرار نشود (مثلاً men-men-tshirts نشود)
+  const knownDepts = Array.isArray(adminState.taxonomy)
+    ? adminState.taxonomy.map((d) => slugify(d.id, "")).filter(Boolean)
+    : ["men", "women", "kids-baby", "kids", "shoes", "bags-accessories", "bags"];
+
+  for (const kd of knownDepts) {
+    if (base === kd) break;
+    if (base.startsWith(`${kd}-`)) {
+      base = base.slice(kd.length + 1);
+      break;
+    }
+  }
+
+  while (base.startsWith(`${cleanDept}-`)) {
+    base = base.slice(cleanDept.length + 1);
+  }
+
+  return `${cleanDept}-${base || "item"}`;
+}
+
 function extractYouTubeId(input) {
   const raw = String(input || "").trim();
   if (!raw) return "";
@@ -563,13 +591,16 @@ function findDuplicateProductByFingerprint(fingerprint) {
 }
 
 /**
- * ساخت خودکار اسلاگ‌ها و لینک‌های فیزیکی ۳ زبانه (EN / IT / ES) بر اساس نامی که مدیر وارد می‌کند!
- * این تابع تضمین می‌کند هر بخش، هر شاخه و هر زیربخش در دیتابیس دارای ۳ آدرس مجزا و سئو شده باشد.
+ * تعمیرکار خودکار دسته‌بندی‌ها + تولیدکننده لینک‌های ۳ زبانه سئو (EN / IT / ES)
+ * اگر قبلاً شاخه‌ای بدون پیشوند مردانه/زنانه ساخته شده باشد، این تابع خودکار آن را به
+ * men-... یا women-... تبدیل می‌کند تا هیچ تداخلی در دیتابیس رخ ندهد.
  */
 function normalizeTaxonomyStructure() {
   if (!Array.isArray(adminState.taxonomy) || adminState.taxonomy.length === 0) {
     adminState.taxonomy = structuredClone(DEFAULT_TAXONOMY);
   }
+
+  let anyIdHealed = false;
 
   adminState.taxonomy.forEach((dept) => {
     dept.id = slugify(dept.id || dept.labelEn || "dept", "dept");
@@ -583,7 +614,7 @@ function normalizeTaxonomyStructure() {
       dept.labelEs = dept.labelEs || parts[1] || parts[0] || dept.labelEn;
     }
 
-    // تولید خودکار لینک‌های ۳ زبانه سطح ۱ (بخش اصلی)
+    // لینک‌های فیزیکی ۳ زبانه سطح ۱ (بخش اصلی)
     dept.slugs = {
       en: slugify(dept.labelEn, dept.id),
       it: slugify(dept.labelIt, dept.id),
@@ -598,14 +629,27 @@ function normalizeTaxonomyStructure() {
     if (!Array.isArray(dept.subcategories)) dept.subcategories = [];
 
     dept.subcategories.forEach((sub) => {
-      sub.id = slugify(sub.id || sub.labelEn || "cat", `${dept.id}-cat`);
+      const oldSubId = sub.id;
+      const healedSubId = buildPrefixedSubcatId(dept.id, sub.id || sub.labelEn || "cat");
+
+      if (oldSubId !== healedSubId) {
+        anyIdHealed = true;
+        // اگر محصولی با شناسه قدیمی بدون پیشوند در حافظه بود، آن را هم به شناسه جدید وصل کن
+        adminState.products.forEach((p) => {
+          if (p.department === dept.id && p.subcategory === oldSubId) {
+            p.subcategory = healedSubId;
+          }
+        });
+      }
+
+      sub.id = healedSubId;
       sub.labelFa = sub.labelFa || sub.label || sub.id;
       sub.labelEn = sub.labelEn || sub.label || sub.id;
       sub.label = sub.labelEn;
       sub.labelIt = sub.labelIt || sub.it || sub.labelEn;
       sub.labelEs = sub.labelEs || sub.es || sub.labelEn;
 
-      // تولید خودکار لینک‌های ۳ زبانه سطح ۲ (شاخه محصولات)
+      // لینک‌های فیزیکی ۳ زبانه سطح ۲ (شاخه‌ها: مثلاً /en/men/tracksuits/ و /en/women/tracksuits/)
       sub.slugs = {
         en: slugify(sub.labelEn, sub.id),
         it: slugify(sub.labelIt, sub.id),
@@ -632,7 +676,7 @@ function normalizeTaxonomyStructure() {
                 hidden: Boolean(lf.hidden)
               };
 
-        // تولید خودکار لینک‌های ۳ زبانه سطح ۳ (زیربخش داخلی مثل یقه گرد / پلو / جاگر)
+        // لینک‌های فیزیکی ۳ زبانه سطح ۳ (زیربخش داخلی)
         obj.slugs = {
           en: slugify(obj.labelEn, obj.id),
           it: slugify(obj.labelIt, obj.id),
@@ -647,6 +691,8 @@ function normalizeTaxonomyStructure() {
       });
     });
   });
+
+  return anyIdHealed;
 }
 
 /**
@@ -662,7 +708,9 @@ function buildProductSeoPaths(sku) {
 }
 
 /**
- * ساخت عنوان و توضیحات ۳ زبانه «پرمیوم» در صورت عدم اجرای جمنای یا خطای کلید
+ * ساخت عنوان و توضیحات ۳ زبانه «پرمیوم» با ترکیب خودکار نام بخش (Men/Women) + نام شاخه/زیربخش
+ * حتی اگر در پنل نام شاخه را کوتاه نوشته باشی (مثلاً فقط Tracksuits)، اینجا خودکار می‌نویسد:
+ * Premium Men Tracksuits • Code ...
  */
 function buildRich3LangFallback(deptId, subcatId, leafId, sku, pcsPerPack) {
   normalizeTaxonomyStructure();
@@ -670,21 +718,30 @@ function buildRich3LangFallback(deptId, subcatId, leafId, sku, pcsPerPack) {
   const subObj = (deptObj?.subcategories || []).find((s) => s.id === subcatId) || deptObj?.subcategories?.[0] || {};
   const leafObj = (subObj?.leaves || []).find((l) => l.id === leafId || l.labelEn === leafId);
 
+  const dEn = deptObj?.labelEn || "";
+  const dIt = deptObj?.labelIt || dEn;
+  const dEs = deptObj?.labelEs || dEn;
+
   const enName = leafObj?.labelEn || subObj.labelEn || "Luxury Garment";
   const itName = leafObj?.labelIt || subObj.labelIt || enName;
   const esName = leafObj?.labelEs || subObj.labelEs || enName;
 
-  const enTitle = `Premium ${enName} • Code ${sku}`;
-  const itTitle = `${itName} Premium • Cod. ${sku}`;
-  const esTitle = `${esName} Premium • Cód. ${sku}`;
+  // ترکیب هوشمند جنسیت/بخش با نام شاخه برای سئوی کامل (در صورتی که از قبل در نام شاخه نباشد)
+  const fullEn = enName.toLowerCase().includes(dEn.toLowerCase()) ? enName : `${dEn} ${enName}`.trim();
+  const fullIt = itName.toLowerCase().includes(dIt.toLowerCase()) ? itName : `${itName} ${dIt}`.trim();
+  const fullEs = esName.toLowerCase().includes(dEs.toLowerCase()) ? esName : `${esName} ${dEs}`.trim();
+
+  const enTitle = `Premium ${fullEn} • Code ${sku}`;
+  const itTitle = `${fullIt} Premium • Cod. ${sku}`;
+  const esTitle = `${fullEs} Premium • Cód. ${sku}`;
 
   return {
     publicTitle: { en: enTitle, it: itTitle, es: esTitle },
     brandTitle: { en: enTitle, it: itTitle, es: esTitle },
     description: {
-      en: `Direct Istanbul factory wholesale serie pack (${pcsPerPack} pcs/pack). Premium combed fabric & master tailoring. Fast 3-5 day express air cargo.`,
-      it: `Pacco serie ingrosso diretto da Istanbul (${pcsPerPack} pz/pacco). Tessuto premium di qualità master e spedizione espressa in 3-5 giorni.`,
-      es: `Paquete serie mayorista directo desde Estambul (${pcsPerPack} uds/paquete). Tejido premium de calidad maestra y envío exprés en 3-5 días.`
+      en: `Direct Istanbul factory wholesale ${fullEn} serie pack (${pcsPerPack} pcs/pack). Premium combed fabric & master tailoring. Fast 3-5 day express air cargo.`,
+      it: `Pacco serie ingrosso ${fullIt} diretto da Istanbul (${pcsPerPack} pz/pacco). Tessuto premium di qualità master e spedizione espressa in 3-5 giorni.`,
+      es: `Paquete serie mayorista ${fullEs} directo desde Estambul (${pcsPerPack} uds/paquete). Tejido premium de calidad maestra y envío exprés en 3-5 días.`
     }
   };
 }
@@ -716,7 +773,8 @@ const SEASON_SYNONYMS_DICT = {
 const GENDER_SYNONYMS_DICT = {
   men: ["men", "mens", "man", "male", "uomo", "hombre", "مردانه", "پسرانه"],
   women: ["women", "womens", "woman", "female", "lady", "donna", "mujer", "زنانه", "دخترانه"],
-  kids: ["kids", "child", "children", "baby", "boys", "girls", "bambini", "ninos", "بچگانه", "بچه گانه", "نوزادی"]
+  kids: ["kids", "child", "children", "baby", "boys", "girls", "bambini", "ninos", "بچگانه", "بچه گانه", "نوزادی"],
+  "kids-baby": ["kids", "child", "children", "baby", "boys", "girls", "bambini", "ninos", "بچگانه", "بچه گانه", "نوزادی"]
 };
 
 function expandProductSearchIndex({ sku, vendorCode, department, subcategory, leafSub, aiData }) {
@@ -752,12 +810,20 @@ function expandProductSearchIndex({ sku, vendorCode, department, subcategory, le
     addToken(subObj.labelEn);
     addToken(subObj.labelIt);
     addToken(subObj.labelEs);
+    if (deptObj) {
+      addToken(`${deptObj.labelEn} ${subObj.labelEn}`);
+      addToken(`${subObj.labelIt} ${deptObj.labelIt}`);
+      addToken(`${subObj.labelEs} ${deptObj.labelEs}`);
+    }
   }
   if (leafObj) {
     addToken(leafObj.labelFa);
     addToken(leafObj.labelEn);
     addToken(leafObj.labelIt);
     addToken(leafObj.labelEs);
+    if (deptObj) {
+      addToken(`${deptObj.labelEn} ${leafObj.labelEn}`);
+    }
   }
 
   if (aiData) {
@@ -893,6 +959,12 @@ async function loadAllAdminData() {
     adminState.role === "super_admin" ? loadOrdersAndCustomers() : Promise.resolve(),
     adminState.role === "super_admin" ? loadPublishedBlogs() : Promise.resolve()
   ]);
+
+  // اگر شاخه‌ای از قبل بدون پیشوند مردانه/زنانه بود، خودکار اصلاح و در دیتابیس ذخیره می‌شود
+  const healed = normalizeTaxonomyStructure();
+  if (healed && adminState.role === "super_admin") {
+    await setDoc(doc(db, "settings", "public_config"), { taxonomy: adminState.taxonomy }, { merge: true }).catch(() => {});
+  }
 
   syncVendorsFromProductsAndConfig();
   populateAllTaxonomySelects();
@@ -1406,7 +1478,7 @@ function populateCatalogFilterSubcategories(deptId = "all") {
   adminState.taxonomy.forEach((d) => {
     if (deptId !== "all" && d.id !== deptId) return;
     (d.subcategories || []).forEach((sc) => {
-      html += `<option value="${escapeHtml(sc.id)}" ${sc.id === currentVal ? "selected" : ""}>${escapeHtml(sc.labelFa)}</option>`;
+      html += `<option value="${escapeHtml(sc.id)}" ${sc.id === currentVal ? "selected" : ""}>${escapeHtml(d.labelFa)} — ${escapeHtml(sc.labelFa)}</option>`;
     });
   });
   filterSub.innerHTML = html;
@@ -1529,7 +1601,10 @@ function renderBatchUploadReport() {
 }
 
 /* === پایان بلوک ۱ از ۲ فایل admin.js — بلوک ۲ را دقیقاً زیر این خط پیست کنید === */
-/* === شروع بلوک ۲ از ۲ فایل admin.js — دقیقاً زیر بلوک ۱ پیست کنید === */
+/* ==========================================================================
+   === شروع بلوک ۲ از ۳ فایل admin.js (بخش‌های ۹، ۱۰ و ۱۱) ===
+   راهنما: این بلوک را دقیقاً زیر خط پایان بلوک ۱ پیست کنید
+   ========================================================================== */
 
 /* ==========================================================================
    9. 8x PARALLEL BATCH UPLOADER + AUTO 3-LANG PRODUCT SEO PATHS
@@ -2720,6 +2795,15 @@ function bindCatalogManagerEvents() {
 }
 
 /* ==========================================================================
+   === پایان بلوک ۲ از ۳ فایل admin.js ===
+   راهنما: بلوک ۳ (بخش‌های ۱۲، ۱۳، ۱۴ و ۱۵) را دقیقاً زیر این خط پیست کنید
+   ========================================================================== */
+/* ==========================================================================
+   === شروع بلوک ۳ از ۳ فایل admin.js (بخش‌های ۱۲، ۱۳، ۱۴ و ۱۵ — پایان فایل) ===
+   راهنما: این بلوک را دقیقاً زیر خط پایان بلوک ۲ پیست کنید
+   ========================================================================== */
+
+/* ==========================================================================
    12. TAB 3: 3-LEVEL GRAPHICAL & 3-LANGUAGE CATEGORY MANAGER + AUTO URLS
    ========================================================================== */
 async function saveTaxonomyToFirestore() {
@@ -2870,19 +2954,26 @@ function renderLeavesManagerTable() {
 }
 
 function bindCategoriesManagerEvents() {
-  // تولید خودکار شناسه (ID) به محض تایپ نام انگلیسی (برای راحتی کار با گوشی)
+  // تولید خودکار شناسه (ID) همراه با پیشوند قفل‌شده بخش مادر
   document.getElementById("dept-label-en")?.addEventListener("input", (e) => {
     const idInp = document.getElementById("dept-id-input");
     const orig = document.getElementById("dept-edit-original-id")?.value;
     if (idInp && !orig) idInp.value = slugify(e.target.value, "");
   });
 
-  document.getElementById("subcat-label-en")?.addEventListener("input", (e) => {
+  const syncSubcatAutoId = () => {
     const idInp = document.getElementById("subcat-id-input");
-    const orig = document.getElementById("subcat-edit-original-id")?.value;
+    const enInp = document.getElementById("subcat-label-en");
     const deptId = document.getElementById("subcat-parent-dept")?.value || "men";
-    if (idInp && !orig) idInp.value = `${deptId}-${slugify(e.target.value, "")}`;
-  });
+    if (!idInp) return;
+    const rawSource = enInp?.value.trim() || idInp.value.trim();
+    if (rawSource) {
+      idInp.value = buildPrefixedSubcatId(deptId, rawSource);
+    }
+  };
+
+  document.getElementById("subcat-label-en")?.addEventListener("input", syncSubcatAutoId);
+  document.getElementById("subcat-parent-dept")?.addEventListener("change", syncSubcatAutoId);
 
   document.getElementById("leaf-label-en")?.addEventListener("input", (e) => {
     const idInp = document.getElementById("leaf-id-input");
@@ -3018,7 +3109,7 @@ function bindCategoriesManagerEvents() {
     }
   });
 
-  // ۲. ذخیره سطح ۲ (شاخه محصولات ۳ زبانه + عکس)
+  // ۲. ذخیره سطح ۲ (شاخه محصولات ۳ زبانه + پیشوند اجباری بخش مادر)
   document.getElementById("form-add-subcategory")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const deptId = document.getElementById("subcat-parent-dept").value;
@@ -3031,7 +3122,7 @@ function bindCategoriesManagerEvents() {
     const labelIt = document.getElementById("subcat-label-it").value.trim() || labelEn;
     const labelEs = document.getElementById("subcat-label-es").value.trim() || labelEn;
     const rawId = document.getElementById("subcat-id-input").value.trim() || labelEn;
-    const id = slugify(rawId.startsWith(deptId) ? rawId : `${deptId}-${rawId}`, `${deptId}-item`);
+    const id = buildPrefixedSubcatId(deptId, rawId);
     const imgFile = document.getElementById("subcat-image-file")?.files?.[0] || null;
     let image = document.getElementById("subcat-image-url").value.trim();
 
@@ -3073,7 +3164,7 @@ function bindCategoriesManagerEvents() {
       await saveTaxonomyToFirestore();
       e.target.reset();
       document.getElementById("subcat-edit-original-id").value = "";
-      showAdminToast(`✓ شاخه "${labelFa}" همراه با ۳ لینک سئو در دیتابیس ذخیره شد!`);
+      showAdminToast(`✓ شاخه "${labelFa}" با شناسه ${id} و ۳ لینک سئو ذخیره شد!`);
     } catch (err) {
       showAdminToast(`خطا: ${err.message}`);
     } finally {
@@ -3118,7 +3209,7 @@ function bindCategoriesManagerEvents() {
 
       document.getElementById("subcat-parent-dept").value = deptId;
       document.getElementById("subcat-edit-original-id").value = sc.id;
-      document.getElementById("subcat-id-input").value = sc.id;
+      document.getElementById("subcat-id-input").value = buildPrefixedSubcatId(deptId, sc.id);
       document.getElementById("subcat-label-fa").value = sc.labelFa || "";
       document.getElementById("subcat-label-en").value = sc.labelEn || sc.label || "";
       document.getElementById("subcat-label-it").value = sc.labelIt || "";
@@ -3796,7 +3887,6 @@ async function triggerGitHubSeoFactory() {
     { loc: `${SITE_DOMAIN}/blog.html`, priority: "0.85" }
   ];
 
-  // ۱. افزودن لینک‌های ۳ زبانه تمام بخش‌ها، شاخه‌ها و زیربخش‌های فعال
   adminState.taxonomy
     .filter((d) => !d.hidden)
     .forEach((dept) => {
@@ -3827,7 +3917,6 @@ async function triggerGitHubSeoFactory() {
         });
     });
 
-  // ۲. افزودن لینک‌های ۳ زبانه مقالات وبلاگ
   adminState.blogs.forEach((b) => {
     ["en", "it", "es"].forEach((lang) => {
       const slug = b.slugs?.[lang] || b.slug || b.id;
@@ -3835,7 +3924,6 @@ async function triggerGitHubSeoFactory() {
     });
   });
 
-  // ۳. افزودن لینک‌های فیزیکی ۳ زبانه برای تک‌تک محصولات (عکس‌ها)
   adminState.products.slice(0, 3000).forEach((p) => {
     const paths = p.seoPaths || buildProductSeoPaths(p.sku || p.id);
     ["en", "it", "es"].forEach((lang) => {
@@ -4228,3 +4316,7 @@ if (document.readyState === "loading") {
 } else {
   initAdminSuite();
 }
+
+/* ==========================================================================
+   === پایان بلوک ۳ از ۳ فایل admin.js (پایان کل فایل) ===
+   ========================================================================== */
