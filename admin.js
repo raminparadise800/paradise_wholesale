@@ -1198,14 +1198,15 @@ async function uploadDualWebPToStorage(stagedItem, dept, skuCode, index = 0) {
   return { hdUrl, thumbUrl };
 }
 
-async function uploadSingleImageAsset(file, folder = "categories", maxW = 700) {
+async function uploadSingleImageAsset(file, folder = "categories") {
   const processed = await compressImageToDualWebP(file, "");
   const cleanName = slugify(file.name.replace(/\.[^.]+$/, ""), "asset");
   const path = `${folder}/${Date.now()}_${cleanName}.webp`;
   const fileRef = storageRef(storage, path);
-  await uploadBytes(fileRef, maxW <= 500 ? processed.thumbBlob : processed.blob, {
+  // استفاده همیشگی از thumbBlob (عرض 420px فوق‌سبک ~20KB) برای منوها و کارت‌های دسته‌بندی
+  await uploadBytes(fileRef, processed.thumbBlob || processed.blob, {
     contentType: "image/webp",
-    cacheControl: "public,max-age=31536000"
+    cacheControl: "public,max-age=31536000,immutable"
   });
   return await getDownloadURL(fileRef);
 }
