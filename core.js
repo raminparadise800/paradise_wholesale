@@ -1156,21 +1156,17 @@ export function bindPriceFilterEvents() {
 
 /* ==========================================================================
    === شروع [MODULE-05: PRODUCT CARD MINI-SLIDER & HD LIGHTBOX] (ماژول ۵) ===
-   راهنما: نمایش شبکه ۲ ستونه محصولات، اسلایدر ورق‌زن عکس‌های کم‌حجم روی کارت کوچک،
-   نمایش تعداد پک و قیمت پایه، و پنجره تمام‌صفحه HD عکس و ویدیو.
+   راهنما: نمایش محصولات فقط در مرحله ۳، لود پله‌ای ۱۲تایی عکس‌ها با اسکرول خودکار
+   (بدون لود یکجای همه عکس‌ها در گوشی مشتری) و پنجره تمام‌صفحه HD عکس و ویدیو.
    ========================================================================== */
 
 export function getFinalFilteredProducts() {
+  if (!isProductStageActive()) return [];
   const scoped = getProductsInCurrentScopeWithoutPrice();
   if (coreState.price === null || isNaN(coreState.price)) return scoped;
   return scoped.filter((p) => Number(p.unitPrice) === Number(coreState.price));
 }
 
-/**
- * انتخاب هوشمند عنوان محصول:
- * - در حالت عادی: عنوان عمومی بدون برند (Google Ads Safe)
- * - در حالت جستجو: عنوان برنددار (تا اگر مشتری Gucci سرچ کرد، نام برند را ببیند)
- */
 export function getLocalizedProductTitle(prod) {
   const useBrand = Boolean(coreState.searchQuery);
   const titleObj = useBrand ? prod.brandTitle || prod.publicTitle : prod.publicTitle || prod.brandTitle;
@@ -1188,19 +1184,30 @@ export function getLocalizedProductDesc(prod) {
 }
 
 /**
- * رندر شبکه محصولات (۲ ستونه در موبایل) با قابلیت ورق زدن چند عکس روی هر کارت
+ * رندر شبکه محصولات (فقط در مرحله ۳ یعنی بعد از ورود به یک شاخه خاص فعال می‌شود)
+ * با تکنیک لود پله‌ای ۱۲تایی تا عکس‌ها یکجا در گوشی مشتری دانلود نشوند.
  */
 export function renderProductsCatalogGrid() {
+  const section = document.getElementById("products-catalog-section");
   const grid = document.getElementById("products-catalog-grid");
   const loadMoreBtn = document.getElementById("btn-load-more-products");
-  if (!grid) return;
+  if (!section || !grid) return;
 
+  // اگر هنوز در صفحه اول (بخش‌های اصلی) یا صفحه کارت‌های شاخه‌ها هستیم، بخش محصولات کاملاً مخفی بماند!
+  if (!isProductStageActive()) {
+    section.style.display = "none";
+    grid.innerHTML = "";
+    if (loadMoreBtn) loadMoreBtn.style.display = "none";
+    return;
+  }
+
+  section.style.display = "block";
   const filtered = getFinalFilteredProducts();
 
   if (filtered.length === 0) {
     grid.innerHTML = `
-      <div style="grid-column: 1 / -1; text-align:center; padding:40px 16px; background:#fff; border-radius:14px; border:1px solid var(--border); color:var(--text-muted);">
-        No products found in this filter.
+      <div style="grid-column: 1 / -1; text-align:center; padding:42px 16px; background:#fff; border-radius:14px; border:1px solid var(--border); color:var(--text-muted); font-weight:700;">
+        No products uploaded in this category yet.
       </div>
     `;
     if (loadMoreBtn) loadMoreBtn.style.display = "none";
@@ -1219,7 +1226,7 @@ export function renderProductsCatalogGrid() {
   }
 
   grid.innerHTML = visibleItems
-    .map((p) => {
+    .map((p, idx) => {
       const sku = escapeHtml(p.sku || p.id);
       const unitPrice = Number(p.unitPrice) || 0;
       const pcs = Math.max(1, parseInt(p.pcsPerPack, 10) || 6);
@@ -1230,9 +1237,11 @@ export function renderProductsCatalogGrid() {
 
       const imagesList = Array.isArray(p.images) && p.images.length > 0 ? p.images : [p.imageUrl];
       const currentSlideIdx = coreState.cardSlideIndexMap.get(p.id || p.sku) || 0;
-      // برای اسلاید اول از عکس فوق‌سبک thumbUrl استفاده می‌کنیم تا صفحه برق‌آسا باز شود
       const activeImgSrc =
         currentSlideIdx === 0 ? p.thumbUrl || imagesList[0] || "" : imagesList[currentSlideIdx] || p.thumbUrl || "";
+
+      // ۴ عکس اول در بالای صفحه با اولویت بالا و بقیه با لود تنبل (Lazy) بارگذاری می‌شوند
+      const loadingAttr = idx < 4 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy" decoding="async"';
 
       const multiImageControls =
         imagesList.length > 1
@@ -1241,7 +1250,7 @@ export function renderProductsCatalogGrid() {
             <button type="button" class="card-slider-arrow next" data-card-slide="${sku}:1" aria-label="Next Photo">›</button>
             <div class="card-slider-dots">
               ${imagesList
-                .map((_, idx) => `<span class="card-slider-dot ${idx === currentSlideIdx ? "active" : ""}"></span>`)
+                .map((_, dotIdx) => `<span class="card-slider-dot ${dotIdx === currentSlideIdx ? "active" : ""}"></span>`)
                 .join("")}
             </div>
           `
@@ -1250,7 +1259,7 @@ export function renderProductsCatalogGrid() {
       return `
         <article class="prod-card" data-prod-card="${sku}">
           <div class="prod-media-box" data-open-lightbox="${sku}">
-            <img src="${escapeHtml(activeImgSrc)}" alt="${title}" loading="lazy" />
+            <img src="${escapeHtml(activeImgSrc)}" alt="${title}" ${loadingAttr} />
 
             <div class="prod-top-badges">
               <div>
@@ -1282,9 +1291,6 @@ export function renderProductsCatalogGrid() {
     .join("");
 }
 
-/**
- * ورق زدن عکس روی کارت کوچک (بدون باز کردن مودال و بدون سنگین شدن کل صفحه)
- */
 export function stepCardMiniSlider(sku, direction) {
   const prod = coreState.allProducts.find((p) => (p.sku || p.id) === sku);
   if (!prod) return;
@@ -1309,9 +1315,6 @@ export function stepCardMiniSlider(sku, direction) {
   });
 }
 
-/**
- * باز کردن پنجره تمام‌صفحه عکس باکیفیت (HD Lightbox) و پخش ویدیو (MP4 یا یوتیوب)
- */
 export function openProductLightbox(sku, startWithVideo = false) {
   const prod = coreState.allProducts.find((p) => (p.sku || p.id).toUpperCase() === String(sku).toUpperCase());
   if (!prod) return;
@@ -1357,7 +1360,6 @@ export function renderLightboxStageContent() {
     }
   }
 
-  // حالت پخش ویدیو (پشتیبانی همزمان از یوتیوب/Shorts و فایل ویدیوی مستقیم MP4/MOV)
   if (coreState.lightboxVideoMode && hasVideo) {
     if (prod.youtubeId) {
       stage.innerHTML = `
@@ -1379,7 +1381,6 @@ export function renderLightboxStageContent() {
     if (counterEl) counterEl.textContent = `${coreState.lightboxSlideIdx + 1} / ${imagesList.length}`;
   }
 
-  // پر کردن مشخصات کامل زیر عکس HD
   const unitPrice = Number(prod.unitPrice) || 0;
   const pcs = Math.max(1, parseInt(prod.pcsPerPack, 10) || 6);
   const packTotal = (unitPrice * pcs).toFixed(2);
@@ -1401,8 +1402,8 @@ export function renderLightboxStageContent() {
 
 export function bindProductGridAndLightboxEvents() {
   const grid = document.getElementById("products-catalog-grid");
+  const loadMoreBtn = document.getElementById("btn-load-more-products");
 
-  // پشتیبانی از کشیدن انگشت به چپ و راست (Swipe) روی عکس کارت در موبایل
   let touchStartX = 0;
   let touchStartY = 0;
 
@@ -1430,7 +1431,6 @@ export function bindProductGridAndLightboxEvents() {
     { passive: true }
   );
 
-  // کلیک‌های روی کارت محصول
   grid?.addEventListener("click", async (e) => {
     const slideBtn = e.target.closest("[data-card-slide]");
     if (slideBtn) {
@@ -1477,13 +1477,30 @@ export function bindProductGridAndLightboxEvents() {
     }
   });
 
-  // دکمه بارگذاری محصولات بیشتر
-  document.getElementById("btn-load-more-products")?.addEventListener("click", () => {
-    coreState.displayLimit += 48;
+  // لود پله‌ای ۱۲تایی با کلیک یا اسکرول خودکار به انتهای لیست (IntersectionObserver)
+  loadMoreBtn?.addEventListener("click", () => {
+    coreState.displayLimit += 12;
     renderProductsCatalogGrid();
   });
 
-  // رویدادهای داخل پنجره HD Lightbox
+  if (loadMoreBtn && "IntersectionObserver" in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && isProductStageActive()) {
+            const total = getFinalFilteredProducts().length;
+            if (coreState.displayLimit < total) {
+              coreState.displayLimit += 12;
+              renderProductsCatalogGrid();
+            }
+          }
+        });
+      },
+      { rootMargin: "280px" }
+    );
+    observer.observe(loadMoreBtn);
+  }
+
   document.getElementById("btn-close-lightbox")?.addEventListener("click", closeProductLightbox);
   document.getElementById("hd-lightbox-modal")?.addEventListener("click", (e) => {
     if (e.target.id === "hd-lightbox-modal") closeProductLightbox();
@@ -1817,64 +1834,109 @@ export function fireDirectWhatsappClickEvent() {
 
 
 /* ==========================================================================
-   === شروع [MODULE-07: WHATSAPP INVOICE, FOOTER SYNC & INITIALIZER] (ماژول ۷) ===
-   راهنما: ساخت پیش‌فاکتور واتساپ، ذخیره سفارش در دیتابیس، اتصال فوتر و لوگو به
-   تب ۸ پنل ادمین و راه‌اندازی کامل صفحه.
+   === شروع [MODULE-07: WHATSAPP INVOICE, OFFICIAL SVG FOOTER & INITIALIZER] (ماژول ۷) ===
+   راهنما: لوگوهای رسمی وکتور SVG شبکه‌های اجتماعی، یکسان‌سازی کامل شماره واتساپ
+   از پنل ادمین در کل سایت، و ساخت پیش‌فاکتور واتساپ.
    ========================================================================== */
 
+/* آیکون‌های وکتور رسمی و اورجینال شبکه‌های اجتماعی (SVG) */
+const OFFICIAL_SOCIAL_SVGS = {
+  instagram: `<svg viewBox="0 0 24 24" fill="none"><rect width="20" height="20" x="2" y="2" rx="5" stroke="#E1306C" stroke-width="2"/><circle cx="12" cy="12" r="4.5" stroke="#F77737" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.2" fill="#E1306C"/></svg>`,
+  telegram: `<svg viewBox="0 0 24 24" fill="#2AABEE"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.37-.49 1.02-.74 3.99-1.74 6.65-2.89 7.99-3.45 3.8-1.58 4.59-1.86 5.1-1.87.11 0 .37.03.54.17.14.12.18.28.2.45-.01.06.01.24 0 .33z"/></svg>`,
+  tiktok: `<svg viewBox="0 0 24 24" fill="#ffffff"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>`,
+  android: `<svg viewBox="0 0 24 24" fill="#3DDC84"><path d="M17.523 15.341a.96.96 0 0 1-.959-.959c0-.53.43-.96.959-.96s.96.43.96.96-.43.959-.96.959m-11.046 0a.96.96 0 0 1-.96-.959c0-.53.43-.96.96-.96s.959.43.959.96-.43.959-.959.959m11.4-6.022l1.996-3.458a.416.416 0 0 0-.152-.567.416.416 0 0 0-.568.152L17.11 8.95a11.96 11.96 0 0 0-10.22 0L4.847 5.446a.416.416 0 0 0-.568-.152.416.416 0 0 0-.152.567l1.996 3.458C2.688 11.186.343 14.658 0 18.761h24c-.343-4.103-2.688-7.575-6.123-9.442"/></svg>`
+};
+
 /**
- * اعمال لوگو، شماره واتساپ و لینک‌های شبکه‌های اجتماعی از تنظیمات تب ۸ پنل ادمین
+ * فرمت استاندارد شماره واتساپ به صورت یکسان برای کل سایت از روی شماره خام پنل ادمین
+ */
+export function getUnifiedWhatsAppInfo() {
+  const pub = coreState.publicConfig;
+  const raw = String(pub.whatsappRaw || DEFAULT_WHATSAPP).trim();
+  const cleanDigits = raw.replace(/[^0-9]/g, "");
+
+  // اگر شماره نمایشی با شماره اصلی یکی نباشد، خودکار از روی شماره اصلی فرمت خوانا بساز
+  const displayClean = String(pub.whatsappDisplay || "").replace(/[^0-9]/g, "");
+  let formattedDisplay = pub.whatsappDisplay;
+  if (!formattedDisplay || displayClean !== cleanDigits) {
+    formattedDisplay = `+${cleanDigits.replace(/^(\d{2})(\d{3})(\d{3})(\d{2})(\d{2})$/, "$1 $2 $3 $4 $5")}`;
+  }
+
+  return { cleanDigits, formattedDisplay };
+}
+
+/**
+ * اعمال لوگو، شماره واتساپ یکپارچه و لوگوهای رسمی SVG شبکه‌های اجتماعی از تب ۸ پنل ادمین
  */
 export function applyDynamicBrandingAndFooter() {
   const pub = coreState.publicConfig;
+  const { cleanDigits, formattedDisplay } = getUnifiedWhatsAppInfo();
 
-  // ۱. لوگوی هدر
+  // ۱. لوگوی تصویری هدر (فقط در صورت وجود در دیتابیس نمایش داده می‌شود)
   const logoImg = document.getElementById("header-logo-img");
-  if (logoImg && pub.logoUrl) {
-    logoImg.src = pub.logoUrl;
-    logoImg.style.display = "block";
+  if (logoImg) {
+    if (pub.logoUrl) {
+      logoImg.src = pub.logoUrl;
+      logoImg.style.display = "block";
+    } else {
+      logoImg.style.display = "none";
+    }
   }
 
-  // ۲. شماره واتساپ در دکمه شناور و فوتر
-  const cleanWa = String(pub.whatsappRaw || DEFAULT_WHATSAPP).replace(/[^0-9]/g, "");
-  const displayWa = pub.whatsappDisplay || pub.whatsappRaw || "+90 545 909 93 95";
-
+  // ۲. یکسان‌سازی شماره واتساپ در دکمه شناور و فوتر پایین صفحه
   const floatBtn = document.getElementById("floating-whatsapp-btn");
-  if (floatBtn && cleanWa) {
+  if (floatBtn && cleanDigits) {
     const pageUrl = buildShareableUrl();
     const greet = `Hello Paradise Wholesale Istanbul! I am browsing your catalog (${pageUrl}) and have a wholesale inquiry.`;
-    floatBtn.href = `https://wa.me/${cleanWa}?text=${encodeURIComponent(greet)}`;
+    floatBtn.href = `https://wa.me/${cleanDigits}?text=${encodeURIComponent(greet)}`;
   }
 
   const footerWa = document.getElementById("footer-wa-link");
-  if (footerWa && cleanWa) {
-    footerWa.href = `https://wa.me/${cleanWa}`;
-    footerWa.textContent = displayWa;
+  if (footerWa && cleanDigits) {
+    footerWa.href = `https://wa.me/${cleanDigits}`;
+    footerWa.textContent = formattedDisplay;
   }
 
-  // ۳. شبکه‌های اجتماعی و لینک اپ اندروید در فوتر
+  // ۳. لوگوهای رسمی و اورجینال SVG شبکه‌های اجتماعی در فوتر
   const socialBox = document.getElementById("footer-social-container");
   if (socialBox) {
     const links = [];
     if (pub.instagramUrl) {
-      links.push(`<a href="${escapeHtml(pub.instagramUrl)}" target="_blank" rel="noopener" class="social-pill-link">📸 Instagram</a>`);
+      links.push(`
+        <a href="${escapeHtml(pub.instagramUrl)}" target="_blank" rel="noopener" class="social-pill-link">
+          ${OFFICIAL_SOCIAL_SVGS.instagram}
+          <span>Instagram</span>
+        </a>
+      `);
     }
     if (pub.telegramUrl) {
-      links.push(`<a href="${escapeHtml(pub.telegramUrl)}" target="_blank" rel="noopener" class="social-pill-link">✈️ Telegram</a>`);
+      links.push(`
+        <a href="${escapeHtml(pub.telegramUrl)}" target="_blank" rel="noopener" class="social-pill-link">
+          ${OFFICIAL_SOCIAL_SVGS.telegram}
+          <span>Telegram</span>
+        </a>
+      `);
     }
     if (pub.tiktokUrl) {
-      links.push(`<a href="${escapeHtml(pub.tiktokUrl)}" target="_blank" rel="noopener" class="social-pill-link">🎵 TikTok</a>`);
+      links.push(`
+        <a href="${escapeHtml(pub.tiktokUrl)}" target="_blank" rel="noopener" class="social-pill-link">
+          ${OFFICIAL_SOCIAL_SVGS.tiktok}
+          <span>TikTok</span>
+        </a>
+      `);
     }
     if (pub.androidAppUrl) {
-      links.push(`<a href="${escapeHtml(pub.androidAppUrl)}" target="_blank" rel="noopener" class="social-pill-link" style="border-color:var(--emerald); color:#6ee7b7;">📱 Android App</a>`);
+      links.push(`
+        <a href="${escapeHtml(pub.androidAppUrl)}" target="_blank" rel="noopener" class="social-pill-link" style="border-color:rgba(61,220,132,0.5);">
+          ${OFFICIAL_SOCIAL_SVGS.android}
+          <span>Android App</span>
+        </a>
+      `);
     }
     socialBox.innerHTML = links.join("");
   }
 }
 
-/**
- * ثبت سفارش در دیتابیس فایربیس (تب ۵ پنل ادمین) و باز کردن فوری واتساپ با متن پیش‌فاکتور
- */
 export async function submitCartOrderToWhatsApp() {
   if (coreState.cart.length === 0) {
     showCatalogToast(t("emptyCartMsg"));
@@ -1887,10 +1949,8 @@ export async function submitCartOrderToWhatsApp() {
   const orderCode = `ORD-${Math.floor(10000 + Math.random() * 90000)}`;
   const nowIso = new Date().toISOString();
 
-  // شلیک کانورژن گوگل ادز با مبلغ دلاری واقعی سفارش
   fireGoogleAdsOrderConversion(stats.finalTotal, orderCode);
 
-  // ساخت متن شفاف پیش‌فاکتور برای واتساپ (شامل لینک هر کد و یادداشت هزینه ارسال)
   const itemLines = coreState.cart.map((item, idx) => {
     const itemPcs = item.packs * item.pcsPerPack;
     const effUnit = item.unitPrice + stats.surchargePerPc;
@@ -1917,13 +1977,12 @@ export async function submitCartOrderToWhatsApp() {
 
   msgLines.push(
     `💰 *TOTAL PRODUCTS AMOUNT:* *$${stats.finalTotal.toFixed(2)} USD*`,
-    `✈️ *Shipping / Air Cargo:* Please calculate and add shipping cost to ${buyerCountry} based on total weight.`
+    `✈️ *Delivery to Cargo / Shipping:* Please calculate shipping cost to ${buyerCountry} based on total weight.`
   );
 
-  const cleanWa = String(coreState.publicConfig.whatsappRaw || DEFAULT_WHATSAPP).replace(/[^0-9]/g, "");
-  const waUrl = `https://wa.me/${cleanWa}?text=${encodeURIComponent(msgLines.join("\n"))}`;
+  const { cleanDigits } = getUnifiedWhatsAppInfo();
+  const waUrl = `https://wa.me/${cleanDigits}?text=${encodeURIComponent(msgLines.join("\n"))}`;
 
-  // ذخیره سفارش در فایربیس در پس‌زمینه (برای نمایش در تب ۵ پنل ادمین)
   const orderPayload = {
     orderCode,
     buyerName,
@@ -1941,8 +2000,6 @@ export async function submitCartOrderToWhatsApp() {
   };
 
   setDoc(doc(db, "orders", orderCode), orderPayload).catch(() => {});
-
-  // هدایت مستقیم مشتری به واتساپ
   window.open(waUrl, "_blank");
 }
 
@@ -1965,7 +2022,6 @@ export function bindCartAndWhatsappEvents() {
     if (e.target.id === "cart-drawer-backdrop") closeDrawer();
   });
 
-  // کم و زیاد کردن تعداد پک یا حذف آیتم در کشوی سبد خرید
   document.getElementById("cart-items-list")?.addEventListener("click", (e) => {
     const qtyBtn = e.target.closest("[data-cart-qty]");
     if (qtyBtn) {
@@ -1996,9 +2052,6 @@ export function bindCartAndWhatsappEvents() {
   document.getElementById("floating-whatsapp-btn")?.addEventListener("click", fireDirectWhatsappClickEvent);
 }
 
-/**
- * تابع مرکزی رندر کل نمای کاتالوگ (کارت‌های تصویری + نوار شیشه‌ای + نوار قیمت + شبکه محصولات)
- */
 export function renderEntireCatalogView(triggerNudge = false) {
   updateBackButtonVisibility();
   renderVisualCategoryCards(false);
@@ -2008,9 +2061,6 @@ export function renderEntireCatalogView(triggerNudge = false) {
   applyDynamicBrandingAndFooter();
 }
 
-/**
- * نقطه شروع و راه‌اندازی کامل صفحه کاتالوگ
- */
 export async function initParadiseCatalogCore() {
   applyLocalizedStaticTexts();
   bindSmartHeaderAndGlassEvents();
@@ -2027,7 +2077,6 @@ export async function initParadiseCatalogCore() {
   renderEntireCatalogView(true);
   renderSteppedCartUI();
 
-  // اگر لینک مستقیم یک عکس/محصول خاص باز شده بود (?product=M12-1045 یا /en/product/m12-1045/)، فوراً عکس HD آن را باز کن
   if (coreState.activeProductSku) {
     openProductLightbox(coreState.activeProductSku, false);
   }
