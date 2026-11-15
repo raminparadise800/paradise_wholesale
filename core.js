@@ -250,15 +250,26 @@ export function showCatalogToast(msg, duration = 2800) {
 
 /* ==========================================================================
    === شروع [MODULE-02: FIREBASE DATA LOADER, SSG ROUTER & EMPTY FILTER] (ماژول ۲) ===
-   راهنما: خواندن دسته‌بندی‌ها و محصولات از فایربیس، تشخیص هوشمند صفحات فیزیکی
-   گیت‌هاب (SSG) و فیلتر کردن خودکار شاخه‌ها و زیربخش‌های بدون عکس.
+   راهنما: خواندن تمام بخش‌ها و شاخه‌های دیتابیس پنل ادمین (مردانه، زنانه، بچگانه و...)،
+   تشخیص هوشمند صفحات فیزیکی و فیلتر کردن زیربخش‌های خالی در سطح ۳.
    ========================================================================== */
 
+/* دسته‌بندی پیش‌فرض پایه در صورتی که دیتابیس هنوز بارگذاری نشده باشد */
+const FALLBACK_TAXONOMY = [
+  { id: "men", labelFa: "مردانه", labelEn: "Men", labelIt: "Uomo", labelEs: "Hombre", hidden: false, subcategories: [] },
+  { id: "women", labelFa: "زنانه", labelEn: "Women", labelIt: "Donna", labelEs: "Mujer", hidden: false, subcategories: [] },
+  { id: "kids-baby", labelFa: "بچگانه", labelEn: "Kids & Baby", labelIt: "Bambini", labelEs: "Niños y Bebés", hidden: false, subcategories: [] },
+  { id: "shoes", labelFa: "کفش", labelEn: "Shoes", labelIt: "Scarpe", labelEs: "Calzado", hidden: false, subcategories: [] },
+  { id: "bags-accessories", labelFa: "کیف و اکسسوری", labelEn: "Bags & Accessories", labelIt: "Borse e Accessori", labelEs: "Bolsos y Accesorios", hidden: false, subcategories: [] }
+];
+
 /**
- * بارگذاری تنظیمات، دسته‌بندی‌ها و کاتالوگ محصولات از فایربیس
+ * بارگذاری تنظیمات، کل درخت دسته‌بندی‌های پنل ادمین و محصولات از فایربیس
  */
 export async function loadCoreCatalogData() {
-  // ۱. خواندن تنظیمات عمومی و درخت دسته‌بندی‌ها از settings/public_config
+  coreState.displayLimit = 12; // لود اولیه فقط ۱۲ عکس برای سرعت فوق‌العاده در موبایل
+
+  // ۱. خواندن تنظیمات عمومی و تمام بخش‌ها و شاخه‌های ساخته شده در پنل ادمین
   try {
     const cfgSnap = await getDoc(doc(db, "settings", "public_config"));
     if (cfgSnap.exists()) {
@@ -272,13 +283,15 @@ export async function loadCoreCatalogData() {
     console.warn("Config load warning:", e.message);
   }
 
+  if (!Array.isArray(coreState.taxonomy) || coreState.taxonomy.length === 0) {
+    coreState.taxonomy = FALLBACK_TAXONOMY;
+  }
+
   // ۲. خواندن سریع محصولات از شاردهای کاتالوگ یا کالکشن products
   try {
     const productsMap = new Map();
-
-    // تلاش اول: خواندن موازی شاردهای بخش‌ها برای سرعت فوق‌العاده در موبایل
     const deptIds = coreState.taxonomy.map((d) => d.id);
-    const shardIds = deptIds.length > 0 ? deptIds : ["master_catalog", "men", "women", "kids-baby", "shoes", "bags-accessories"];
+    const shardIds = Array.from(new Set(["master_catalog", ...deptIds]));
 
     const shardSnaps = await Promise.all(
       shardIds.map((sid) => getDoc(doc(db, "catalog_shards", sid)).catch(() => null))
@@ -318,7 +331,6 @@ export async function loadCoreCatalogData() {
       });
     }
 
-    // اگر شاردها هنوز ساخته نشده بودند، مستقیم از کالکشن products بخوان
     if (productsMap.size === 0) {
       const prodSnap = await getDocs(query(collection(db, "products"), orderBy("createdAtMillis", "desc"), limit(2500)));
       prodSnap.forEach((d) => {
@@ -337,10 +349,6 @@ export async function loadCoreCatalogData() {
   }
 }
 
-/**
- * توابع شمارش و فیلتر هوشمند (قانون Zero Empty-Page):
- * هر بخش، شاخه یا زیربخشی که محصول فعالی در آن نباشد، در نوارها و کارت‌ها مخفی می‌شود.
- */
 export function getProductsForDept(deptId) {
   return coreState.allProducts.filter((p) => p.department === deptId);
 }
@@ -364,25 +372,26 @@ export function getProductsForLeaf(deptId, subcatId, leafObj) {
 }
 
 /**
- * برگرداندن لیست بخش‌های اصلی که حداقل ۱ عکس/محصول دارند
+ * سطح ۱ (بخش‌های اصلی مثل مردانه، زنانه، بچگانه...):
+ * تمام بخش‌های فعالی که در پنل ادمین ساخته‌ای را بدون استثنا نمایش می‌دهد (حتی اگر هنوز عکسی در آن آپلود نکرده باشی).
  */
 export function getNonEmptyDepartments() {
-  const nonEmpty = coreState.taxonomy.filter((d) => !d.hidden && getProductsForDept(d.id).length > 0);
-  // اگر هنوز هیچ محصولی در کل سایت آپلود نشده بود، همه بخش‌های فعال را نشان بده تا صفحه اول خالی نباشد
-  return nonEmpty.length > 0 ? nonEmpty : coreState.taxonomy.filter((d) => !d.hidden);
+  return coreState.taxonomy.filter((d) => !d.hidden);
 }
 
 /**
- * برگرداندن لیست شاخه‌های (سطح ۲) یک بخش که حداقل ۱ محصول دارند
+ * سطح ۲ (شاخه‌ها مثل تیشرت، هودی، شلوار، کت‌وشلوار...):
+ * تمام شاخه‌های فعالی که در پنل ادمین زیرمجموعه آن بخش ساخته‌ای را نمایش می‌دهد.
  */
 export function getNonEmptySubcategories(deptId) {
   const deptObj = coreState.taxonomy.find((d) => d.id === deptId);
   if (!deptObj || !Array.isArray(deptObj.subcategories)) return [];
-  return deptObj.subcategories.filter((sc) => !sc.hidden && getProductsForSubcat(deptId, sc.id).length > 0);
+  return deptObj.subcategories.filter((sc) => !sc.hidden);
 }
 
 /**
- * برگرداندن لیست زیربخش‌های داخلی (سطح ۳ مثل یقه گرد / یقه‌دار) که حداقل ۱ محصول دارند
+ * سطح ۳ (زیربخش‌های جزئی در نوار شیشه‌ای مثل یقه گرد / یقه‌دار):
+ * فقط زیربخش‌هایی که حداقل ۱ محصول داخلشان آپلود شده باشد در نوار شیشه‌ای نمایش داده می‌شوند تا مشتری با صفحه خالی روبرو نشود.
  */
 export function getNonEmptyLeaves(deptId, subcatId) {
   const deptObj = coreState.taxonomy.find((d) => d.id === deptId);
@@ -391,9 +400,6 @@ export function getNonEmptyLeaves(deptId, subcatId) {
   return subObj.leaves.filter((lf) => !lf.hidden && getProductsForLeaf(deptId, subcatId, lf).length > 0);
 }
 
-/**
- * ترجمه نام بخش، شاخه یا زیربخش بر اساس زبان فعلی مشتری (EN / IT / ES)
- */
 export function getLocalizedTaxonomyLabel(itemObj) {
   if (!itemObj) return "";
   if (coreState.lang === "it") return itemObj.labelIt || itemObj.labelEn || itemObj.label || itemObj.id;
@@ -401,14 +407,10 @@ export function getLocalizedTaxonomyLabel(itemObj) {
   return itemObj.labelEn || itemObj.label || itemObj.id;
 }
 
-/**
- * تشخیص هوشمند آدرس صفحه (هم از روی پارامترهای ?dept=... و هم از روی آدرس‌های فیزیکی گیت‌هاب /en/men/...)
- */
 export function resolveCurrentRouteFromUrl() {
   const params = new URLSearchParams(window.location.search);
   const pathname = window.location.pathname || "";
 
-  // ۱. بررسی زبان از آدرس فیزیکی (/en/, /it/, /es/) یا پارامتر ?lang=
   const pathSegments = pathname.split("/").filter(Boolean);
   const langFromPath = ["en", "it", "es"].includes(pathSegments[0]) ? pathSegments[0] : "";
   const langParam = params.get("lang");
@@ -420,7 +422,6 @@ export function resolveCurrentRouteFromUrl() {
   }
   localStorage.setItem("paradise_lang", coreState.lang);
 
-  // ۲. اگر آدرس فیزیکی محصول بود (/en/product/m12-1045/) یا پارامتر ?product= داشت
   if (pathSegments[1] === "product" && pathSegments[2]) {
     coreState.activeProductSku = pathSegments[2].toUpperCase();
   } else if (params.get("product")) {
@@ -429,7 +430,6 @@ export function resolveCurrentRouteFromUrl() {
     coreState.activeProductSku = "";
   }
 
-  // ۳. خواندن بخش، شاخه و زیربخش از پارامترها یا از مسیر فیزیکی گیت‌هاب
   coreState.dept = params.get("dept") || "";
   coreState.cat = params.get("cat") || "";
   coreState.sub = params.get("sub") || "";
@@ -484,9 +484,6 @@ export function resolveCurrentRouteFromUrl() {
   }
 }
 
-/**
- * بروزرسانی آدرس مرورگر و ساخت لینک اختصاصی برای هر بخش، زیربخش، قیمت یا عکس
- */
 export function buildShareableUrl(overrides = {}) {
   const state = {
     lang: overrides.lang !== undefined ? overrides.lang : coreState.lang,
@@ -518,10 +515,6 @@ export function syncBrowserHistoryState() {
   updateDynamicSeoTags();
 }
 
-/**
- * موتور سئوی سلسله‌مراتبی (Hierarchical SEO: [بخش اصلی] + [شاخه] + [زیربخش])
- * حتی اگر نام شاخه فقط "Tracksuits" باشد، در تگ‌های گوگل خودکار به "Men Tracksuits" تبدیل می‌شود.
- */
 export function updateDynamicSeoTags() {
   const deptObj = coreState.taxonomy.find((d) => d.id === coreState.dept);
   const subObj = (deptObj?.subcategories || []).find((s) => s.id === coreState.cat);
@@ -531,7 +524,6 @@ export function updateDynamicSeoTags() {
   const subName = getLocalizedTaxonomyLabel(subObj);
   const leafName = getLocalizedTaxonomyLabel(leafObj);
 
-  // ترکیب هوشمند نام بخش مادر با شاخه و زیربخش برای درک ۱۰۰٪ ربات گوگل
   const parts = [];
   if (deptName) parts.push(deptName);
   if (subName && !subName.toLowerCase().includes((deptName || "").toLowerCase())) {
@@ -577,13 +569,11 @@ export function updateDynamicSeoTags() {
     document.getElementById("og-image")?.setAttribute("content", coverImg);
   }
 
-  // بروزرسانی لینک‌های ۳ زبانه Hreflang برای گوگل
   ["en", "it", "es"].forEach((lng) => {
     const el = document.getElementById(`hreflang-${lng}`);
     if (el) el.setAttribute("href", buildShareableUrl({ lang: lng }));
   });
 
-  // تزریق اسکیمای مسیر راهنما (BreadcrumbList JSON-LD) برای گوگل
   const breadcrumbItems = [
     { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_DOMAIN}/` }
   ];
@@ -623,24 +613,17 @@ export function updateDynamicSeoTags() {
 }
 /* === پایان [MODULE-02: FIREBASE DATA LOADER, SSG ROUTER & EMPTY FILTER] === */
 
-/* ==========================================================================
-   === پایان بلوک ۱ از ۳ فایل core.js ===
-   راهنما: بلوک ۲ (ماژول‌های ۰۳، ۰۴ و ۰۵) را دقیقاً زیر این خط پیست کنید
-   ========================================================================== */
-/* ==========================================================================
-   === شروع بلوک ۲ از ۳ فایل core.js (ماژول‌های ۰۳، ۰۴ و ۰۵) ===
-   راهنما: این بلوک را دقیقاً زیر خط پایان بلوک ۱ پیست کنید
-   ========================================================================== */
 
 /* ==========================================================================
-   === شروع [MODULE-03: SMART SCROLL, VISUAL CARDS & GLASS BAR] (ماژول ۳) ===
-   راهنما: کنترل مخفی شدن هدر در اسکرول، دکمه Back، کارت‌های تصویری بزرگ
-   و نوار شیشه‌ای متحرک زیربخش‌ها با حذف خودکار زیربخش‌های خالی.
+   === شروع [MODULE-03: 3-STAGE ARCHITECTURE, VISUAL CARDS & GLASS BAR] (ماژول ۳) ===
+   راهنما: پیاده‌سازی معماری ۳ مرحله‌ای:
+   - مرحله ۱ (صفحه اول کاتالوگ): فقط کارت‌های بزرگ بخش‌های اصلی (مردانه، زنانه...). بدون محصول و بدون ریل!
+   - مرحله ۲ (انتخاب بخش مثلاً مردانه): فقط کارت‌های بزرگ شاخه‌های آن بخش (تیشرت، سویشرت...). بدون محصول و بدون ریل!
+   - مرحله ۳ (ورود به یک شاخه مثلاً تیشرت): نمایش محصولات + فعال شدن ریل شیشه‌ای زیربخش‌ها و ریل قیمت!
    ========================================================================== */
 
-/**
- * بروزرسانی متن دکمه‌های ثابت صفحه بر اساس زبان انتخاب شده (EN / IT / ES)
- */
+const LANG_FLAGS = { en: "🇬🇧", it: "🇮🇹", es: "🇪🇸" };
+
 export function applyLocalizedStaticTexts() {
   const setTxt = (id, key) => {
     const el = document.getElementById(id);
@@ -671,14 +654,17 @@ export function applyLocalizedStaticTexts() {
   const countryInp = document.getElementById("cart-buyer-country");
   if (countryInp) countryInp.placeholder = t("buyerCountryPh");
 
-  document.querySelectorAll("#lang-switcher-group .lang-pill-btn").forEach((btn) => {
+  // بروزرسانی دکمه پرچم و کد زبان در هدر بالا
+  const flagEl = document.getElementById("current-lang-flag");
+  const codeEl = document.getElementById("current-lang-code");
+  if (flagEl) flagEl.textContent = LANG_FLAGS[coreState.lang] || "🇬🇧";
+  if (codeEl) codeEl.textContent = (coreState.lang || "en").toUpperCase();
+
+  document.querySelectorAll("#lang-dropdown-menu .lang-option-btn").forEach((btn) => {
     btn.classList.toggle("active", btn.getAttribute("data-lang") === coreState.lang);
   });
 }
 
-/**
- * کنترل دکمه مینیمال Back در هدر (نمایش هوشمند و بازگشت مرحله‌به‌مرحله)
- */
 export function updateBackButtonVisibility() {
   const backBtn = document.getElementById("btn-nav-back");
   if (!backBtn) return;
@@ -703,41 +689,45 @@ export function handleStepBackNavigation() {
     coreState.dept = "";
   }
 
-  coreState.displayLimit = 48;
+  coreState.displayLimit = 12;
   syncBrowserHistoryState();
   renderEntireCatalogView(true);
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 /**
- * رندر کارت‌های تصویری بزرگ ۲ ستونه (برای بخش‌های اصلی یا شاخه‌های یک بخش)
- * وقتی مشتری وارد یک شاخه خاص (مثلاً تیشرت) می‌شود، کارت‌های بزرگ جمع می‌شوند تا
- * بلافاصله محصولات و نوار شیشه‌ای زیربخش‌ها (یقه گرد / یقه‌دار) دیده شوند.
+ * آیا در مرحله ۳ (نمایش محصولات و ریل‌های بالا) هستیم؟
+ * فقط زمانی که مشتری وارد یک شاخه (مثلاً تیشرت) شده باشد یا عبارتی را سرچ کرده باشد!
+ */
+export function isProductStageActive() {
+  return Boolean((coreState.dept && coreState.cat) || coreState.searchQuery);
+}
+
+/**
+ * رندر کارت‌های تصویری بزرگ ۲ ستونه:
+ * - در مرحله ۱: نمایش تمام بخش‌های اصلی دیتابیس (مردانه، زنانه، بچگانه، کفش، کیف...)
+ * - در مرحله ۲: نمایش تمام شاخه‌های بخش انتخاب‌شده (مثلاً تمام شاخه‌های مردانه)
+ * - در مرحله ۳: مخفی کردن کارت‌های بزرگ (مگر اینکه مشتری روی دکمه میانبر 📂 Categories کلیک کند)
  */
 export function renderVisualCategoryCards(forceShowSubcats = false) {
   const section = document.getElementById("visual-categories-section");
   const grid = document.getElementById("visual-categories-grid");
   if (!section || !grid) return;
 
-  // اگر کاربر در حال جستجو است، کارت‌های دسته‌بندی را مخفی کن تا نتایج سرچ بالا بیاید
   if (coreState.searchQuery) {
     section.style.display = "none";
     return;
   }
 
-  // حالت ۱: کاربر در صفحه اول کاتالوگ است (هنوز بخشی مثل مردانه/زنانه انتخاب نشده)
+  // مرحله ۱: صفحه اول کاتالوگ (نمایش تمام بخش‌های اصلی دیتابیس)
   if (!coreState.dept) {
     const depts = getNonEmptyDepartments();
-    if (depts.length === 0) {
-      section.style.display = "none";
-      return;
-    }
-
     section.style.display = "block";
     grid.innerHTML = depts
       .map((d) => {
         const title = escapeHtml(getLocalizedTaxonomyLabel(d));
-        const prodCount = getProductsForDept(d.id).length;
         const subCount = getNonEmptySubcategories(d.id).length;
+        const prodCount = getProductsForDept(d.id).length;
         const img = escapeHtml(
           d.image || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=600&q=80"
         );
@@ -746,7 +736,7 @@ export function renderVisualCategoryCards(forceShowSubcats = false) {
           <a href="${escapeHtml(buildShareableUrl({ dept: d.id, cat: "", sub: "", price: null }))}"
              class="visual-cat-card"
              data-select-dept="${escapeHtml(d.id)}">
-            <img src="${img}" alt="${title}" loading="lazy" />
+            <img src="${img}" alt="${title}" loading="lazy" decoding="async" />
             <div class="visual-cat-overlay">
               <div class="visual-cat-name">${title}</div>
               <div class="visual-cat-meta">
@@ -761,8 +751,7 @@ export function renderVisualCategoryCards(forceShowSubcats = false) {
     return;
   }
 
-  // حالت ۲: کاربر روی یک بخش (مثلاً مردانه) کلیک کرده اما هنوز وارد شاخه‌ای (مثلاً تیشرت) نشده
-  // یا روی دکمه [📂 Categories] در نوار شیشه‌ای کلیک کرده است
+  // مرحله ۲: داخل یک بخش اصلی (مثلاً مردانه) هستیم و هنوز شاخه‌ای انتخاب نشده (یا دکمه میانبر شاخه‌ها زده شده)
   if (coreState.dept && (!coreState.cat || forceShowSubcats)) {
     const subcats = getNonEmptySubcategories(coreState.dept);
     if (subcats.length === 0) {
@@ -785,7 +774,7 @@ export function renderVisualCategoryCards(forceShowSubcats = false) {
              class="visual-cat-card"
              style="${isCurrent ? "border: 2.5px solid var(--gold);" : ""}"
              data-select-cat="${escapeHtml(sc.id)}">
-            <img src="${img}" alt="${title}" loading="lazy" />
+            <img src="${img}" alt="${title}" loading="lazy" decoding="async" />
             <div class="visual-cat-overlay">
               <div class="visual-cat-name">${title}</div>
               <div class="visual-cat-meta">
@@ -800,114 +789,79 @@ export function renderVisualCategoryCards(forceShowSubcats = false) {
     return;
   }
 
-  // حالت ۳: کاربر داخل یک شاخه (مثلاً تیشرت) است -> کارت‌های بزرگ جمع شوند تا محصولات بالا بیایند
+  // مرحله ۳: داخل یک شاخه خاص هستیم -> کارت‌های بزرگ جمع می‌شوند تا فقط محصولات دیده شوند
   section.style.display = "none";
 }
 
 /**
- * رندر نوار شیشه‌ای نیمه‌شفاف (Sticky Glass Bar) با قابلیت:
- * - حذف خودکار زیربخش‌های بدون عکس
- * - نمایش دکمه [همه] + زیربخش‌های دارای محصول (مثل یقه گرد، یقه‌دار پلو)
- * - حرکت خودکار آیتم انتخاب‌شده به وسط صفحه و انیمیشن راهنمای اسکرول
+ * رندر نوار شیشه‌ای زیربخش‌ها (فقط در مرحله ۳ یعنی بعد از ورود به یک شاخه خاص روشن می‌شود!)
+ * در مراحل ۱ و ۲ کاملاً مخفی است تا صفحه شلوغ و تکراری نشود.
  */
 export function renderStickyGlassPills(triggerNudge = false) {
+  const dock = document.getElementById("sticky-glass-dock");
+  const subnavRow = document.getElementById("glass-subnav-row");
   const track = document.getElementById("glass-pills-track");
-  if (!track) return;
+  if (!dock || !track) return;
+
+  // اگر هنوز در مرحله ۱ (بخش‌های اصلی) یا مرحله ۲ (کارت‌های شاخه‌ها) هستیم، کل نوار شیشه‌ای را مخفی کن!
+  if (!isProductStageActive()) {
+    dock.style.display = "none";
+    return;
+  }
+
+  dock.style.display = "block";
+
+  // اگر در حالت جستجو هستیم و شاخه‌ای انتخاب نشده، ردیف زیربخش را مخفی کن و فقط ردیف قیمت را نگه دار
+  if (!coreState.dept || !coreState.cat) {
+    if (subnavRow) subnavRow.style.display = "none";
+    return;
+  }
+
+  if (subnavRow) subnavRow.style.display = "flex";
+
+  const deptObj = coreState.taxonomy.find((d) => d.id === coreState.dept);
+  const subObj = (deptObj?.subcategories || []).find((s) => s.id === coreState.cat);
+  const totalCatCount = getProductsForSubcat(coreState.dept, coreState.cat).length;
+  const nonEmptyLeaves = getNonEmptyLeaves(coreState.dept, coreState.cat);
 
   const pillsHtml = [];
 
-  // ۱. اگر داخل یک شاخه خاص (مثلاً تیشرت مردانه) هستیم -> زیربخش‌های داخلی (سطح ۳) را در نوار شیشه‌ای نشان بده
-  if (coreState.dept && coreState.cat) {
-    const deptObj = coreState.taxonomy.find((d) => d.id === coreState.dept);
-    const subObj = (deptObj?.subcategories || []).find((s) => s.id === coreState.cat);
-    const totalCatCount = getProductsForSubcat(coreState.dept, coreState.cat).length;
-    const nonEmptyLeaves = getNonEmptyLeaves(coreState.dept, coreState.cat);
+  // ۱. دکمه میانبر باز کردن سایر شاخه‌های همین بخش (مثلاً پریدن از تیشرت به سویشرت)
+  pillsHtml.push(`
+    <button type="button" class="glass-pill switch-cat-btn" data-glass-action="toggle-subcats">
+      <span>${t("switchCatBtn")} ▾</span>
+    </button>
+  `);
 
-    // دکمه زرد تغییر سریع شاخه (مثلاً برای رفتن از تیشرت به هودی بدون نیاز به دکمه Back)
-    pillsHtml.push(`
-      <button type="button" class="glass-pill switch-cat-btn" data-glass-action="toggle-subcats">
-        <span>${t("switchCatBtn")} ▾</span>
-      </button>
-    `);
+  // ۲. دکمه «همه» برای شاخه فعلی (مثلاً: همه تیشرت‌ها)
+  pillsHtml.push(`
+    <button type="button" class="glass-pill ${!coreState.sub ? "active" : ""}" data-glass-leaf="">
+      <span>${t("allStyles")} ${escapeHtml(getLocalizedTaxonomyLabel(subObj))}</span>
+      <span class="pill-count">(${totalCatCount})</span>
+    </button>
+  `);
 
-    // گزینه اول: همه محصولات این شاخه (مثلاً: همه تیشرت‌ها)
-    pillsHtml.push(`
-      <button type="button" class="glass-pill ${!coreState.sub ? "active" : ""}" data-glass-leaf="">
-        <span>${t("allStyles")} ${escapeHtml(getLocalizedTaxonomyLabel(subObj))}</span>
-        <span class="pill-count">(${totalCatCount})</span>
-      </button>
-    `);
-
-    // گزینه‌های بعدی: فقط زیربخش‌هایی که در دیتابیس عکس دارند (مثلاً یقه گرد، یقه‌دار پلو)
-    nonEmptyLeaves.forEach((lf) => {
-      const leafCount = getProductsForLeaf(coreState.dept, coreState.cat, lf).length;
-      const isSelected = coreState.sub === lf.id;
-      const thumbHtml = lf.image ? `<img src="${escapeHtml(lf.image)}" class="pill-thumb" alt="" />` : "";
-
-      pillsHtml.push(`
-        <button type="button" class="glass-pill ${isSelected ? "active" : ""}" data-glass-leaf="${escapeHtml(lf.id)}">
-          ${thumbHtml}
-          <span>${escapeHtml(getLocalizedTaxonomyLabel(lf))}</span>
-          <span class="pill-count">(${leafCount})</span>
-        </button>
-      `);
-    });
-  }
-  // ۲. اگر داخل یک بخش اصلی (مثلاً مردانه) هستیم ولی هنوز شاخه‌ای انتخاب نشده -> شاخه‌های مردانه را در نوار شیشه‌ای هم نشان بده
-  else if (coreState.dept && !coreState.cat) {
-    const deptObj = coreState.taxonomy.find((d) => d.id === coreState.dept);
-    const totalDeptCount = getProductsForDept(coreState.dept).length;
-    const nonEmptySubs = getNonEmptySubcategories(coreState.dept);
+  // ۳. دکمه‌های زیربخش‌های داخلیِ دارای عکس (مثلاً: یقه گرد، یقه‌دار پلو)
+  nonEmptyLeaves.forEach((lf) => {
+    const leafCount = getProductsForLeaf(coreState.dept, coreState.cat, lf).length;
+    const isSelected = coreState.sub === lf.id;
+    const thumbHtml = lf.image ? `<img src="${escapeHtml(lf.image)}" class="pill-thumb" alt="" />` : "";
 
     pillsHtml.push(`
-      <button type="button" class="glass-pill active" data-glass-cat="">
-        <span>${t("allStyles")} ${escapeHtml(getLocalizedTaxonomyLabel(deptObj))}</span>
-        <span class="pill-count">(${totalDeptCount})</span>
+      <button type="button" class="glass-pill ${isSelected ? "active" : ""}" data-glass-leaf="${escapeHtml(lf.id)}">
+        ${thumbHtml}
+        <span>${escapeHtml(getLocalizedTaxonomyLabel(lf))}</span>
+        <span class="pill-count">(${leafCount})</span>
       </button>
     `);
-
-    nonEmptySubs.forEach((sc) => {
-      const cnt = getProductsForSubcat(coreState.dept, sc.id).length;
-      const thumbHtml = sc.image ? `<img src="${escapeHtml(sc.image)}" class="pill-thumb" alt="" />` : "";
-      pillsHtml.push(`
-        <button type="button" class="glass-pill" data-glass-cat="${escapeHtml(sc.id)}">
-          ${thumbHtml}
-          <span>${escapeHtml(getLocalizedTaxonomyLabel(sc))}</span>
-          <span class="pill-count">(${cnt})</span>
-        </button>
-      `);
-    });
-  }
-  // ۳. اگر در ریشه کاتالوگ هستیم -> بخش‌های اصلی دارای محصول را در نوار شیشه‌ای نشان بده
-  else {
-    const depts = getNonEmptyDepartments();
-    pillsHtml.push(`
-      <button type="button" class="glass-pill ${!coreState.dept ? "active" : ""}" data-glass-dept="">
-        <span>${t("allCategories")}</span>
-        <span class="pill-count">(${coreState.allProducts.length})</span>
-      </button>
-    `);
-
-    depts.forEach((d) => {
-      const cnt = getProductsForDept(d.id).length;
-      const thumbHtml = d.image ? `<img src="${escapeHtml(d.image)}" class="pill-thumb" alt="" />` : "";
-      pillsHtml.push(`
-        <button type="button" class="glass-pill ${coreState.dept === d.id ? "active" : ""}" data-glass-dept="${escapeHtml(d.id)}">
-          ${thumbHtml}
-          <span>${escapeHtml(getLocalizedTaxonomyLabel(d))}</span>
-          <span class="pill-count">(${cnt})</span>
-        </button>
-      `);
-    });
-  }
+  });
 
   track.innerHTML = pillsHtml.join("");
 
-  // تنظیم فلش‌های راهنما، خط اسکرول و حرکت خودکار گزینه فعال به وسط نوار
   requestAnimationFrame(() => {
     updateGlassScrollIndicators();
     const activePill = track.querySelector(".glass-pill.active");
-    if (activePill && (coreState.sub || coreState.cat)) {
+    if (activePill && coreState.sub) {
       activePill.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
     } else if (triggerNudge && track.scrollWidth > track.clientWidth + 24) {
       track.classList.remove("nudge-hint");
@@ -917,9 +871,6 @@ export function renderStickyGlassPills(triggerNudge = false) {
   });
 }
 
-/**
- * بروزرسانی فلش‌های چپ/راست و خط باریک طلایی زیر نوار شیشه‌ای
- */
 export function updateGlassScrollIndicators() {
   const track = document.getElementById("glass-pills-track");
   const leftBtn = document.getElementById("scroll-arrow-left");
@@ -927,7 +878,10 @@ export function updateGlassScrollIndicators() {
   const barWrap = document.getElementById("micro-scroll-bar-wrap");
   const barFill = document.getElementById("micro-scroll-bar-fill");
 
-  if (!track) return;
+  if (!track || !isProductStageActive()) {
+    if (barWrap) barWrap.classList.remove("visible");
+    return;
+  }
 
   const maxScroll = track.scrollWidth - track.clientWidth;
   const isOverflowing = maxScroll > 12;
@@ -946,13 +900,11 @@ export function updateGlassScrollIndicators() {
   }
 }
 
-/**
- * فعال‌سازی رفتار مخفی شدن هدر بالا هنگام اسکرول به پایین و ظاهر شدن با اسکرول به بالا
- */
 export function bindSmartHeaderAndGlassEvents() {
   let lastScrollY = window.scrollY;
   const topHeader = document.getElementById("smart-top-header");
   const searchDrawer = document.getElementById("search-drawer-bar");
+  const langMenu = document.getElementById("lang-dropdown-menu");
 
   window.addEventListener(
     "scroll",
@@ -962,6 +914,7 @@ export function bindSmartHeaderAndGlassEvents() {
 
       if (currentY > 75 && delta > 7 && !searchDrawer?.classList.contains("open")) {
         topHeader?.classList.add("header-hidden");
+        langMenu?.classList.remove("open");
         document.body.classList.add("scrolled-down");
       } else if (delta < -6 || currentY <= 40) {
         topHeader?.classList.remove("header-hidden");
@@ -972,19 +925,30 @@ export function bindSmartHeaderAndGlassEvents() {
     { passive: true }
   );
 
-  // دکمه Back
   document.getElementById("btn-nav-back")?.addEventListener("click", handleStepBackNavigation);
 
-  // دکمه تغییر زبان (EN / IT / ES)
-  document.getElementById("lang-switcher-group")?.addEventListener("click", (e) => {
+  // منوی کشویی انتخاب زبان با پرچم کشورها (🇬🇧 EN / 🇮🇹 IT / 🇪🇸 ES)
+  document.getElementById("btn-lang-dropdown")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    langMenu?.classList.toggle("open");
+  });
+
+  document.getElementById("lang-dropdown-menu")?.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-lang]");
     if (!btn) return;
     coreState.lang = btn.getAttribute("data-lang") || "en";
     localStorage.setItem("paradise_lang", coreState.lang);
+    langMenu?.classList.remove("open");
     applyLocalizedStaticTexts();
     syncBrowserHistoryState();
     renderEntireCatalogView(false);
     renderSteppedCartUI();
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("#lang-switcher-group")) {
+      langMenu?.classList.remove("open");
+    }
   });
 
   // باز و بسته کردن نوار جستجو
@@ -999,11 +963,8 @@ export function bindSmartHeaderAndGlassEvents() {
 
   document.getElementById("catalog-live-search")?.addEventListener("input", (e) => {
     coreState.searchQuery = e.target.value.trim();
-    coreState.displayLimit = 48;
-    updateBackButtonVisibility();
-    renderVisualCategoryCards(false);
-    renderDynamicPriceFilterBar();
-    renderProductsCatalogGrid();
+    coreState.displayLimit = 12;
+    renderEntireCatalogView(false);
   });
 
   document.getElementById("btn-clear-search")?.addEventListener("click", () => {
@@ -1011,11 +972,9 @@ export function bindSmartHeaderAndGlassEvents() {
     const inp = document.getElementById("catalog-live-search");
     if (inp) inp.value = "";
     document.getElementById("search-drawer-bar")?.classList.remove("open");
-    updateBackButtonVisibility();
     renderEntireCatalogView(false);
   });
 
-  // اسکرول نوار شیشه‌ای و فلش‌های چپ و راست
   const track = document.getElementById("glass-pills-track");
   track?.addEventListener("scroll", updateGlassScrollIndicators, { passive: true });
   window.addEventListener("resize", updateGlassScrollIndicators);
@@ -1027,7 +986,6 @@ export function bindSmartHeaderAndGlassEvents() {
     track?.scrollBy({ left: 180, behavior: "smooth" });
   });
 
-  // کلیک روی کپسول‌های نوار شیشه‌ای
   track?.addEventListener("click", (e) => {
     const toggleBtn = e.target.closest('[data-glass-action="toggle-subcats"]');
     if (toggleBtn) {
@@ -1042,36 +1000,14 @@ export function bindSmartHeaderAndGlassEvents() {
     if (leafBtn) {
       coreState.sub = leafBtn.getAttribute("data-glass-leaf") || "";
       coreState.price = null;
-      coreState.displayLimit = 48;
+      coreState.displayLimit = 12;
       syncBrowserHistoryState();
       renderEntireCatalogView(false);
       return;
     }
-
-    const catBtn = e.target.closest("[data-glass-cat]");
-    if (catBtn) {
-      coreState.cat = catBtn.getAttribute("data-glass-cat") || "";
-      coreState.sub = "";
-      coreState.price = null;
-      coreState.displayLimit = 48;
-      syncBrowserHistoryState();
-      renderEntireCatalogView(true);
-      return;
-    }
-
-    const deptBtn = e.target.closest("[data-glass-dept]");
-    if (deptBtn) {
-      coreState.dept = deptBtn.getAttribute("data-glass-dept") || "";
-      coreState.cat = "";
-      coreState.sub = "";
-      coreState.price = null;
-      coreState.displayLimit = 48;
-      syncBrowserHistoryState();
-      renderEntireCatalogView(true);
-    }
   });
 
-  // کلیک روی کارت‌های تصویری بزرگ ۲ ستونه
+  // کلیک روی کارت‌های تصویری بزرگ ۲ ستونه (مراحل ۱ و ۲)
   document.getElementById("visual-categories-grid")?.addEventListener("click", (e) => {
     const deptCard = e.target.closest("[data-select-dept]");
     if (deptCard) {
@@ -1080,7 +1016,7 @@ export function bindSmartHeaderAndGlassEvents() {
       coreState.cat = "";
       coreState.sub = "";
       coreState.price = null;
-      coreState.displayLimit = 48;
+      coreState.displayLimit = 12;
       syncBrowserHistoryState();
       renderEntireCatalogView(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1093,14 +1029,13 @@ export function bindSmartHeaderAndGlassEvents() {
       coreState.cat = catCard.getAttribute("data-select-cat") || "";
       coreState.sub = "";
       coreState.price = null;
-      coreState.displayLimit = 48;
+      coreState.displayLimit = 12;
       syncBrowserHistoryState();
       renderEntireCatalogView(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   });
 
-  // دکمه اشتراک‌گذاری لینک مستقیم نمای فعلی
   document.getElementById("btn-share-current-view")?.addEventListener("click", async () => {
     const shareUrl = buildShareableUrl();
     if (navigator.share) {
@@ -1113,20 +1048,18 @@ export function bindSmartHeaderAndGlassEvents() {
     showCatalogToast(t("copiedToast"));
   });
 }
-/* === پایان [MODULE-03: SMART SCROLL, VISUAL CARDS & GLASS BAR] === */
+/* === پایان [MODULE-03: 3-STAGE ARCHITECTURE, VISUAL CARDS & GLASS BAR] === */
 
 
 /* ==========================================================================
    === شروع [MODULE-04: DYNAMIC PRICE-TIER DETECTOR ($5 | $9 | $12)] (ماژول ۴) ===
-   راهنما: تشخیص هوشمند قیمت‌های موجود در شاخه یا زیربخش فعلی از دیتابیس و نمایش
-   دکمه‌های فیلتر قیمت با علامت دلار در بالای صفحه.
+   راهنما: تشخیص هوشمند قیمت‌های موجود در شاخه یا زیربخش فعلی از دیتابیس.
+   فقط در مرحله ۳ (زمانی که محصولات نمایش داده می‌شوند) روشن می‌شود.
    ========================================================================== */
 
-/**
- * دریافت محصولاتِ محدوده فعلی (بخش + شاخه + زیربخش + جستجو) بدون اعمال فیلتر قیمت
- * تا بتوانیم تمام قیمت‌های موجود در آن زیربخش یا شاخه را دقیق استخراج کنیم.
- */
 export function getProductsInCurrentScopeWithoutPrice() {
+  if (!isProductStageActive()) return [];
+
   const deptObj = coreState.taxonomy.find((d) => d.id === coreState.dept);
   const subObj = (deptObj?.subcategories || []).find((s) => s.id === coreState.cat);
   const leafObj = (subObj?.leaves || []).find((l) => l.id === coreState.sub);
@@ -1152,17 +1085,19 @@ export function getProductsInCurrentScopeWithoutPrice() {
   });
 }
 
-/**
- * ساخت هوشمند نوار قیمت‌ها (مثلاً: All Prices | $10 | $11 | $12) بر اساس دیتابیس
- */
 export function renderDynamicPriceFilterBar() {
   const priceRow = document.getElementById("smart-price-row");
   const container = document.getElementById("price-chips-container");
   if (!priceRow || !container) return;
 
+  // اگر هنوز وارد شاخه‌ای نشده‌ایم (مراحل ۱ و ۲)، ریل قیمت را کاملاً مخفی نگه دار!
+  if (!isProductStageActive()) {
+    priceRow.style.display = "none";
+    return;
+  }
+
   const scopedProducts = getProductsInCurrentScopeWithoutPrice();
 
-  // شمارش تعداد مدل‌های هر قیمت در شاخه/زیربخش انتخاب‌شده
   const priceCountMap = new Map();
   scopedProducts.forEach((p) => {
     const pr = Number(p.unitPrice);
@@ -1173,7 +1108,6 @@ export function renderDynamicPriceFilterBar() {
 
   const sortedPrices = Array.from(priceCountMap.keys()).sort((a, b) => a - b);
 
-  // اگر قیمت انتخاب‌شده قبلی در این زیربخش جدید وجود ندارد، آن را ریست کن
   if (coreState.price !== null && !priceCountMap.has(coreState.price)) {
     coreState.price = null;
   }
@@ -1211,7 +1145,7 @@ export function bindPriceFilterEvents() {
     if (!btn) return;
     const raw = btn.getAttribute("data-select-price");
     coreState.price = raw === "" ? null : parseFloat(raw);
-    coreState.displayLimit = 48;
+    coreState.displayLimit = 12;
     updateBackButtonVisibility();
     syncBrowserHistoryState();
     renderDynamicPriceFilterBar();
@@ -1219,7 +1153,6 @@ export function bindPriceFilterEvents() {
   });
 }
 /* === پایان [MODULE-04: DYNAMIC PRICE-TIER DETECTOR ($5 | $9 | $12)] === */
-
 
 /* ==========================================================================
    === شروع [MODULE-05: PRODUCT CARD MINI-SLIDER & HD LIGHTBOX] (ماژول ۵) ===
