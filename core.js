@@ -250,33 +250,31 @@ export function showCatalogToast(msg, duration = 2800) {
 
 /* ==========================================================================
    === شروع [MODULE-02: FIREBASE DATA LOADER, SSG ROUTER & EMPTY FILTER] (ماژول ۲) ===
-   راهنما: خواندن تمام بخش‌ها و شاخه‌های دیتابیس پنل ادمین (مردانه، زنانه، بچگانه و...)،
-   تشخیص هوشمند صفحات فیزیکی و فیلتر کردن زیربخش‌های خالی در سطح ۳.
+   راهنما: خواندن دسته‌بندی‌ها از دیتابیس، حذف خودکار بخش‌های کفش و کیف از صفحه اصلی،
+   و پیش‌بارگذاری (Preload) تصاویر منوها برای باز شدن آنی.
    ========================================================================== */
 
-/* دسته‌بندی پیش‌فرض پایه در صورتی که دیتابیس هنوز بارگذاری نشده باشد */
 const FALLBACK_TAXONOMY = [
   { id: "men", labelFa: "مردانه", labelEn: "Men", labelIt: "Uomo", labelEs: "Hombre", hidden: false, subcategories: [] },
   { id: "women", labelFa: "زنانه", labelEn: "Women", labelIt: "Donna", labelEs: "Mujer", hidden: false, subcategories: [] },
-  { id: "kids-baby", labelFa: "بچگانه", labelEn: "Kids & Baby", labelIt: "Bambini", labelEs: "Niños y Bebés", hidden: false, subcategories: [] },
-  { id: "shoes", labelFa: "کفش", labelEn: "Shoes", labelIt: "Scarpe", labelEs: "Calzado", hidden: false, subcategories: [] },
-  { id: "bags-accessories", labelFa: "کیف و اکسسوری", labelEn: "Bags & Accessories", labelIt: "Borse e Accessori", labelEs: "Bolsos y Accesorios", hidden: false, subcategories: [] }
+  { id: "kids-baby", labelFa: "بچگانه", labelEn: "Kids & Baby", labelIt: "Bambini", labelEs: "Niños y Bebés", hidden: false, subcategories: [] }
 ];
 
-/**
- * بارگذاری تنظیمات، کل درخت دسته‌بندی‌های پنل ادمین و محصولات از فایربیس
- */
-export async function loadCoreCatalogData() {
-  coreState.displayLimit = 12; // لود اولیه فقط ۱۲ عکس برای سرعت فوق‌العاده در موبایل
+/* شناسه‌هایی که نباید به عنوان بخش مستقل در صفحه اول کاتالوگ نمایش داده شوند */
+const REMOVED_ROOT_DEPT_IDS = new Set(["shoes", "bags-accessories", "bags", "footwear", "accessories"]);
 
-  // ۱. خواندن تنظیمات عمومی و تمام بخش‌ها و شاخه‌های ساخته شده در پنل ادمین
+export async function loadCoreCatalogData() {
+  coreState.displayLimit = 12;
+
   try {
     const cfgSnap = await getDoc(doc(db, "settings", "public_config"));
     if (cfgSnap.exists()) {
       const data = cfgSnap.data();
       coreState.publicConfig = { ...coreState.publicConfig, ...data };
       if (Array.isArray(data.taxonomy) && data.taxonomy.length > 0) {
-        coreState.taxonomy = data.taxonomy.filter((d) => !d.hidden);
+        coreState.taxonomy = data.taxonomy.filter(
+          (d) => !d.hidden && !REMOVED_ROOT_DEPT_IDS.has(String(d.id || "").toLowerCase())
+        );
       }
     }
   } catch (e) {
@@ -287,7 +285,9 @@ export async function loadCoreCatalogData() {
     coreState.taxonomy = FALLBACK_TAXONOMY;
   }
 
-  // ۲. خواندن سریع محصولات از شاردهای کاتالوگ یا کالکشن products
+  // پیش‌بارگذاری (Preload) عکس‌های بخش‌ها و شاخه‌ها در پس‌زمینه برای باز شدن آنی در موبایل
+  preloadCategoryMenuImages();
+
   try {
     const productsMap = new Map();
     const deptIds = coreState.taxonomy.map((d) => d.id);
@@ -349,6 +349,26 @@ export async function loadCoreCatalogData() {
   }
 }
 
+/**
+ * پیش‌بارگذاری سبک عکس‌های کارت‌های منو تا به محض کلیک روی مردانه/زنانه، عکس شاخه‌ها بدون مکث باز شود
+ */
+export function preloadCategoryMenuImages() {
+  try {
+    const urls = [];
+    coreState.taxonomy.forEach((d) => {
+      if (d.image) urls.push(d.image);
+      (d.subcategories || []).slice(0, 8).forEach((sc) => {
+        if (sc.image) urls.push(sc.image);
+      });
+    });
+    urls.slice(0, 18).forEach((u) => {
+      const img = new Image();
+      img.decoding = "async";
+      img.src = u;
+    });
+  } catch (e) {}
+}
+
 export function getProductsForDept(deptId) {
   return coreState.allProducts.filter((p) => p.department === deptId);
 }
@@ -372,27 +392,20 @@ export function getProductsForLeaf(deptId, subcatId, leafObj) {
 }
 
 /**
- * سطح ۱ (بخش‌های اصلی مثل مردانه، زنانه، بچگانه...):
- * تمام بخش‌های فعالی که در پنل ادمین ساخته‌ای را بدون استثنا نمایش می‌دهد (حتی اگر هنوز عکسی در آن آپلود نکرده باشی).
+ * سطح ۱ (بخش‌های اصلی صفحه اول): نمایش بخش‌های فعال به جز کفش و کیف
  */
 export function getNonEmptyDepartments() {
-  return coreState.taxonomy.filter((d) => !d.hidden);
+  return coreState.taxonomy.filter(
+    (d) => !d.hidden && !REMOVED_ROOT_DEPT_IDS.has(String(d.id || "").toLowerCase())
+  );
 }
 
-/**
- * سطح ۲ (شاخه‌ها مثل تیشرت، هودی، شلوار، کت‌وشلوار...):
- * تمام شاخه‌های فعالی که در پنل ادمین زیرمجموعه آن بخش ساخته‌ای را نمایش می‌دهد.
- */
 export function getNonEmptySubcategories(deptId) {
   const deptObj = coreState.taxonomy.find((d) => d.id === deptId);
   if (!deptObj || !Array.isArray(deptObj.subcategories)) return [];
   return deptObj.subcategories.filter((sc) => !sc.hidden);
 }
 
-/**
- * سطح ۳ (زیربخش‌های جزئی در نوار شیشه‌ای مثل یقه گرد / یقه‌دار):
- * فقط زیربخش‌هایی که حداقل ۱ محصول داخلشان آپلود شده باشد در نوار شیشه‌ای نمایش داده می‌شوند تا مشتری با صفحه خالی روبرو نشود.
- */
 export function getNonEmptyLeaves(deptId, subcatId) {
   const deptObj = coreState.taxonomy.find((d) => d.id === deptId);
   const subObj = (deptObj?.subcategories || []).find((s) => s.id === subcatId);
@@ -616,10 +629,7 @@ export function updateDynamicSeoTags() {
 
 /* ==========================================================================
    === شروع [MODULE-03: 3-STAGE ARCHITECTURE, VISUAL CARDS & GLASS BAR] (ماژول ۳) ===
-   راهنما: پیاده‌سازی معماری ۳ مرحله‌ای:
-   - مرحله ۱ (صفحه اول کاتالوگ): فقط کارت‌های بزرگ بخش‌های اصلی (مردانه، زنانه...). بدون محصول و بدون ریل!
-   - مرحله ۲ (انتخاب بخش مثلاً مردانه): فقط کارت‌های بزرگ شاخه‌های آن بخش (تیشرت، سویشرت...). بدون محصول و بدون ریل!
-   - مرحله ۳ (ورود به یک شاخه مثلاً تیشرت): نمایش محصولات + فعال شدن ریل شیشه‌ای زیربخش‌ها و ریل قیمت!
+   راهنما: بارگذاری فوری (Eager + High Priority) عکس‌های منو بدون تاخیر.
    ========================================================================== */
 
 const LANG_FLAGS = { en: "🇬🇧", it: "🇮🇹", es: "🇪🇸" };
@@ -654,7 +664,6 @@ export function applyLocalizedStaticTexts() {
   const countryInp = document.getElementById("cart-buyer-country");
   if (countryInp) countryInp.placeholder = t("buyerCountryPh");
 
-  // بروزرسانی دکمه پرچم و کد زبان در هدر بالا
   const flagEl = document.getElementById("current-lang-flag");
   const codeEl = document.getElementById("current-lang-code");
   if (flagEl) flagEl.textContent = LANG_FLAGS[coreState.lang] || "🇬🇧";
@@ -695,19 +704,12 @@ export function handleStepBackNavigation() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-/**
- * آیا در مرحله ۳ (نمایش محصولات و ریل‌های بالا) هستیم؟
- * فقط زمانی که مشتری وارد یک شاخه (مثلاً تیشرت) شده باشد یا عبارتی را سرچ کرده باشد!
- */
 export function isProductStageActive() {
   return Boolean((coreState.dept && coreState.cat) || coreState.searchQuery);
 }
 
 /**
- * رندر کارت‌های تصویری بزرگ ۲ ستونه:
- * - در مرحله ۱: نمایش تمام بخش‌های اصلی دیتابیس (مردانه، زنانه، بچگانه، کفش، کیف...)
- * - در مرحله ۲: نمایش تمام شاخه‌های بخش انتخاب‌شده (مثلاً تمام شاخه‌های مردانه)
- * - در مرحله ۳: مخفی کردن کارت‌های بزرگ (مگر اینکه مشتری روی دکمه میانبر 📂 Categories کلیک کند)
+ * رندر کارت‌های تصویری بزرگ ۲ ستونه با اولویت دانلود فوری (fetchpriority="high") برای عکس‌های منو
  */
 export function renderVisualCategoryCards(forceShowSubcats = false) {
   const section = document.getElementById("visual-categories-section");
@@ -719,24 +721,25 @@ export function renderVisualCategoryCards(forceShowSubcats = false) {
     return;
   }
 
-  // مرحله ۱: صفحه اول کاتالوگ (نمایش تمام بخش‌های اصلی دیتابیس)
+  // مرحله ۱: صفحه اول کاتالوگ (بخش‌های اصلی بدون کفش و کیف)
   if (!coreState.dept) {
     const depts = getNonEmptyDepartments();
     section.style.display = "block";
     grid.innerHTML = depts
-      .map((d) => {
+      .map((d, idx) => {
         const title = escapeHtml(getLocalizedTaxonomyLabel(d));
         const subCount = getNonEmptySubcategories(d.id).length;
         const prodCount = getProductsForDept(d.id).length;
         const img = escapeHtml(
-          d.image || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=600&q=80"
+          d.image || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=500&q=75"
         );
+        const prioAttr = idx < 6 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy" decoding="async"';
 
         return `
           <a href="${escapeHtml(buildShareableUrl({ dept: d.id, cat: "", sub: "", price: null }))}"
              class="visual-cat-card"
              data-select-dept="${escapeHtml(d.id)}">
-            <img src="${img}" alt="${title}" loading="lazy" decoding="async" />
+            <img src="${img}" alt="${title}" ${prioAttr} />
             <div class="visual-cat-overlay">
               <div class="visual-cat-name">${title}</div>
               <div class="visual-cat-meta">
@@ -751,7 +754,7 @@ export function renderVisualCategoryCards(forceShowSubcats = false) {
     return;
   }
 
-  // مرحله ۲: داخل یک بخش اصلی (مثلاً مردانه) هستیم و هنوز شاخه‌ای انتخاب نشده (یا دکمه میانبر شاخه‌ها زده شده)
+  // مرحله ۲: کارت‌های شاخه‌های داخلی یک بخش (مثلاً شاخه‌های مردانه یا زنانه)
   if (coreState.dept && (!coreState.cat || forceShowSubcats)) {
     const subcats = getNonEmptySubcategories(coreState.dept);
     if (subcats.length === 0) {
@@ -761,20 +764,21 @@ export function renderVisualCategoryCards(forceShowSubcats = false) {
 
     section.style.display = "block";
     grid.innerHTML = subcats
-      .map((sc) => {
+      .map((sc, idx) => {
         const title = escapeHtml(getLocalizedTaxonomyLabel(sc));
         const count = getProductsForSubcat(coreState.dept, sc.id).length;
         const isCurrent = coreState.cat === sc.id;
         const img = escapeHtml(
-          sc.image || "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=500&q=80"
+          sc.image || "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=450&q=75"
         );
+        const prioAttr = idx < 6 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy" decoding="async"';
 
         return `
           <a href="${escapeHtml(buildShareableUrl({ dept: coreState.dept, cat: sc.id, sub: "", price: null }))}"
              class="visual-cat-card"
              style="${isCurrent ? "border: 2.5px solid var(--gold);" : ""}"
              data-select-cat="${escapeHtml(sc.id)}">
-            <img src="${img}" alt="${title}" loading="lazy" decoding="async" />
+            <img src="${img}" alt="${title}" ${prioAttr} />
             <div class="visual-cat-overlay">
               <div class="visual-cat-name">${title}</div>
               <div class="visual-cat-meta">
@@ -789,21 +793,15 @@ export function renderVisualCategoryCards(forceShowSubcats = false) {
     return;
   }
 
-  // مرحله ۳: داخل یک شاخه خاص هستیم -> کارت‌های بزرگ جمع می‌شوند تا فقط محصولات دیده شوند
   section.style.display = "none";
 }
 
-/**
- * رندر نوار شیشه‌ای زیربخش‌ها (فقط در مرحله ۳ یعنی بعد از ورود به یک شاخه خاص روشن می‌شود!)
- * در مراحل ۱ و ۲ کاملاً مخفی است تا صفحه شلوغ و تکراری نشود.
- */
 export function renderStickyGlassPills(triggerNudge = false) {
   const dock = document.getElementById("sticky-glass-dock");
   const subnavRow = document.getElementById("glass-subnav-row");
   const track = document.getElementById("glass-pills-track");
   if (!dock || !track) return;
 
-  // اگر هنوز در مرحله ۱ (بخش‌های اصلی) یا مرحله ۲ (کارت‌های شاخه‌ها) هستیم، کل نوار شیشه‌ای را مخفی کن!
   if (!isProductStageActive()) {
     dock.style.display = "none";
     return;
@@ -811,7 +809,6 @@ export function renderStickyGlassPills(triggerNudge = false) {
 
   dock.style.display = "block";
 
-  // اگر در حالت جستجو هستیم و شاخه‌ای انتخاب نشده، ردیف زیربخش را مخفی کن و فقط ردیف قیمت را نگه دار
   if (!coreState.dept || !coreState.cat) {
     if (subnavRow) subnavRow.style.display = "none";
     return;
@@ -826,14 +823,12 @@ export function renderStickyGlassPills(triggerNudge = false) {
 
   const pillsHtml = [];
 
-  // ۱. دکمه میانبر باز کردن سایر شاخه‌های همین بخش (مثلاً پریدن از تیشرت به سویشرت)
   pillsHtml.push(`
     <button type="button" class="glass-pill switch-cat-btn" data-glass-action="toggle-subcats">
       <span>${t("switchCatBtn")} ▾</span>
     </button>
   `);
 
-  // ۲. دکمه «همه» برای شاخه فعلی (مثلاً: همه تیشرت‌ها)
   pillsHtml.push(`
     <button type="button" class="glass-pill ${!coreState.sub ? "active" : ""}" data-glass-leaf="">
       <span>${t("allStyles")} ${escapeHtml(getLocalizedTaxonomyLabel(subObj))}</span>
@@ -841,7 +836,6 @@ export function renderStickyGlassPills(triggerNudge = false) {
     </button>
   `);
 
-  // ۳. دکمه‌های زیربخش‌های داخلیِ دارای عکس (مثلاً: یقه گرد، یقه‌دار پلو)
   nonEmptyLeaves.forEach((lf) => {
     const leafCount = getProductsForLeaf(coreState.dept, coreState.cat, lf).length;
     const isSelected = coreState.sub === lf.id;
@@ -927,7 +921,6 @@ export function bindSmartHeaderAndGlassEvents() {
 
   document.getElementById("btn-nav-back")?.addEventListener("click", handleStepBackNavigation);
 
-  // منوی کشویی انتخاب زبان با پرچم کشورها (🇬🇧 EN / 🇮🇹 IT / 🇪🇸 ES)
   document.getElementById("btn-lang-dropdown")?.addEventListener("click", (e) => {
     e.stopPropagation();
     langMenu?.classList.toggle("open");
@@ -951,7 +944,6 @@ export function bindSmartHeaderAndGlassEvents() {
     }
   });
 
-  // باز و بسته کردن نوار جستجو
   document.getElementById("btn-toggle-search")?.addEventListener("click", () => {
     const drawer = document.getElementById("search-drawer-bar");
     if (!drawer) return;
@@ -1007,7 +999,6 @@ export function bindSmartHeaderAndGlassEvents() {
     }
   });
 
-  // کلیک روی کارت‌های تصویری بزرگ ۲ ستونه (مراحل ۱ و ۲)
   document.getElementById("visual-categories-grid")?.addEventListener("click", (e) => {
     const deptCard = e.target.closest("[data-select-dept]");
     if (deptCard) {
@@ -1835,27 +1826,25 @@ export function fireDirectWhatsappClickEvent() {
 
 /* ==========================================================================
    === شروع [MODULE-07: WHATSAPP INVOICE, OFFICIAL SVG FOOTER & INITIALIZER] (ماژول ۷) ===
-   راهنما: لوگوهای رسمی وکتور SVG شبکه‌های اجتماعی، یکسان‌سازی کامل شماره واتساپ
-   از پنل ادمین در کل سایت، و ساخت پیش‌فاکتور واتساپ.
+   راهنما: شامل لوگوهای رسمی وکتور Instagram, Telegram, TikTok, YouTube و Android App
+   و یکسان‌سازی شماره واتساپ در کل سایت.
    ========================================================================== */
 
-/* آیکون‌های وکتور رسمی و اورجینال شبکه‌های اجتماعی (SVG) */
 const OFFICIAL_SOCIAL_SVGS = {
   instagram: `<svg viewBox="0 0 24 24" fill="none"><rect width="20" height="20" x="2" y="2" rx="5" stroke="#E1306C" stroke-width="2"/><circle cx="12" cy="12" r="4.5" stroke="#F77737" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.2" fill="#E1306C"/></svg>`,
   telegram: `<svg viewBox="0 0 24 24" fill="#2AABEE"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.37-.49 1.02-.74 3.99-1.74 6.65-2.89 7.99-3.45 3.8-1.58 4.59-1.86 5.1-1.87.11 0 .37.03.54.17.14.12.18.28.2.45-.01.06.01.24 0 .33z"/></svg>`,
   tiktok: `<svg viewBox="0 0 24 24" fill="#ffffff"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>`,
+  youtube: `<svg viewBox="0 0 24 24" fill="#FF0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`,
   android: `<svg viewBox="0 0 24 24" fill="#3DDC84"><path d="M17.523 15.341a.96.96 0 0 1-.959-.959c0-.53.43-.96.959-.96s.96.43.96.96-.43.959-.96.959m-11.046 0a.96.96 0 0 1-.96-.959c0-.53.43-.96.96-.96s.959.43.959.96-.43.959-.959.959m11.4-6.022l1.996-3.458a.416.416 0 0 0-.152-.567.416.416 0 0 0-.568.152L17.11 8.95a11.96 11.96 0 0 0-10.22 0L4.847 5.446a.416.416 0 0 0-.568-.152.416.416 0 0 0-.152.567l1.996 3.458C2.688 11.186.343 14.658 0 18.761h24c-.343-4.103-2.688-7.575-6.123-9.442"/></svg>`
 };
 
-/**
- * فرمت استاندارد شماره واتساپ به صورت یکسان برای کل سایت از روی شماره خام پنل ادمین
- */
+export const DEFAULT_YOUTUBE_URL = "https://www.youtube.com/@paradisewholesaleclothing5401";
+
 export function getUnifiedWhatsAppInfo() {
   const pub = coreState.publicConfig;
   const raw = String(pub.whatsappRaw || DEFAULT_WHATSAPP).trim();
   const cleanDigits = raw.replace(/[^0-9]/g, "");
 
-  // اگر شماره نمایشی با شماره اصلی یکی نباشد، خودکار از روی شماره اصلی فرمت خوانا بساز
   const displayClean = String(pub.whatsappDisplay || "").replace(/[^0-9]/g, "");
   let formattedDisplay = pub.whatsappDisplay;
   if (!formattedDisplay || displayClean !== cleanDigits) {
@@ -1865,14 +1854,10 @@ export function getUnifiedWhatsAppInfo() {
   return { cleanDigits, formattedDisplay };
 }
 
-/**
- * اعمال لوگو، شماره واتساپ یکپارچه و لوگوهای رسمی SVG شبکه‌های اجتماعی از تب ۸ پنل ادمین
- */
 export function applyDynamicBrandingAndFooter() {
   const pub = coreState.publicConfig;
   const { cleanDigits, formattedDisplay } = getUnifiedWhatsAppInfo();
 
-  // ۱. لوگوی تصویری هدر (فقط در صورت وجود در دیتابیس نمایش داده می‌شود)
   const logoImg = document.getElementById("header-logo-img");
   if (logoImg) {
     if (pub.logoUrl) {
@@ -1883,7 +1868,6 @@ export function applyDynamicBrandingAndFooter() {
     }
   }
 
-  // ۲. یکسان‌سازی شماره واتساپ در دکمه شناور و فوتر پایین صفحه
   const floatBtn = document.getElementById("floating-whatsapp-btn");
   if (floatBtn && cleanDigits) {
     const pageUrl = buildShareableUrl();
@@ -1897,42 +1881,38 @@ export function applyDynamicBrandingAndFooter() {
     footerWa.textContent = formattedDisplay;
   }
 
-  // ۳. لوگوهای رسمی و اورجینال SVG شبکه‌های اجتماعی در فوتر
+  // رندر لوگوهای رسمی Instagram, Telegram, TikTok, YouTube و Android App
   const socialBox = document.getElementById("footer-social-container");
   if (socialBox) {
-    const links = [];
-    if (pub.instagramUrl) {
-      links.push(`
-        <a href="${escapeHtml(pub.instagramUrl)}" target="_blank" rel="noopener" class="social-pill-link">
-          ${OFFICIAL_SOCIAL_SVGS.instagram}
-          <span>Instagram</span>
-        </a>
-      `);
-    }
-    if (pub.telegramUrl) {
-      links.push(`
-        <a href="${escapeHtml(pub.telegramUrl)}" target="_blank" rel="noopener" class="social-pill-link">
-          ${OFFICIAL_SOCIAL_SVGS.telegram}
-          <span>Telegram</span>
-        </a>
-      `);
-    }
-    if (pub.tiktokUrl) {
-      links.push(`
-        <a href="${escapeHtml(pub.tiktokUrl)}" target="_blank" rel="noopener" class="social-pill-link">
-          ${OFFICIAL_SOCIAL_SVGS.tiktok}
-          <span>TikTok</span>
-        </a>
-      `);
-    }
-    if (pub.androidAppUrl) {
-      links.push(`
-        <a href="${escapeHtml(pub.androidAppUrl)}" target="_blank" rel="noopener" class="social-pill-link" style="border-color:rgba(61,220,132,0.5);">
-          ${OFFICIAL_SOCIAL_SVGS.android}
-          <span>Android App</span>
-        </a>
-      `);
-    }
+    const igUrl = pub.instagramUrl || "https://instagram.com/paradisewholesaler";
+    const tgUrl = pub.telegramUrl || "https://t.me/paradisewholesaler";
+    const tkUrl = pub.tiktokUrl || "https://tiktok.com/@paradisewholesaler";
+    const ytUrl = pub.youtubeUrl || DEFAULT_YOUTUBE_URL;
+    const appUrl = pub.androidAppUrl || "https://play.google.com/store/search?q=PARADISE+WHOLESALE+CLOTHING&c=apps";
+
+    const links = [
+      `<a href="${escapeHtml(igUrl)}" target="_blank" rel="noopener" class="social-pill-link">
+        ${OFFICIAL_SOCIAL_SVGS.instagram}
+        <span>Instagram</span>
+      </a>`,
+      `<a href="${escapeHtml(ytUrl)}" target="_blank" rel="noopener" class="social-pill-link" style="border-color:rgba(255,0,0,0.4);">
+        ${OFFICIAL_SOCIAL_SVGS.youtube}
+        <span>YouTube</span>
+      </a>`,
+      `<a href="${escapeHtml(tgUrl)}" target="_blank" rel="noopener" class="social-pill-link">
+        ${OFFICIAL_SOCIAL_SVGS.telegram}
+        <span>Telegram</span>
+      </a>`,
+      `<a href="${escapeHtml(tkUrl)}" target="_blank" rel="noopener" class="social-pill-link">
+        ${OFFICIAL_SOCIAL_SVGS.tiktok}
+        <span>TikTok</span>
+      </a>`,
+      `<a href="${escapeHtml(appUrl)}" target="_blank" rel="noopener" class="social-pill-link" style="border-color:rgba(61,220,132,0.5);">
+        ${OFFICIAL_SOCIAL_SVGS.android}
+        <span>Android App</span>
+      </a>`
+    ];
+
     socialBox.innerHTML = links.join("");
   }
 }
