@@ -1009,11 +1009,40 @@
 </head>
 <body>
 
-  <!-- ========================================================================
+ <!-- ========================================================================
        === [SECTION-03: SMART HEADER & STICKY GLASS BARS] (شروع بخش ۳: هدر و نوار شیشه‌ای) ===
-       راهنما: هدر خلوت موبایل (بدون نوشته مزاحم وسط دکمه‌ها) + منوی کشویی انتخاب زبان
-       همراه با پرچم کشورها (🇬🇧 EN / 🇮🇹 IT / 🇪🇸 ES).
+       راهنما: هدر ضد بیرون‌زدگی در موبایل (حتی زمانی که دکمه Back روشن است) +
+       منوی کشویی انتخاب زبان همراه با پرچم کشورها (🇬🇧 EN / 🇮🇹 IT / 🇪🇸 ES).
        ======================================================================== -->
+  <style>
+    /* تنظیم هوشمند ابعاد دکمه‌های هدر در موبایل تا دکمه زبان هرگز از صفحه بیرون نزند */
+    @media (max-width: 520px) {
+      .smart-top-header {
+        padding: 0 8px;
+      }
+      .nav-left-group, .nav-right-group {
+        gap: 5px;
+      }
+      .minimal-nav-btn {
+        height: 32px;
+        padding: 0 9px;
+        font-size: 0.73rem;
+      }
+      .minimal-nav-btn.icon-only-mobile {
+        width: 32px;
+        padding: 0;
+      }
+      .minimal-nav-btn.icon-only-mobile .hide-on-mobile {
+        display: none;
+      }
+      .lang-trigger-btn {
+        height: 32px;
+        padding: 0 8px;
+        font-size: 0.72rem;
+      }
+    }
+  </style>
+
   <header class="smart-top-header" id="smart-top-header">
     <div class="nav-left-group">
       <!-- دکمه مینیمال بازگشت به مرحله قبل -->
@@ -1022,10 +1051,10 @@
         <span id="txt-nav-back">Back</span>
       </button>
 
-      <!-- دکمه مینیمال صفحه اول -->
-      <a href="index.html" class="minimal-nav-btn" id="btn-nav-home" title="Home">
+      <!-- دکمه مینیمال صفحه اول (در موبایل فقط آیکون خانه نشان داده می‌شود تا جا باز شود) -->
+      <a href="index.html" class="minimal-nav-btn icon-only-mobile" id="btn-nav-home" title="Home">
         <span>🏠</span>
-        <span id="txt-nav-home">Home</span>
+        <span id="txt-nav-home" class="hide-on-mobile">Home</span>
       </a>
 
       <!-- لوگوی تصویری (فقط در صورت آپلود شدن لوگو در تب ۸ پنل ادمین نمایش داده می‌شود) -->
@@ -1036,9 +1065,9 @@
 
     <div class="nav-right-group">
       <!-- دکمه باز کردن نوار جستجو -->
-      <button type="button" class="minimal-nav-btn" id="btn-toggle-search" aria-label="Search">
+      <button type="button" class="minimal-nav-btn icon-only-mobile" id="btn-toggle-search" aria-label="Search" title="Search">
         <span>🔍</span>
-        <span id="txt-search-btn">Search</span>
+        <span id="txt-search-btn" class="hide-on-mobile">Search</span>
       </button>
 
       <!-- دکمه سبد خرید در هدر -->
@@ -1091,28 +1120,22 @@
 
   <!-- نوار شیشه‌ای نیمه‌شفاف چسبان (فقط در مرحله ۳ وقتی وارد یک شاخه می‌شوی باز می‌شود) -->
   <nav class="sticky-glass-dock" id="sticky-glass-dock" aria-label="Category & Price Filters">
-    <!-- ردیف ۱: اسکرول افقی زیربخش‌ها + دکمه میانبر تغییر شاخه -->
     <div class="glass-row-wrapper" id="glass-subnav-row">
       <button type="button" class="scroll-arrow-btn" id="scroll-arrow-left" aria-label="Scroll Left">‹</button>
-      
       <div class="horizontal-pills-track" id="glass-pills-track"></div>
-
       <button type="button" class="scroll-arrow-btn" id="scroll-arrow-right" aria-label="Scroll Right">›</button>
     </div>
 
-    <!-- خط باریک طلایی نشان‌دهنده جایگاه اسکرول افقی -->
     <div class="micro-scroll-bar-wrap" id="micro-scroll-bar-wrap">
       <div class="micro-scroll-bar-fill" id="micro-scroll-bar-fill"></div>
     </div>
 
-    <!-- ردیف ۲: فیلتر هوشمند قیمت (فقط زمانی که محصولات نمایش داده می‌شوند) -->
     <div class="smart-price-row" id="smart-price-row">
       <span class="price-tier-label" id="txt-price-filter-label">💲 Price:</span>
       <div id="price-chips-container" style="display:flex; align-items:center; gap:6px;"></div>
     </div>
   </nav>
   <!-- === پایان [SECTION-03: SMART HEADER & STICKY GLASS BARS] === -->
-
 
   <!-- ========================================================================
        === [SECTION-04: VISUAL CARDS & PRODUCT GRID] (شروع بخش ۴: کارت‌های تصویری و شبکه محصولات) ===
