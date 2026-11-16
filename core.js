@@ -629,7 +629,8 @@ export function updateDynamicSeoTags() {
 
 /* ==========================================================================
    === شروع [MODULE-03: 3-STAGE ARCHITECTURE, VISUAL CARDS & GLASS BAR] (ماژول ۳) ===
-   راهنما: بارگذاری فوری (Eager + High Priority) عکس‌های منو بدون تاخیر.
+   راهنما: حذف دکمه اضافی Categories از ریل شیشه‌ای + حرکت رفت‌وبرگشتی طولانی
+   و محسوس ریل در لحظه ورود تا مشتری متوجه زیربخش‌های بعدی بشود.
    ========================================================================== */
 
 const LANG_FLAGS = { en: "🇬🇧", it: "🇮🇹", es: "🇪🇸" };
@@ -709,9 +710,9 @@ export function isProductStageActive() {
 }
 
 /**
- * رندر کارت‌های تصویری بزرگ ۲ ستونه با اولویت دانلود فوری (fetchpriority="high") برای عکس‌های منو
+ * رندر کارت‌های تصویری بزرگ ۲ ستونه (مراحل ۱ و ۲)
  */
-export function renderVisualCategoryCards(forceShowSubcats = false) {
+export function renderVisualCategoryCards() {
   const section = document.getElementById("visual-categories-section");
   const grid = document.getElementById("visual-categories-grid");
   if (!section || !grid) return;
@@ -721,7 +722,7 @@ export function renderVisualCategoryCards(forceShowSubcats = false) {
     return;
   }
 
-  // مرحله ۱: صفحه اول کاتالوگ (بخش‌های اصلی بدون کفش و کیف)
+  // مرحله ۱: صفحه اول کاتالوگ (بخش‌های اصلی)
   if (!coreState.dept) {
     const depts = getNonEmptyDepartments();
     section.style.display = "block";
@@ -755,7 +756,7 @@ export function renderVisualCategoryCards(forceShowSubcats = false) {
   }
 
   // مرحله ۲: کارت‌های شاخه‌های داخلی یک بخش (مثلاً شاخه‌های مردانه یا زنانه)
-  if (coreState.dept && (!coreState.cat || forceShowSubcats)) {
+  if (coreState.dept && !coreState.cat) {
     const subcats = getNonEmptySubcategories(coreState.dept);
     if (subcats.length === 0) {
       section.style.display = "none";
@@ -767,7 +768,6 @@ export function renderVisualCategoryCards(forceShowSubcats = false) {
       .map((sc, idx) => {
         const title = escapeHtml(getLocalizedTaxonomyLabel(sc));
         const count = getProductsForSubcat(coreState.dept, sc.id).length;
-        const isCurrent = coreState.cat === sc.id;
         const img = escapeHtml(
           sc.image || "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=450&q=75"
         );
@@ -776,7 +776,6 @@ export function renderVisualCategoryCards(forceShowSubcats = false) {
         return `
           <a href="${escapeHtml(buildShareableUrl({ dept: coreState.dept, cat: sc.id, sub: "", price: null }))}"
              class="visual-cat-card"
-             style="${isCurrent ? "border: 2.5px solid var(--gold);" : ""}"
              data-select-cat="${escapeHtml(sc.id)}">
             <img src="${img}" alt="${title}" ${prioAttr} />
             <div class="visual-cat-overlay">
@@ -793,9 +792,13 @@ export function renderVisualCategoryCards(forceShowSubcats = false) {
     return;
   }
 
+  // مرحله ۳: داخل شاخه هستیم -> کارت‌های بزرگ مخفی می‌شوند تا محصولات دیده شوند
   section.style.display = "none";
 }
 
+/**
+ * رندر نوار شیشه‌ای زیربخش‌ها (بدون دکمه زرد اضافی + حرکت خودکار طولانی تا چند منوی جلوتر)
+ */
 export function renderStickyGlassPills(triggerNudge = false) {
   const dock = document.getElementById("sticky-glass-dock");
   const subnavRow = document.getElementById("glass-subnav-row");
@@ -814,21 +817,23 @@ export function renderStickyGlassPills(triggerNudge = false) {
     return;
   }
 
-  if (subnavRow) subnavRow.style.display = "flex";
-
   const deptObj = coreState.taxonomy.find((d) => d.id === coreState.dept);
   const subObj = (deptObj?.subcategories || []).find((s) => s.id === coreState.cat);
   const totalCatCount = getProductsForSubcat(coreState.dept, coreState.cat).length;
   const nonEmptyLeaves = getNonEmptyLeaves(coreState.dept, coreState.cat);
 
+  // اگر این شاخه هیچ زیربخش دارای عکسی ندارد، ردیف زیربخش را خلوت نگه دار
+  if (nonEmptyLeaves.length === 0) {
+    if (subnavRow) subnavRow.style.display = "none";
+    updateGlassScrollIndicators();
+    return;
+  }
+
+  if (subnavRow) subnavRow.style.display = "flex";
+
   const pillsHtml = [];
 
-  pillsHtml.push(`
-    <button type="button" class="glass-pill switch-cat-btn" data-glass-action="toggle-subcats">
-      <span>${t("switchCatBtn")} ▾</span>
-    </button>
-  `);
-
+  // ۱. دکمه «همه» برای شاخه فعلی
   pillsHtml.push(`
     <button type="button" class="glass-pill ${!coreState.sub ? "active" : ""}" data-glass-leaf="">
       <span>${t("allStyles")} ${escapeHtml(getLocalizedTaxonomyLabel(subObj))}</span>
@@ -836,6 +841,7 @@ export function renderStickyGlassPills(triggerNudge = false) {
     </button>
   `);
 
+  // ۲. دکمه‌های زیربخش‌های دارای محصول (مثل یقه گرد، یقه‌دار پلو...)
   nonEmptyLeaves.forEach((lf) => {
     const leafCount = getProductsForLeaf(coreState.dept, coreState.cat, lf).length;
     const isSelected = coreState.sub === lf.id;
@@ -855,30 +861,43 @@ export function renderStickyGlassPills(triggerNudge = false) {
   requestAnimationFrame(() => {
     updateGlassScrollIndicators();
     const activePill = track.querySelector(".glass-pill.active");
+
     if (activePill && coreState.sub) {
       activePill.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-    } else if (triggerNudge && track.scrollWidth > track.clientWidth + 24) {
-      track.classList.remove("nudge-hint");
-      void track.offsetWidth;
-      track.classList.add("nudge-hint");
+    } else if (triggerNudge && track.scrollWidth > track.clientWidth + 20) {
+      // حرکت راهنمای طولانی تا چند منوی بعدی (حدود ۲۶۰ پیکسل) و بازگشت نرم به نقطه اول
+      const maxDist = track.scrollWidth - track.clientWidth;
+      const demoDist = Math.min(260, maxDist);
+      clearTimeout(track._nudgeTimer1);
+      clearTimeout(track._nudgeTimer2);
+
+      track._nudgeTimer1 = setTimeout(() => {
+        track.scrollTo({ left: demoDist, behavior: "smooth" });
+        track._nudgeTimer2 = setTimeout(() => {
+          track.scrollTo({ left: 0, behavior: "smooth" });
+        }, 950);
+      }, 320);
     }
   });
 }
 
 export function updateGlassScrollIndicators() {
   const track = document.getElementById("glass-pills-track");
+  const subnavRow = document.getElementById("glass-subnav-row");
   const leftBtn = document.getElementById("scroll-arrow-left");
   const rightBtn = document.getElementById("scroll-arrow-right");
   const barWrap = document.getElementById("micro-scroll-bar-wrap");
   const barFill = document.getElementById("micro-scroll-bar-fill");
 
-  if (!track || !isProductStageActive()) {
+  if (!track || !isProductStageActive() || subnavRow?.style.display === "none") {
+    if (leftBtn) leftBtn.classList.remove("visible");
+    if (rightBtn) rightBtn.classList.remove("visible");
     if (barWrap) barWrap.classList.remove("visible");
     return;
   }
 
   const maxScroll = track.scrollWidth - track.clientWidth;
-  const isOverflowing = maxScroll > 12;
+  const isOverflowing = maxScroll > 10;
 
   if (leftBtn) leftBtn.classList.toggle("visible", isOverflowing && track.scrollLeft > 8);
   if (rightBtn) rightBtn.classList.toggle("visible", isOverflowing && track.scrollLeft < maxScroll - 8);
@@ -972,22 +991,13 @@ export function bindSmartHeaderAndGlassEvents() {
   window.addEventListener("resize", updateGlassScrollIndicators);
 
   document.getElementById("scroll-arrow-left")?.addEventListener("click", () => {
-    track?.scrollBy({ left: -180, behavior: "smooth" });
+    track?.scrollBy({ left: -200, behavior: "smooth" });
   });
   document.getElementById("scroll-arrow-right")?.addEventListener("click", () => {
-    track?.scrollBy({ left: 180, behavior: "smooth" });
+    track?.scrollBy({ left: 200, behavior: "smooth" });
   });
 
   track?.addEventListener("click", (e) => {
-    const toggleBtn = e.target.closest('[data-glass-action="toggle-subcats"]');
-    if (toggleBtn) {
-      const sec = document.getElementById("visual-categories-section");
-      const isHidden = sec?.style.display === "none";
-      renderVisualCategoryCards(isHidden);
-      if (isHidden) window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
-
     const leafBtn = e.target.closest("[data-glass-leaf]");
     if (leafBtn) {
       coreState.sub = leafBtn.getAttribute("data-glass-leaf") || "";
@@ -995,7 +1005,6 @@ export function bindSmartHeaderAndGlassEvents() {
       coreState.displayLimit = 12;
       syncBrowserHistoryState();
       renderEntireCatalogView(false);
-      return;
     }
   });
 
@@ -1147,8 +1156,8 @@ export function bindPriceFilterEvents() {
 
 /* ==========================================================================
    === شروع [MODULE-05: PRODUCT CARD MINI-SLIDER & HD LIGHTBOX] (ماژول ۵) ===
-   راهنما: نمایش محصولات فقط در مرحله ۳، لود پله‌ای ۱۲تایی عکس‌ها با اسکرول خودکار
-   (بدون لود یکجای همه عکس‌ها در گوشی مشتری) و پنجره تمام‌صفحه HD عکس و ویدیو.
+   راهنما: نمایش دکمه‌های Prev/Next فقط برای محصولاتی که بیش از ۱ عکس دارند
+   و لود پله‌ای ۱۲تایی عکس‌ها در موبایل.
    ========================================================================== */
 
 export function getFinalFilteredProducts() {
@@ -1174,17 +1183,12 @@ export function getLocalizedProductDesc(prod) {
   );
 }
 
-/**
- * رندر شبکه محصولات (فقط در مرحله ۳ یعنی بعد از ورود به یک شاخه خاص فعال می‌شود)
- * با تکنیک لود پله‌ای ۱۲تایی تا عکس‌ها یکجا در گوشی مشتری دانلود نشوند.
- */
 export function renderProductsCatalogGrid() {
   const section = document.getElementById("products-catalog-section");
   const grid = document.getElementById("products-catalog-grid");
   const loadMoreBtn = document.getElementById("btn-load-more-products");
   if (!section || !grid) return;
 
-  // اگر هنوز در صفحه اول (بخش‌های اصلی) یا صفحه کارت‌های شاخه‌ها هستیم، بخش محصولات کاملاً مخفی بماند!
   if (!isProductStageActive()) {
     section.style.display = "none";
     grid.innerHTML = "";
@@ -1226,12 +1230,11 @@ export function renderProductsCatalogGrid() {
       const sizes = escapeHtml(p.sizeRange || "S - M - L - XL");
       const hasVideo = Boolean(p.videoUrl || p.youtubeId);
 
-      const imagesList = Array.isArray(p.images) && p.images.length > 0 ? p.images : [p.imageUrl];
+      const imagesList = Array.isArray(p.images) && p.images.length > 0 ? p.images.filter(Boolean) : [p.imageUrl];
       const currentSlideIdx = coreState.cardSlideIndexMap.get(p.id || p.sku) || 0;
       const activeImgSrc =
         currentSlideIdx === 0 ? p.thumbUrl || imagesList[0] || "" : imagesList[currentSlideIdx] || p.thumbUrl || "";
 
-      // ۴ عکس اول در بالای صفحه با اولویت بالا و بقیه با لود تنبل (Lazy) بارگذاری می‌شوند
       const loadingAttr = idx < 4 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy" decoding="async"';
 
       const multiImageControls =
@@ -1285,7 +1288,7 @@ export function renderProductsCatalogGrid() {
 export function stepCardMiniSlider(sku, direction) {
   const prod = coreState.allProducts.find((p) => (p.sku || p.id) === sku);
   if (!prod) return;
-  const imagesList = Array.isArray(prod.images) && prod.images.length > 0 ? prod.images : [prod.imageUrl];
+  const imagesList = Array.isArray(prod.images) && prod.images.length > 0 ? prod.images.filter(Boolean) : [prod.imageUrl];
   if (imagesList.length <= 1) return;
 
   const key = prod.id || prod.sku;
@@ -1335,12 +1338,22 @@ export function renderLightboxStageContent() {
   if (!prod) return;
 
   const stage = document.getElementById("lightbox-media-stage");
+  const multiNavGroup = document.getElementById("lightbox-multi-nav-group");
   const counterEl = document.getElementById("lightbox-media-counter");
   const toggleVidBtn = document.getElementById("btn-lightbox-toggle-video");
   if (!stage) return;
 
-  const imagesList = Array.isArray(prod.images) && prod.images.length > 0 ? prod.images : [prod.imageUrl];
+  const imagesList = Array.isArray(prod.images) && prod.images.length > 0 ? prod.images.filter(Boolean) : [prod.imageUrl];
   const hasVideo = Boolean(prod.videoUrl || prod.youtubeId);
+
+  // دکمه‌های Prev و Next فقط زمانی نمایش داده شوند که محصول بیش از ۱ عکس داشته باشد
+  if (multiNavGroup) {
+    if (!coreState.lightboxVideoMode && imagesList.length > 1) {
+      multiNavGroup.style.display = "flex";
+    } else {
+      multiNavGroup.style.display = "none";
+    }
+  }
 
   if (toggleVidBtn) {
     if (hasVideo) {
@@ -1365,11 +1378,12 @@ export function renderLightboxStageContent() {
         <video src="${escapeHtml(prod.videoUrl)}" controls autoplay playsinline poster="${escapeHtml(imagesList[0] || "")}"></video>
       `;
     }
-    if (counterEl) counterEl.textContent = "🎬 Video";
   } else {
     const hdSrc = imagesList[coreState.lightboxSlideIdx] || prod.imageUrl || prod.thumbUrl || "";
     stage.innerHTML = `<img src="${escapeHtml(hdSrc)}" alt="${escapeHtml(prod.sku)}" />`;
-    if (counterEl) counterEl.textContent = `${coreState.lightboxSlideIdx + 1} / ${imagesList.length}`;
+    if (counterEl && imagesList.length > 1) {
+      counterEl.textContent = `${coreState.lightboxSlideIdx + 1} / ${imagesList.length}`;
+    }
   }
 
   const unitPrice = Number(prod.unitPrice) || 0;
@@ -1468,7 +1482,6 @@ export function bindProductGridAndLightboxEvents() {
     }
   });
 
-  // لود پله‌ای ۱۲تایی با کلیک یا اسکرول خودکار به انتهای لیست (IntersectionObserver)
   loadMoreBtn?.addEventListener("click", () => {
     coreState.displayLimit += 12;
     renderProductsCatalogGrid();
@@ -1501,7 +1514,7 @@ export function bindProductGridAndLightboxEvents() {
     const prod = coreState.lightboxProduct;
     if (!prod) return;
     coreState.lightboxVideoMode = false;
-    const imgs = Array.isArray(prod.images) && prod.images.length > 0 ? prod.images : [prod.imageUrl];
+    const imgs = Array.isArray(prod.images) && prod.images.length > 0 ? prod.images.filter(Boolean) : [prod.imageUrl];
     coreState.lightboxSlideIdx = (coreState.lightboxSlideIdx - 1 + imgs.length) % imgs.length;
     renderLightboxStageContent();
   });
@@ -1510,7 +1523,7 @@ export function bindProductGridAndLightboxEvents() {
     const prod = coreState.lightboxProduct;
     if (!prod) return;
     coreState.lightboxVideoMode = false;
-    const imgs = Array.isArray(prod.images) && prod.images.length > 0 ? prod.images : [prod.imageUrl];
+    const imgs = Array.isArray(prod.images) && prod.images.length > 0 ? prod.images.filter(Boolean) : [prod.imageUrl];
     coreState.lightboxSlideIdx = (coreState.lightboxSlideIdx + 1) % imgs.length;
     renderLightboxStageContent();
   });
@@ -1535,7 +1548,6 @@ export function bindProductGridAndLightboxEvents() {
   });
 }
 /* === پایان [MODULE-05: PRODUCT CARD MINI-SLIDER & HD LIGHTBOX] === */
-
 /* ==========================================================================
    === پایان بلوک ۲ از ۳ فایل core.js ===
    راهنما: بلوک ۳ (ماژول‌های ۰۶ و ۰۷ — پایان فایل) را دقیقاً زیر این خط پیست کنید
