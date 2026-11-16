@@ -50,8 +50,8 @@
 
 <!-- ========================================================================
        === [SECTION-02: MODULAR CSS STYLES] (شروع بخش ۲: استایل‌های ظاهری اصلاح‌شده) ===
-       راهنما: شامل هدر خلوت و استاندارد موبایل، منوی کشویی زبان با پرچم کشورها،
-       نوار شیشه‌ای مخفی در مراحل ۱ و ۲، و کارت‌های ۲ ستونه.
+       راهنما: شامل فلش چشمک‌زن ملایم برای ریل شیشه‌ای و پنجره محصول (Lightbox)
+       با ارتفاع هوشمند که دکمه افزودن به سبد خرید همیشه بدون اسکرول دیده می‌شود.
        ======================================================================== -->
   <style>
     :root {
@@ -99,7 +99,7 @@
       padding-bottom: 84px;
     }
 
-    /* ۱. هدر هوشمند بالا (خلوت، بدون نوشته اضافه و بدون بیرون‌زدگی در موبایل) */
+    /* ۱. هدر هوشمند بالا */
     .smart-top-header {
       position: fixed;
       top: 0;
@@ -154,7 +154,6 @@
       border-color: var(--gold);
     }
 
-    /* لوگوی تصویری (فقط اگر در پنل ادمین آپلود شده باشد نمایش داده می‌شود) */
     .brand-logo-wrap {
       display: inline-flex;
       align-items: center;
@@ -170,7 +169,7 @@
       display: none;
     }
 
-    /* منوی کشویی انتخاب زبان با پرچم کشورها (EN / IT / ES) */
+    /* منوی کشویی انتخاب زبان با پرچم کشورها */
     .lang-dropdown-wrap {
       position: relative;
     }
@@ -239,7 +238,6 @@
       font-weight: 800;
     }
 
-    /* کشوی جستجوی بازشونده زیر هدر */
     .search-drawer-bar {
       position: fixed;
       top: var(--header-h);
@@ -279,7 +277,7 @@
       outline: none;
     }
 
-    /* ۲. نوار شیشه‌ای نیمه‌شفاف زیربخش‌ها و قیمت (فقط در مرحله ۳ نمایش داده می‌شود) */
+    /* ۲. نوار شیشه‌ای نیمه‌شفاف زیربخش‌ها + فلش‌های چشمک‌زن ملایم */
     .sticky-glass-dock {
       position: sticky;
       top: var(--header-h);
@@ -290,7 +288,7 @@
       border-bottom: 1px solid var(--glass-border);
       box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
       transition: top 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-      display: none; /* در صفحه اول و صفحه شاخه‌ها کاملاً مخفی است */
+      display: none;
     }
 
     body.scrolled-down .sticky-glass-dock {
@@ -306,22 +304,40 @@
       padding: 7px 6px 5px;
     }
 
+    /* انیمیشن چشمک‌زن ملایم و نیمه‌شفاف برای فلش‌های چپ و راست ریل */
+    @keyframes softArrowGlow {
+      0%, 100% {
+        background: rgba(16, 185, 129, 0.18);
+        border-color: rgba(16, 185, 129, 0.65);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.35);
+        transform: scale(1);
+      }
+      50% {
+        background: rgba(212, 175, 55, 0.34);
+        border-color: rgba(212, 175, 55, 0.95);
+        box-shadow: 0 0 10px 3px rgba(212, 175, 55, 0.35);
+        transform: scale(1.09);
+      }
+    }
+
     .scroll-arrow-btn {
-      width: 26px;
-      height: 28px;
+      width: 31px;
+      height: 31px;
       border-radius: 50%;
-      border: 1px solid rgba(15, 23, 42, 0.14);
-      background: rgba(255, 255, 255, 0.95);
-      color: var(--text-main);
-      font-size: 0.78rem;
+      border: 1.5px solid rgba(16, 185, 129, 0.7);
+      background: rgba(16, 185, 129, 0.2);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      color: #064e3b;
+      font-size: 1.05rem;
       font-weight: 900;
       display: none;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
       flex-shrink: 0;
       z-index: 5;
+      animation: softArrowGlow 2.2s infinite ease-in-out;
     }
 
     .scroll-arrow-btn.visible {
@@ -342,17 +358,6 @@
 
     .horizontal-pills-track::-webkit-scrollbar {
       display: none;
-    }
-
-    @keyframes gentleNudge {
-      0% { transform: translateX(0); }
-      35% { transform: translateX(-34px); }
-      70% { transform: translateX(6px); }
-      100% { transform: translateX(0); }
-    }
-
-    .horizontal-pills-track.nudge-hint {
-      animation: gentleNudge 1.1s cubic-bezier(0.25, 1, 0.5, 1);
     }
 
     .glass-pill {
@@ -393,17 +398,10 @@
       box-shadow: 0 3px 10px rgba(9, 13, 22, 0.2);
     }
 
-    .glass-pill.switch-cat-btn {
-      background: #fef3c7;
-      color: #92400e;
-      border-color: #f59e0b;
-      font-weight: 800;
-    }
-
     .micro-scroll-bar-wrap {
-      height: 2.5px;
+      height: 3px;
       width: 100%;
-      background: rgba(15, 23, 42, 0.06);
+      background: rgba(15, 23, 42, 0.07);
       overflow: hidden;
       display: none;
     }
@@ -420,7 +418,6 @@
       transition: transform 0.1s linear, width 0.2s ease;
     }
 
-    /* ردیف دوم نوار شیشه‌ای: فیلتر هوشمند قیمت ($7 | $12 | $15) */
     .smart-price-row {
       display: none;
       align-items: center;
@@ -582,7 +579,7 @@
       justify-content: space-between;
     }
 
-    /* ۴. شبکه کارت‌های محصولات (فقط در مرحله ۳ ظاهر می‌شود) */
+    /* ۴. شبکه کارت‌های محصولات */
     #products-catalog-section {
       display: none;
     }
@@ -797,7 +794,7 @@
       color: #fff;
     }
 
-    /* ۵. پنجره تمام‌صفحه عکس باکیفیت HD و پخش ویدیو */
+    /* ۵. پنجره محصول (HD Lightbox) — تنظیم شده تا دکمه خرید همیشه بدون اسکرول در صفحه دیده شود */
     .hd-lightbox-backdrop {
       position: fixed;
       inset: 0;
@@ -807,7 +804,7 @@
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 12px;
+      padding: 10px;
     }
 
     .hd-lightbox-backdrop.open {
@@ -817,22 +814,29 @@
     .hd-lightbox-card {
       background: #fff;
       width: 100%;
-      max-width: 520px;
-      max-height: 92vh;
+      max-width: 460px;
+      max-height: 90vh;
+      max-height: 90dvh;
       border-radius: 18px;
-      overflow-y: auto;
+      overflow: hidden;
       position: relative;
+      display: flex;
+      flex-direction: column;
       box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
     }
 
     .lightbox-media-stage {
       position: relative;
       width: 100%;
-      aspect-ratio: 3 / 4;
-      background: #000;
+      flex: 1 1 auto;
+      min-height: 210px;
+      max-height: 48vh;
+      max-height: 48dvh;
+      background: #090d16;
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
     }
 
     .lightbox-media-stage img,
@@ -840,6 +844,7 @@
     .lightbox-media-stage iframe {
       width: 100%;
       height: 100%;
+      max-height: 48dvh;
       object-fit: contain;
       border: none;
     }
@@ -848,13 +853,13 @@
       position: absolute;
       top: 10px;
       right: 10px;
-      width: 36px;
-      height: 36px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
-      background: rgba(9, 13, 22, 0.78);
+      background: rgba(9, 13, 22, 0.82);
       color: #fff;
-      border: 1px solid rgba(255,255,255,0.3);
-      font-size: 1rem;
+      border: 1px solid rgba(255,255,255,0.35);
+      font-size: 0.95rem;
       cursor: pointer;
       z-index: 10;
     }
@@ -906,7 +911,7 @@
       box-shadow: -10px 0 35px rgba(0, 0, 0, 0.4);
     }
 
-    /* ۷. دکمه شناور واتساپ (شیشه‌ای نیمه‌شفاف + چشمک‌زن بسیار ملایم) */
+    /* ۷. دکمه شناور واتساپ */
     @keyframes softWhatsappPulse {
       0%, 100% {
         transform: scale(1);
@@ -948,7 +953,7 @@
       flex-shrink: 0;
     }
 
-    /* ۸. فوتر حرفه‌ای داینامیک با آیکون‌های رسمی SVG */
+    /* ۸. فوتر حرفه‌ای داینامیک */
     .b2b-footer {
       background: var(--bg-dark);
       color: #cbd5e1;
@@ -1005,8 +1010,7 @@
       flex-shrink: 0;
     }
   </style>
-  <!-- === پایان [SECTION-02: MODULAR CSS STYLES] === -->
-</head>
+  <!-- === پایان [SECTION-02: MODULAR CSS STYLES] === --></head>
 <body>
 
  <!-- ========================================================================
@@ -1178,64 +1182,61 @@
   <!-- === پایان [SECTION-04: VISUAL CARDS & PRODUCT GRID] === -->
 
 
-  <!-- ========================================================================
+<!-- ========================================================================
        === [SECTION-05: HD LIGHTBOX & VIDEO PLAYER] (شروع بخش ۵: پنجره عکس HD و ویدیو) ===
-       راهنما: وقتی مشتری روی عکس محصول کلیک می‌کند، این پنجره باز شده و عکس‌های
-       باکیفیت (HD) قابل ورق زدن + ویدیوی محصول (MP4 یا یوتیوب) را نمایش می‌دهد.
+       راهنما: دکمه‌های Prev/Next فقط برای محصولات چندعکسی ظاهر می‌شوند و دکمه
+       افزودن به سبد خرید همیشه بدون نیاز به اسکرول در پایین پنجره دیده می‌شود.
        ======================================================================== -->
   <div class="hd-lightbox-backdrop" id="hd-lightbox-modal" role="dialog" aria-modal="true">
     <div class="hd-lightbox-card">
       <button type="button" class="lightbox-close-btn" id="btn-close-lightbox" aria-label="Close">✕</button>
 
-      <!-- صحنه نمایش عکس HD یا ویدیو -->
-      <div class="lightbox-media-stage" id="lightbox-media-stage">
-        <!-- عکس HD یا تگ ویدیو/یوتیوب توسط core.js اینجا قرار می‌گیرد -->
-      </div>
+      <!-- صحنه نمایش عکس HD یا ویدیو (با ارتفاع استاندارد که دکمه خرید را به بیرون هل نمی‌دهد) -->
+      <div class="lightbox-media-stage" id="lightbox-media-stage"></div>
 
-      <!-- نوار ورق زدن عکس‌ها و دکمه پخش ویدیو در داخل لایت‌باکس -->
-      <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:#0f172a; color:#fff;">
-        <div style="display:flex; gap:8px; align-items:center;">
-          <button type="button" class="minimal-nav-btn" id="btn-lightbox-prev">‹ Prev</button>
-          <span id="lightbox-media-counter" style="font-size:0.78rem; font-weight:700; color:var(--gold);">1 / 1</span>
-          <button type="button" class="minimal-nav-btn" id="btn-lightbox-next">Next ›</button>
+      <!-- نوار ابزار زیر عکس (دکمه‌های Prev/Next فقط زمانی که بیش از ۱ عکس وجود دارد روشن می‌شوند) -->
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:7px 12px; background:#0f172a; color:#fff; flex-shrink:0;">
+        <div id="lightbox-multi-nav-group" style="display:none; gap:8px; align-items:center;">
+          <button type="button" class="minimal-nav-btn" id="btn-lightbox-prev" style="height:28px; padding:0 9px;">‹ Prev</button>
+          <span id="lightbox-media-counter" style="font-size:0.75rem; font-weight:700; color:var(--gold);">1 / 2</span>
+          <button type="button" class="minimal-nav-btn" id="btn-lightbox-next" style="height:28px; padding:0 9px;">Next ›</button>
         </div>
 
-        <div style="display:flex; gap:6px;">
-          <button type="button" class="minimal-nav-btn" id="btn-lightbox-toggle-video" style="display:none; background:var(--danger); border-color:var(--danger); color:#fff;">
+        <div style="display:flex; gap:6px; margin-left:auto;">
+          <button type="button" class="minimal-nav-btn" id="btn-lightbox-toggle-video" style="display:none; height:28px; background:var(--danger); border-color:var(--danger); color:#fff;">
             ▶️ Watch Video
           </button>
-          <button type="button" class="minimal-nav-btn" id="btn-lightbox-share-item" title="Copy direct link to this photo">
+          <button type="button" class="minimal-nav-btn" id="btn-lightbox-share-item" style="height:28px;" title="Copy direct link to this photo">
             🔗 Link
           </button>
         </div>
       </div>
 
-      <!-- جزئیات کامل محصول، تعداد پک، سایزبندی و افزودن به سبد -->
-      <div style="padding:14px 16px;">
-        <div style="display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin-bottom:6px;">
+      <!-- بخش ثابت اطلاعات و دکمه خرید (همیشه ۱۰۰٪ قابل مشاهده بدون نیاز به اسکرول) -->
+      <div style="padding:11px 14px 13px; flex-shrink:0; background:#fff;">
+        <div style="display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin-bottom:4px;">
           <div>
-            <span id="lightbox-unit-price" style="font-size:1.3rem; font-weight:900; color:var(--emerald-dark);">$0.00</span>
-            <small id="txt-lightbox-per-pc" style="color:var(--text-muted); font-weight:700;">/ pc (Wholesale rate)</small>
+            <span id="lightbox-unit-price" style="font-size:1.22rem; font-weight:900; color:var(--emerald-dark);">$0.00</span>
+            <small id="txt-lightbox-per-pc" style="color:var(--text-muted); font-weight:700;">/ pc</small>
           </div>
-          <span id="lightbox-sku-badge" style="font-weight:800; font-size:0.82rem; background:#f1f5f9; padding:3px 9px; border-radius:6px;">CODE</span>
+          <span id="lightbox-sku-badge" style="font-weight:800; font-size:0.78rem; background:#f1f5f9; padding:2px 8px; border-radius:6px; border:1px solid var(--border);">CODE</span>
         </div>
 
-        <h2 id="lightbox-prod-title" style="font-size:0.95rem; font-weight:800; margin-bottom:6px; color:var(--text-main);"></h2>
-        <p id="lightbox-prod-desc" style="font-size:0.78rem; color:var(--text-muted); margin-bottom:10px;"></p>
+        <h2 id="lightbox-prod-title" style="font-size:0.86rem; font-weight:800; margin-bottom:3px; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></h2>
+        <p id="lightbox-prod-desc" style="font-size:0.73rem; color:var(--text-muted); margin-bottom:8px; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;"></p>
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; background:#f8fafc; padding:9px 12px; border-radius:10px; border:1px solid var(--border); margin-bottom:12px; font-size:0.78rem;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; background:#f8fafc; padding:6px 10px; border-radius:8px; border:1px solid var(--border); margin-bottom:9px; font-size:0.74rem;">
           <div>📦 <strong id="txt-lightbox-pack-info">Pack: 6 pcs ($30.00)</strong></div>
           <div>📏 <strong id="txt-lightbox-size-info">Sizes: S-XXL</strong></div>
         </div>
 
-        <button type="button" class="btn-add-pack-card" id="btn-lightbox-add-pack" style="padding:12px; font-size:0.9rem;">
+        <button type="button" class="btn-add-pack-card" id="btn-lightbox-add-pack" style="padding:11px; font-size:0.88rem; margin-top:0;">
           🛒 Add 1 Pack to Wholesale Order
         </button>
       </div>
     </div>
   </div>
   <!-- === پایان [SECTION-05: HD LIGHTBOX & VIDEO PLAYER] === -->
-
 
   <!-- ========================================================================
        === [SECTION-06: SLIDE-OUT STEPPED CART & FLOATING WHATSAPP] (شروع بخش ۶: سبد خرید و واتساپ) ===
