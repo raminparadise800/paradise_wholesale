@@ -655,13 +655,41 @@ export function updateDynamicSeoTags() {
 
 
 /* ==========================================================================
-   === شروع [MODULE-03: UNIFIED HOME & 3-STAGE ARCHITECTURE] (ماژول ۳) ===
-   راهنما: مدیریت دو چهره هوشمند در index.html:
-   - در صفحه اول: نمایش کارت‌های اصلی + ویدیوهای انبار/کارگو + آخرین مقالات سئو
-   - در صفحات داخلی: مخفی کردن ویترین صفحه اول و فعال کردن دکمه‌های Back و Home
+   === شروع [MODULE-03: UNIFIED HOME, RANDOM VIDEO REELS & 3-STAGE UI] (ماژول ۳) ===
+   راهنما: مدیریت هدر (نمایش همزمان لوگو + نام برند در صفحه اول)، سئوی نام شرکت،
+   چرخش تصادفی (Random) ویدیوهای رضایت مشتری و پخش درون‌سایتی ویدیوهای یوتیوب.
    ========================================================================== */
 
 const LANG_FLAGS = { en: "🇬🇧", it: "🇮🇹", es: "🇪🇸" };
+
+const HOME_SUBTITLES = {
+  en: "Direct Istanbul Factory Supplier — Select a Category",
+  it: "Fornitore Diretto Istanbul — Seleziona una Categoria",
+  es: "Proveedor Directo Estambul — Seleccione una Categoría"
+};
+
+/**
+ * استخراج هوشمند شناسه ۱۱ کاراکتری یوتیوب از هر نوع لینک (معمولی، Shorts، اشتراک‌گذاری یا آیدی خام)
+ */
+export function extractCleanYoutubeId(input) {
+  const raw = String(input || "").trim();
+  if (!raw || raw === "dQw4w9WgXcQ") return "";
+  if (/^[a-zA-Z0-9_-]{11}$/.test(raw)) return raw;
+  const match = raw.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|shorts\/|watch\?v=|watch\?.+&v=))([a-zA-Z0-9_-]{11})/);
+  return match ? match[1] : "";
+}
+
+/**
+ * الگوریتم بر زدن تصادفی (Fisher-Yates Shuffle) برای نمایش رندوم ویدیوهای رضایت مشتری
+ */
+export function shuffleArrayRandomly(arr) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
 
 export function applyLocalizedStaticTexts() {
   const setTxt = (id, key) => {
@@ -703,9 +731,6 @@ export function applyLocalizedStaticTexts() {
   });
 }
 
-/**
- * تشخیص اینکه آیا کاربر در صفحه اول (ریشه سایت) است یا داخل بخش‌ها شده است
- */
 export function isRootHomeStage() {
   return Boolean(!coreState.dept && !coreState.cat && !coreState.sub && coreState.price === null && !coreState.searchQuery);
 }
@@ -715,22 +740,48 @@ export function isProductStageActive() {
 }
 
 /**
- * کنترل هوشمند دکمه‌های Back، Home و نشان برند در هدر بالا:
- * - در صفحه اول: دکمه Back و Home مخفی هستند و نشان PARADISE نمایش داده می‌شود.
- * - در صفحات داخلی: دکمه Back و Home ظاهر می‌شوند و نشان متنی PARADISE کنار می‌رود تا هدر هرگز بیرون نزند.
+ * کنترل هوشمند هدر و عنوان اصلی (H1):
+ * - در صفحه اول: لوگوی بزرگ + نام دوخطی PARADISE WHOLESALE CLOTHING در هدر نمایش داده می‌شوند
+ *   و تگ H1 بالای کارت‌ها نام کامل شرکت را برای سئوی گوگل نشان می‌دهد.
+ * - در صفحات داخلی: نام برند و لوگو مخفی می‌شوند تا دکمه‌های Back و Home جا باز کنند.
  */
 export function updateBackButtonVisibility() {
   const backBtn = document.getElementById("btn-nav-back");
   const homeBtn = document.getElementById("btn-nav-home");
   const brandBadge = document.getElementById("home-brand-badge");
+  const logoImg = document.getElementById("header-logo-img");
+  const headingEl = document.getElementById("view-context-heading");
+  const subtitleEl = document.getElementById("view-context-subtitle");
 
   const inInnerPage = !isRootHomeStage();
 
   if (backBtn) backBtn.style.display = inInnerPage ? "inline-flex" : "none";
   if (homeBtn) homeBtn.style.display = inInnerPage ? "inline-flex" : "none";
+
+  // در صفحه اصلی، همیشه نام برند نمایش داده شود (حتی وقتی لوگو آپلود شده است تا کنار لوگو خالی نماند)
   if (brandBadge) {
-    const hasLogoImg = Boolean(coreState.publicConfig.logoUrl);
-    brandBadge.style.display = !inInnerPage && !hasLogoImg ? "inline-flex" : "none";
+    brandBadge.style.display = inInnerPage ? "none" : "flex";
+  }
+  if (logoImg) {
+    const hasLogo = Boolean(coreState.publicConfig.logoUrl);
+    logoImg.style.display = !inInnerPage && hasLogo ? "block" : "none";
+  }
+
+  // تنظیم تگ H1 و زیرعنوان در صفحه اول برای سئوی نام برند Paradise Wholesale Clothing
+  if (!inInnerPage) {
+    if (headingEl) headingEl.textContent = "Paradise Wholesale Clothing";
+    if (subtitleEl) {
+      subtitleEl.textContent = HOME_SUBTITLES[coreState.lang] || HOME_SUBTITLES.en;
+      subtitleEl.style.display = "block";
+    }
+    const homeTitles = {
+      en: "Paradise Wholesale Clothing Istanbul | Direct Factory B2B Supplier",
+      it: "Paradise Wholesale Clothing Istanbul | Fornitore Diretto Abbigliamento Ingrosso",
+      es: "Paradise Wholesale Clothing Istanbul | Proveedor Mayorista Directo de Fábrica"
+    };
+    document.title = homeTitles[coreState.lang] || homeTitles.en;
+  } else {
+    if (subtitleEl) subtitleEl.style.display = "none";
   }
 }
 
@@ -773,8 +824,121 @@ export function resetToRootHome(e) {
 }
 
 /**
- * رندر ویترین اختصاصی صفحه اول (ویدیوی انبار، ریل ویدیوهای کارگو و مقالات وبلاگ)
- * این بخش فقط در صفحه اول روشن است و به محض ورود به مردانه/زنانه مخفی می‌شود.
+ * رندر لیست ویدیوهای رضایت مشتریان و ارسال بار کارگو با چرخش تصادفی (Random Shuffle)
+ */
+export function renderRandomReviewsReel() {
+  const reelsBlock = document.getElementById("home-reels-video-block");
+  const reelsTrack = document.getElementById("home-videos-reel-track");
+  const shuffleBtn = document.getElementById("btn-shuffle-reviews");
+  const rightArrow = document.getElementById("btn-reels-scroll-right");
+  if (!reelsBlock || !reelsTrack) return;
+
+  const pub = coreState.publicConfig;
+  const showroomVids = Array.isArray(pub.showroomVideos) ? pub.showroomVideos : [];
+  const cargoVids = Array.isArray(pub.cargoVideos) ? pub.cargoVideos : [];
+
+  const allValidVideos = [...cargoVids, ...showroomVids].filter((v) => {
+    const ytId = extractCleanYoutubeId(v.ytId || v.url);
+    return Boolean(ytId || v.url);
+  });
+
+  if (allValidVideos.length === 0) {
+    reelsBlock.style.display = "none";
+    return;
+  }
+
+  reelsBlock.style.display = "block";
+  const randomizedList = shuffleArrayRandomly(allValidVideos);
+
+  if (shuffleBtn) {
+    shuffleBtn.style.display = allValidVideos.length > 2 ? "inline-flex" : "none";
+  }
+  if (rightArrow) {
+    rightArrow.style.display = allValidVideos.length > 2 ? "inline-flex" : "none";
+  }
+
+  reelsTrack.innerHTML = randomizedList
+    .map((v, idx) => {
+      const ytId = extractCleanYoutubeId(v.ytId || v.url);
+      const directUrl = !ytId ? v.url || "" : "";
+      const thumb =
+        v.thumb ||
+        (ytId
+          ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`
+          : "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=400&q=75");
+      const badge = v.badge || "⭐ CLIENT REVIEW";
+      const title = v.title || `Wholesale Shipment #${idx + 1}`;
+
+      return `
+        <div class="reel-video-card"
+             data-play-reel-yt="${escapeHtml(ytId)}"
+             data-play-reel-url="${escapeHtml(directUrl)}"
+             data-play-reel-title="${escapeHtml(title)}"
+             data-play-reel-badge="${escapeHtml(badge)}">
+          <img src="${escapeHtml(thumb)}" alt="${escapeHtml(title)}" loading="lazy" decoding="async" />
+          <div class="reel-video-overlay">
+            <span style="font-size:0.62rem; background:var(--gold); color:#090d16; font-weight:900; padding:2px 7px; border-radius:6px; align-self:flex-start;">
+              ${escapeHtml(badge)}
+            </span>
+            <div class="reel-play-center-icon">▶</div>
+            <strong style="font-size:0.75rem; line-height:1.25; text-shadow:0 2px 4px rgba(0,0,0,0.8);">
+              ${escapeHtml(title)}
+            </strong>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+
+  reelsTrack.scrollTo({ left: 0, behavior: "smooth" });
+}
+
+/**
+ * باز کردن ویدیوی رضایت مشتری در پنجره پخش داخل خودِ سایت (تا مشتری از سایت خارج نشود)
+ */
+export function openInSiteReviewVideoModal(ytId, directUrl, title, badge) {
+  const modal = document.getElementById("hd-lightbox-modal");
+  const stage = document.getElementById("lightbox-media-stage");
+  const multiNavGroup = document.getElementById("lightbox-multi-nav-group");
+  const toggleVidBtn = document.getElementById("btn-lightbox-toggle-video");
+  const addPackBtn = document.getElementById("btn-lightbox-add-pack");
+  if (!modal || !stage) return;
+
+  coreState.lightboxProduct = null;
+  if (multiNavGroup) multiNavGroup.style.display = "none";
+  if (toggleVidBtn) toggleVidBtn.style.display = "none";
+  if (addPackBtn) addPackBtn.style.display = "none";
+
+  if (ytId) {
+    stage.innerHTML = `
+      <iframe
+        src="https://www.youtube.com/embed/${escapeHtml(ytId)}?autoplay=1&rel=0&playsinline=1"
+        allow="autoplay; encrypted-media; picture-in-picture"
+        allowfullscreen
+      ></iframe>
+    `;
+  } else if (directUrl) {
+    stage.innerHTML = `<video src="${escapeHtml(directUrl)}" controls autoplay playsinline></video>`;
+  }
+
+  const setTxt = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  };
+
+  setTxt("lightbox-unit-price", badge || "⭐ VERIFIED");
+  setTxt("txt-lightbox-per-pc", "");
+  setTxt("lightbox-sku-badge", "ISTANBUL CARGO");
+  setTxt("lightbox-prod-title", title || "Customer Satisfaction & Cargo Delivery");
+  setTxt("lightbox-prod-desc", "Direct factory wholesale shipment from Istanbul, Turkey.");
+  setTxt("txt-lightbox-pack-info", "✈️ 3-5 Days Express");
+  setTxt("txt-lightbox-size-info", "🌍 Worldwide Delivery");
+
+  modal.classList.add("open");
+}
+
+/**
+ * رندر ویترین اختصاصی پایین صفحه اول (ویدیوهای رضایت مشتری + ویدیوی معرفی مجموعه + مقالات وبلاگ)
  */
 export function renderHomeExclusiveShowcase() {
   const showcaseSec = document.getElementById("home-exclusive-showcase");
@@ -788,19 +952,32 @@ export function renderHomeExclusiveShowcase() {
   showcaseSec.style.display = "flex";
   const pub = coreState.publicConfig;
 
-  // ۱. ویدیوی اصلی انبار و بسته‌بندی استانبول (از تب ۶ پنل ادمین)
+  // ۱. رندر ویدیوهای رضایت مشتری با چرخش تصادفی
+  renderRandomReviewsReel();
+
+  // ۲. رندر ویدیوی بزرگ آشنایی با مجموعه و انبار استانبول
   const heroBlock = document.getElementById("home-hero-video-block");
   const heroStage = document.getElementById("home-hero-video-stage");
   if (heroBlock && heroStage) {
-    const hv = pub.heroVideo;
-    if (hv && hv.ytId && hv.ytId !== "dQw4w9WgXcQ") {
+    const hv = pub.heroVideo || {};
+    const cleanYtId = extractCleanYoutubeId(hv.ytId || hv.url);
+    const directMp4 = !cleanYtId && hv.ytId && hv.ytId.startsWith("http") ? hv.ytId : "";
+
+    if (cleanYtId || directMp4) {
       heroBlock.style.display = "block";
-      const posterUrl = hv.poster || `https://i.ytimg.com/vi/${hv.ytId}/hqdefault.jpg`;
+      const posterUrl =
+        hv.poster ||
+        (cleanYtId
+          ? `https://i.ytimg.com/vi/${cleanYtId}/hqdefault.jpg`
+          : "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=80");
+
       heroStage.innerHTML = `
-        <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(hv.title || "Warehouse Video")}" loading="lazy" />
-        <div class="hero-play-overlay" data-play-inline-yt="${escapeHtml(hv.ytId)}">
+        <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(hv.title || "Paradise Wholesale Istanbul Warehouse")}" loading="lazy" />
+        <div class="hero-play-overlay" data-play-inline-yt="${escapeHtml(cleanYtId)}" data-play-inline-mp4="${escapeHtml(directMp4)}">
           <div class="play-pulse-circle">▶</div>
-          <strong style="font-size:0.92rem;">${escapeHtml(hv.title || "Istanbul Warehouse & Order Packing")}</strong>
+          <strong style="font-size:0.95rem; text-shadow:0 2px 6px rgba(0,0,0,0.7);">
+            ${escapeHtml(hv.title || "Watch Our Istanbul Warehouse & Live Order Packing")}
+          </strong>
         </div>
       `;
     } else {
@@ -808,39 +985,7 @@ export function renderHomeExclusiveShowcase() {
     }
   }
 
-  // ۲. ریل ویدیوهای ویترین و ارسال بار کارگو (از تب ۶ پنل ادمین)
-  const reelsBlock = document.getElementById("home-reels-video-block");
-  const reelsTrack = document.getElementById("home-videos-reel-track");
-  if (reelsBlock && reelsTrack) {
-    const showroomVids = Array.isArray(pub.showroomVideos) ? pub.showroomVideos : [];
-    const cargoVids = Array.isArray(pub.cargoVideos) ? pub.cargoVideos : [];
-    const combinedVids = [...cargoVids, ...showroomVids];
-
-    if (combinedVids.length > 0) {
-      reelsBlock.style.display = "block";
-      reelsTrack.innerHTML = combinedVids
-        .map((v, idx) => {
-          const ytId = v.ytId || "";
-          const thumb = v.thumb || (ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=400&q=75");
-          const badge = v.badge || "SHOWROOM";
-          const title = v.title || `Video #${idx + 1}`;
-          return `
-            <div class="reel-video-card" data-play-reel-url="${escapeHtml(v.url || "")}" data-play-reel-yt="${escapeHtml(ytId)}">
-              <img src="${escapeHtml(thumb)}" alt="${escapeHtml(title)}" loading="lazy" />
-              <div class="reel-video-overlay">
-                <span style="font-size:0.62rem; background:var(--gold); color:#090d16; font-weight:900; padding:2px 6px; border-radius:6px; align-self:flex-start; margin-bottom:4px;">${escapeHtml(badge)}</span>
-                <strong style="font-size:0.75rem; line-height:1.25;">▶ ${escapeHtml(title)}</strong>
-              </div>
-            </div>
-          `;
-        })
-        .join("");
-    } else {
-      reelsBlock.style.display = "none";
-    }
-  }
-
-  // ۳. آخرین مقالات راهنمای سئو (از تب ۷ پنل ادمین)
+  // ۳. رندر آخرین مقالات سئو
   const blogsBlock = document.getElementById("home-blogs-block");
   const blogsGrid = document.getElementById("home-blogs-grid");
   if (blogsBlock && blogsGrid) {
@@ -1089,27 +1234,39 @@ export function bindSmartHeaderAndGlassEvents() {
   document.getElementById("btn-nav-home")?.addEventListener("click", resetToRootHome);
   document.getElementById("header-brand-link")?.addEventListener("click", resetToRootHome);
 
-  // پخش ویدیوهای ویترین صفحه اول
+  // ۱. پخش درجا برای ویدیوی بزرگ معرفی شرکت و انبار در صفحه اول
   document.getElementById("home-hero-video-stage")?.addEventListener("click", (e) => {
-    const trigger = e.target.closest("[data-play-inline-yt]");
+    const trigger = e.target.closest("[data-play-inline-yt], [data-play-inline-mp4]");
     if (!trigger) return;
     const ytId = trigger.getAttribute("data-play-inline-yt");
+    const mp4Url = trigger.getAttribute("data-play-inline-mp4");
     const stage = document.getElementById("home-hero-video-stage");
-    if (stage && ytId) {
+    if (!stage) return;
+
+    if (ytId) {
       stage.innerHTML = `<iframe src="https://www.youtube.com/embed/${escapeHtml(ytId)}?autoplay=1&rel=0&playsinline=1" style="width:100%;height:100%;border:none;" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    } else if (mp4Url) {
+      stage.innerHTML = `<video src="${escapeHtml(mp4Url)}" controls autoplay playsinline style="width:100%;height:100%;object-fit:contain;"></video>`;
     }
   });
 
+  // ۲. پخش درون‌سایتی ویدیوهای رضایت مشتری + دکمه چرخش تصادفی و اسکرول
   document.getElementById("home-videos-reel-track")?.addEventListener("click", (e) => {
     const card = e.target.closest(".reel-video-card");
     if (!card) return;
     const ytId = card.getAttribute("data-play-reel-yt");
     const vidUrl = card.getAttribute("data-play-reel-url");
-    if (ytId) {
-      window.open(`https://www.youtube.com/watch?v=${encodeURIComponent(ytId)}`, "_blank");
-    } else if (vidUrl) {
-      window.open(vidUrl, "_blank");
-    }
+    const title = card.getAttribute("data-play-reel-title");
+    const badge = card.getAttribute("data-play-reel-badge");
+    openInSiteReviewVideoModal(ytId, vidUrl, title, badge);
+  });
+
+  document.getElementById("btn-shuffle-reviews")?.addEventListener("click", () => {
+    renderRandomReviewsReel();
+  });
+
+  document.getElementById("btn-reels-scroll-right")?.addEventListener("click", () => {
+    document.getElementById("home-videos-reel-track")?.scrollBy({ left: 220, behavior: "smooth" });
   });
 
   document.getElementById("btn-lang-dropdown")?.addEventListener("click", (e) => {
@@ -1220,7 +1377,7 @@ export function bindSmartHeaderAndGlassEvents() {
     showCatalogToast(t("copiedToast"));
   });
 }
-/* === پایان [MODULE-03: UNIFIED HOME & 3-STAGE ARCHITECTURE] === */
+/* === پایان [MODULE-03: UNIFIED HOME, RANDOM VIDEO REELS & 3-STAGE UI] === */
 
 /* ==========================================================================
    === شروع [MODULE-04: DYNAMIC PRICE-TIER DETECTOR ($5 | $9 | $12)] (ماژول ۴) ===
@@ -2009,11 +2166,10 @@ export function fireDirectWhatsappClickEvent() {
 
 /* ==========================================================================
    === شروع [MODULE-07: VISUAL ORDER LINK, OFFICIAL SVG FOOTER & INITIALIZER] (ماژول ۷) ===
-   راهنما: ارسال لینک مستقیم سبد خرید تصویری و قابل ویرایش روی آدرس اصلی سایت،
-   رندر خودکار ویترین صفحه اول (انبار/کارگو/وبلاگ) و لوگوهای رسمی SVG در فوتر.
+   راهنما: نمایش همزمان لوگو + نام شرکت در هدر صفحه اصلی، لوگوهای رسمی SVG در فوتر،
+   و ارسال لینک مستقیم سبد خرید تصویری و قابل ویرایش در واتساپ.
    ========================================================================== */
 
-/* آیکون‌های وکتور رسمی و اورجینال شبکه‌های اجتماعی (SVG) */
 const OFFICIAL_SOCIAL_SVGS = {
   instagram: `<svg viewBox="0 0 24 24" fill="none"><rect width="20" height="20" x="2" y="2" rx="5" stroke="#E1306C" stroke-width="2"/><circle cx="12" cy="12" r="4.5" stroke="#F77737" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.2" fill="#E1306C"/></svg>`,
   telegram: `<svg viewBox="0 0 24 24" fill="#2AABEE"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.37-.49 1.02-.74 3.99-1.74 6.65-2.89 7.99-3.45 3.8-1.58 4.59-1.86 5.1-1.87.11 0 .37.03.54.17.14.12.18.28.2.45-.01.06.01.24 0 .33z"/></svg>`,
@@ -2025,9 +2181,6 @@ const OFFICIAL_SOCIAL_SVGS = {
 export const DEFAULT_INSTAGRAM_URL = "https://www.instagram.com/paradisewholesaleclothing5401";
 export const DEFAULT_YOUTUBE_URL = "https://www.youtube.com/@paradisewholesaleclothing5401";
 
-/**
- * یکسان‌سازی شماره واتساپ در کل سایت از روی تنظیمات تب ۸ پنل ادمین
- */
 export function getUnifiedWhatsAppInfo() {
   const pub = coreState.publicConfig;
   const raw = String(pub.whatsappRaw || DEFAULT_WHATSAPP).trim();
@@ -2043,24 +2196,28 @@ export function getUnifiedWhatsAppInfo() {
 }
 
 /**
- * اعمال لوگو، شماره واتساپ یکپارچه و لوگوهای رسمی SVG در فوتر
+ * اعمال لوگو + نام برند در صفحه اصلی، شماره واتساپ یکپارچه و لوگوهای رسمی SVG در فوتر
  */
 export function applyDynamicBrandingAndFooter() {
   const pub = coreState.publicConfig;
   const { cleanDigits, formattedDisplay } = getUnifiedWhatsAppInfo();
+  const onHome = isRootHomeStage();
 
   const logoImg = document.getElementById("header-logo-img");
   const brandBadge = document.getElementById("home-brand-badge");
 
+  // در صفحه اصلی، هم لوگو (در صورت وجود) و هم نام دوخطی برند در کنار هم نمایش داده می‌شوند
   if (logoImg) {
-    if (pub.logoUrl) {
+    if (pub.logoUrl && onHome) {
       logoImg.src = pub.logoUrl;
-      logoImg.style.display = isRootHomeStage() ? "block" : "none";
-      if (brandBadge) brandBadge.style.display = "none";
+      logoImg.style.display = "block";
     } else {
       logoImg.style.display = "none";
-      if (brandBadge) brandBadge.style.display = isRootHomeStage() ? "inline-flex" : "none";
     }
+  }
+
+  if (brandBadge) {
+    brandBadge.style.display = onHome ? "flex" : "none";
   }
 
   const floatBtn = document.getElementById("floating-whatsapp-btn");
@@ -2114,9 +2271,6 @@ export function applyDynamicBrandingAndFooter() {
   }
 }
 
-/**
- * ساخت لینک اختصاصی سبد خرید تصویری و قابل ویرایش روی آدرس اصلی سایت (بدون category.html)
- */
 export function buildVisualOrderCartUrl(orderCode) {
   const url = new URL(getBaseRootUrl());
   url.searchParams.set("order", orderCode);
@@ -2135,9 +2289,6 @@ export function buildVisualOrderCartUrl(orderCode) {
   return url.toString();
 }
 
-/**
- * ارسال سفارش به واتساپ (فقط یک لینک واحد سبد خرید تصویری و قابل ویرایش + درخواست محاسبه کارگو)
- */
 export async function submitCartOrderToWhatsApp() {
   if (coreState.cart.length === 0) {
     showCatalogToast(t("emptyCartMsg"));
@@ -2231,9 +2382,6 @@ export async function submitCartOrderToWhatsApp() {
   window.location.href = waUrl;
 }
 
-/**
- * بازخوانی خودکار سبد خرید تصویری وقتی فروشنده یا مشتری روی لینک سفارش در واتساپ کلیک می‌کند
- */
 export async function loadSharedOrderFromUrlIfPresent() {
   const params = new URLSearchParams(window.location.search);
   const orderCode = (params.get("order") || "").trim().toUpperCase();
@@ -2353,9 +2501,6 @@ export function bindCartAndWhatsappEvents() {
   document.getElementById("floating-whatsapp-btn")?.addEventListener("click", fireDirectWhatsappClickEvent);
 }
 
-/**
- * تابع مرکزی رندر کل نمای سایت (کارت‌های دسته‌بندی + ویترین صفحه اول + نوار شیشه‌ای + قیمت + محصولات)
- */
 export function renderEntireCatalogView(triggerNudge = false) {
   updateBackButtonVisibility();
   renderVisualCategoryCards();
