@@ -1837,11 +1837,12 @@ export function fireDirectWhatsappClickEvent() {
 
 
 /* ==========================================================================
-   === شروع [MODULE-07: WHATSAPP INVOICE, OFFICIAL SVG FOOTER & INITIALIZER] (ماژول ۷) ===
-   راهنما: شامل لوگوهای رسمی وکتور Instagram, Telegram, TikTok, YouTube و Android App
-   و یکسان‌سازی شماره واتساپ در کل سایت.
+   === شروع [MODULE-07: VISUAL ORDER LINK, OFFICIAL SVG FOOTER & INITIALIZER] (ماژول ۷) ===
+   راهنما: ارسال لینک مستقیم سبد خرید تصویری و قابل ویرایش در واتساپ (بدون متن‌های شلوغ)،
+   باز کردن خودکار سبد خرید مشترک با کلیک روی لینک، و لوگوهای رسمی SVG در فوتر.
    ========================================================================== */
 
+/* آیکون‌های وکتور رسمی و اورجینال شبکه‌های اجتماعی (SVG) */
 const OFFICIAL_SOCIAL_SVGS = {
   instagram: `<svg viewBox="0 0 24 24" fill="none"><rect width="20" height="20" x="2" y="2" rx="5" stroke="#E1306C" stroke-width="2"/><circle cx="12" cy="12" r="4.5" stroke="#F77737" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.2" fill="#E1306C"/></svg>`,
   telegram: `<svg viewBox="0 0 24 24" fill="#2AABEE"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.37-.49 1.02-.74 3.99-1.74 6.65-2.89 7.99-3.45 3.8-1.58 4.59-1.86 5.1-1.87.11 0 .37.03.54.17.14.12.18.28.2.45-.01.06.01.24 0 .33z"/></svg>`,
@@ -1850,8 +1851,12 @@ const OFFICIAL_SOCIAL_SVGS = {
   android: `<svg viewBox="0 0 24 24" fill="#3DDC84"><path d="M17.523 15.341a.96.96 0 0 1-.959-.959c0-.53.43-.96.959-.96s.96.43.96.96-.43.959-.96.959m-11.046 0a.96.96 0 0 1-.96-.959c0-.53.43-.96.96-.96s.959.43.959.96-.43.959-.959.959m11.4-6.022l1.996-3.458a.416.416 0 0 0-.152-.567.416.416 0 0 0-.568.152L17.11 8.95a11.96 11.96 0 0 0-10.22 0L4.847 5.446a.416.416 0 0 0-.568-.152.416.416 0 0 0-.152.567l1.996 3.458C2.688 11.186.343 14.658 0 18.761h24c-.343-4.103-2.688-7.575-6.123-9.442"/></svg>`
 };
 
+export const DEFAULT_INSTAGRAM_URL = "https://www.instagram.com/paradisewholesaleclothing5401";
 export const DEFAULT_YOUTUBE_URL = "https://www.youtube.com/@paradisewholesaleclothing5401";
 
+/**
+ * یکسان‌سازی شماره واتساپ در کل سایت از روی تنظیمات تب ۸ پنل ادمین
+ */
 export function getUnifiedWhatsAppInfo() {
   const pub = coreState.publicConfig;
   const raw = String(pub.whatsappRaw || DEFAULT_WHATSAPP).trim();
@@ -1866,6 +1871,9 @@ export function getUnifiedWhatsAppInfo() {
   return { cleanDigits, formattedDisplay };
 }
 
+/**
+ * اعمال لوگو، شماره واتساپ یکپارچه و لوگوهای رسمی SVG در فوتر
+ */
 export function applyDynamicBrandingAndFooter() {
   const pub = coreState.publicConfig;
   const { cleanDigits, formattedDisplay } = getUnifiedWhatsAppInfo();
@@ -1893,10 +1901,12 @@ export function applyDynamicBrandingAndFooter() {
     footerWa.textContent = formattedDisplay;
   }
 
-  // رندر لوگوهای رسمی Instagram, Telegram, TikTok, YouTube و Android App
   const socialBox = document.getElementById("footer-social-container");
   if (socialBox) {
-    const igUrl = pub.instagramUrl || "https://instagram.com/paradisewholesaler";
+    const igUrl =
+      pub.instagramUrl && !pub.instagramUrl.endsWith("/paradisewholesaler")
+        ? pub.instagramUrl
+        : DEFAULT_INSTAGRAM_URL;
     const tgUrl = pub.telegramUrl || "https://t.me/paradisewholesaler";
     const tkUrl = pub.tiktokUrl || "https://tiktok.com/@paradisewholesaler";
     const ytUrl = pub.youtubeUrl || DEFAULT_YOUTUBE_URL;
@@ -1929,51 +1939,56 @@ export function applyDynamicBrandingAndFooter() {
   }
 }
 
+/**
+ * ساخت لینک اختصاصی سبد خرید تصویری و قابل ویرایش (برای ارسال در واتساپ)
+ * شامل کد سفارش + بک‌آپ فشرده آیتم‌ها در خود آدرس تا در هر شرایطی ۱۰۰٪ باز شود.
+ */
+export function buildVisualOrderCartUrl(orderCode) {
+  const baseOrigin = window.location.origin && window.location.origin !== "null" ? window.location.origin : SITE_DOMAIN;
+  const basePath = window.location.pathname || "/category.html";
+  const url = new URL(`${baseOrigin}${basePath}`);
+
+  url.searchParams.set("order", orderCode);
+  url.searchParams.set("lang", coreState.lang || "en");
+
+  const compactItems = coreState.cart
+    .map((c) => `${encodeURIComponent(c.sku)}:${Math.max(1, parseInt(c.packs, 10) || 1)}`)
+    .join(",");
+
+  if (compactItems) {
+    url.searchParams.set("items", compactItems);
+  }
+
+  return url.toString();
+}
+
+/**
+ * ارسال سفارش به واتساپ:
+ * بدون متن‌های طولانی و شلوغ! فقط یک لینک واحد که سبد خرید تصویری و قابل ویرایش را باز می‌کند
+ * به همراه درخواست محاسبه هزینه ارسال (کارگو) و صدور فاکتور نهایی.
+ */
 export async function submitCartOrderToWhatsApp() {
   if (coreState.cart.length === 0) {
     showCatalogToast(t("emptyCartMsg"));
     return;
   }
 
+  const submitBtn = document.getElementById("btn-submit-whatsapp-order");
   const stats = calculateSteppedCartTotals();
   const buyerName = (document.getElementById("cart-buyer-name")?.value || "").trim() || "Wholesale Buyer";
   const buyerCountry = (document.getElementById("cart-buyer-country")?.value || "").trim() || "International";
-  const orderCode = `ORD-${Math.floor(10000 + Math.random() * 90000)}`;
+
+  const params = new URLSearchParams(window.location.search);
+  const existingOrderCode = params.get("order");
+  const orderCode =
+    existingOrderCode && /^ORD-\d+$/i.test(existingOrderCode)
+      ? existingOrderCode.toUpperCase()
+      : `ORD-${Math.floor(10000 + Math.random() * 90000)}`;
+
   const nowIso = new Date().toISOString();
 
+  // شلیک کانورژن گوگل ادز با مبلغ دلاری سفارش
   fireGoogleAdsOrderConversion(stats.finalTotal, orderCode);
-
-  const itemLines = coreState.cart.map((item, idx) => {
-    const itemPcs = item.packs * item.pcsPerPack;
-    const effUnit = item.unitPrice + stats.surchargePerPc;
-    const lineTotal = (itemPcs * effUnit).toFixed(2);
-    const itemUrl = `${SITE_DOMAIN}/category.html?product=${encodeURIComponent(item.sku)}`;
-    return `${idx + 1}. *${item.sku}* — ${item.packs} Pack (${itemPcs} pcs) × $${effUnit}/pc = *$${lineTotal}*\n   🔗 ${itemUrl}`;
-  });
-
-  const msgLines = [
-    `🛍️ *NEW WHOLESALE ORDER (${orderCode})*`,
-    `👤 *Buyer:* ${buyerName} (${buyerCountry})`,
-    `────────────────────`,
-    ...itemLines,
-    `────────────────────`,
-    `📦 *Total Quantity:* ${stats.totalPacks} Packs (${stats.totalPieces} Pieces)`,
-    `💵 *Base Wholesale Subtotal:* $${stats.baseSubtotal.toFixed(2)}`
-  ];
-
-  if (stats.smallOrderFee > 0) {
-    msgLines.push(`⚖️ *Small-Order Tier Adjustment (<${stats.threshold} pcs):* +$${stats.smallOrderFee.toFixed(2)} (+$${stats.surchargePerPc}/pc)`);
-  } else {
-    msgLines.push(`🎉 *VIP Factory Rate (${stats.threshold}+ pcs):* Unlocked ($0 adjustment)`);
-  }
-
-  msgLines.push(
-    `💰 *TOTAL PRODUCTS AMOUNT:* *$${stats.finalTotal.toFixed(2)} USD*`,
-    `✈️ *Delivery to Cargo / Shipping:* Please calculate shipping cost to ${buyerCountry} based on total weight.`
-  );
-
-  const { cleanDigits } = getUnifiedWhatsAppInfo();
-  const waUrl = `https://wa.me/${cleanDigits}?text=${encodeURIComponent(msgLines.join("\n"))}`;
 
   const orderPayload = {
     orderCode,
@@ -1988,11 +2003,134 @@ export async function submitCartOrderToWhatsApp() {
     status: "pending_whatsapp",
     items: coreState.cart,
     createdAtIso: nowIso,
+    updatedAtIso: nowIso,
     createdAt: serverTimestamp()
   };
 
-  setDoc(doc(db, "orders", orderCode), orderPayload).catch(() => {});
-  window.open(waUrl, "_blank");
+  if (submitBtn) {
+    submitBtn.disabled = true;
+  }
+
+  // ذخیره در فایربیس (با سقف انتظار ۲ ثانیه تا در موبایل معطل نشود)
+  try {
+    await Promise.race([
+      setDoc(doc(db, "orders", orderCode), orderPayload, { merge: true }),
+      new Promise((resolve) => setTimeout(resolve, 2000))
+    ]);
+  } catch (e) {}
+
+  if (submitBtn) {
+    submitBtn.disabled = false;
+  }
+
+  const visualCartLink = buildVisualOrderCartUrl(orderCode);
+
+  // متن کوتاه، تمیز و حرفه‌ای به زبان مشتری (بدون شلوغی حساب‌وکتاب متنی)
+  const waTemplates = {
+    en: [
+      `🛍️ *WHOLESALE ORDER (${orderCode})*`,
+      `👤 *Customer:* ${buyerName} (${buyerCountry})`,
+      ``,
+      `🔗 *Tap link below to view & edit my visual order cart (photos, quantities & total):*`,
+      visualCartLink,
+      ``,
+      `✈️ Please calculate the shipping / air cargo cost to *${buyerCountry}* and send me the final total invoice.`
+    ],
+    it: [
+      `🛍️ *ORDINE INGROSSO (${orderCode})*`,
+      `👤 *Cliente:* ${buyerName} (${buyerCountry})`,
+      ``,
+      `🔗 *Tocca il link qui sotto per vedere e modificare il mio carrello visivo (foto, quantità e totale):*`,
+      visualCartLink,
+      ``,
+      `✈️ Per favore calcolate il costo di spedizione / cargo per *${buyerCountry}* e inviatemi la fattura finale.`
+    ],
+    es: [
+      `🛍️ *PEDIDO MAYORISTA (${orderCode})*`,
+      `👤 *Cliente:* ${buyerName} (${buyerCountry})`,
+      ``,
+      `🔗 *Toque el enlace de abajo para ver y editar mi carrito visual (fotos, cantidades y total):*`,
+      visualCartLink,
+      ``,
+      `✈️ Por favor calcule el costo de envío / carga aérea a *${buyerCountry}* y envíeme la factura total final.`
+    ]
+  };
+
+  const msgLines = waTemplates[coreState.lang] || waTemplates.en;
+  const { cleanDigits } = getUnifiedWhatsAppInfo();
+  const waUrl = `https://wa.me/${cleanDigits}?text=${encodeURIComponent(msgLines.join("\n"))}`;
+
+  window.location.href = waUrl;
+}
+
+/**
+ * بازخوانی خودکار سفارش تصویری وقتی فروشنده یا مشتری روی لینک واتساپ (?order=ORD-XXXXX) کلیک می‌کند:
+ * سبد خرید دقیقاً با همان عکس‌ها و تعداد پک‌ها باز می‌شود و قابل ویرایش (حذف، کم/زیاد یا افزودن محصول جدید) است.
+ */
+export async function loadSharedOrderFromUrlIfPresent() {
+  const params = new URLSearchParams(window.location.search);
+  const orderCode = (params.get("order") || "").trim().toUpperCase();
+  const compactItemsParam = (params.get("items") || "").trim();
+
+  if (!orderCode && !compactItemsParam) return;
+
+  let loadedItems = [];
+  let loadedBuyerName = "";
+  let loadedBuyerCountry = "";
+
+  // ۱. تلاش اول: خواندن اطلاعات کامل سفارش از دیتابیس فایربیس
+  if (orderCode) {
+    try {
+      const snap = await getDoc(doc(db, "orders", orderCode));
+      if (snap.exists()) {
+        const data = snap.data();
+        if (Array.isArray(data.items) && data.items.length > 0) {
+          loadedItems = data.items;
+        }
+        loadedBuyerName = data.buyerName || "";
+        loadedBuyerCountry = data.buyerCountry || "";
+      }
+    } catch (e) {}
+  }
+
+  // ۲. تلاش پشتیبان: اگر اینترنت ضعیف بود، از روی کدهای داخل لینک (&items=...) سبد را بازسازی کن
+  if (loadedItems.length === 0 && compactItemsParam) {
+    const pairs = compactItemsParam.split(",").map((s) => s.trim()).filter(Boolean);
+    pairs.forEach((pair) => {
+      const [rawSku, rawPacks] = pair.split(":");
+      const sku = decodeURIComponent(rawSku || "").trim();
+      const packs = Math.max(1, parseInt(rawPacks, 10) || 1);
+      const prod = coreState.allProducts.find((p) => (p.sku || p.id).toUpperCase() === sku.toUpperCase());
+      if (prod) {
+        loadedItems.push({
+          sku: prod.sku || prod.id,
+          title: getLocalizedProductTitle(prod),
+          unitPrice: Number(prod.unitPrice) || 5,
+          pcsPerPack: Math.max(1, parseInt(prod.pcsPerPack, 10) || 6),
+          sizeRange: prod.sizeRange || "S-XXL",
+          thumbUrl: prod.thumbUrl || prod.imageUrl || "",
+          packs
+        });
+      }
+    });
+  }
+
+  if (loadedItems.length > 0) {
+    coreState.cart = loadedItems;
+    saveCartToStorage();
+
+    const nameInp = document.getElementById("cart-buyer-name");
+    const countryInp = document.getElementById("cart-buyer-country");
+    if (nameInp && loadedBuyerName && loadedBuyerName !== "Wholesale Buyer") {
+      nameInp.value = loadedBuyerName;
+    }
+    if (countryInp && loadedBuyerCountry && loadedBuyerCountry !== "International") {
+      countryInp.value = loadedBuyerCountry;
+    }
+
+    renderSteppedCartUI();
+    document.getElementById("cart-drawer-backdrop")?.classList.add("open");
+  }
 }
 
 export function bindCartAndWhatsappEvents() {
@@ -2014,6 +2152,7 @@ export function bindCartAndWhatsappEvents() {
     if (e.target.id === "cart-drawer-backdrop") closeDrawer();
   });
 
+  // کم و زیاد کردن تعداد پک، حذف آیتم، یا کلیک روی عکس داخل سبد برای بزرگنمایی HD
   document.getElementById("cart-items-list")?.addEventListener("click", (e) => {
     const qtyBtn = e.target.closest("[data-cart-qty]");
     if (qtyBtn) {
@@ -2037,6 +2176,13 @@ export function bindCartAndWhatsappEvents() {
       coreState.cart.splice(idx, 1);
       saveCartToStorage();
       renderSteppedCartUI();
+      return;
+    }
+
+    // اگر فروشنده یا مشتری روی عکس محصول در داخل سبد خرید کلیک کرد، عکس بزرگ HD آن باز شود
+    const clickedImg = e.target.closest("img");
+    if (clickedImg && clickedImg.alt) {
+      openProductLightbox(clickedImg.alt, false);
     }
   });
 
@@ -2068,6 +2214,9 @@ export async function initParadiseCatalogCore() {
   syncBrowserHistoryState();
   renderEntireCatalogView(true);
   renderSteppedCartUI();
+
+  // اگر لینک واتساپ مربوط به یک سفارش (?order=ORD-XXXXX) باز شده، فوراً سبد خرید تصویری آن را باز کن
+  await loadSharedOrderFromUrlIfPresent();
 
   if (coreState.activeProductSku) {
     openProductLightbox(coreState.activeProductSku, false);
