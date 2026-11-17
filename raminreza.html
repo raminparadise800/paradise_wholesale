@@ -1287,111 +1287,395 @@
              ================================================================== -->
         <section class="admin-tab-section" id="tab-videos" data-super-only="true">
 
-          <div class="card">
-            <div class="card-title">🎬 ۱. ویدیوی اصلی بالای صفحه اول (Hero Video)</div>
-            <form id="admin-hero-video-form">
-              <div class="grid-3" style="margin-bottom:10px;">
-                <div class="field">
-                  <label>لینک یوتیوب / Shorts یا لینک MP4 *</label>
-                  <input type="text" id="hero-yt-url" class="input" required placeholder="https://youtube.com/shorts/..." style="direction:ltr;" />
-                </div>
-                <div class="field">
-                  <label>عنوان روی ویدیو</label>
-                  <input type="text" id="hero-yt-title" class="input" placeholder="Istanbul Warehouse & Live Order Packing" />
-                </div>
-                <div class="field">
-                  <label>لینک عکس کاور (اختیاری)</label>
-                  <input type="url" id="hero-yt-poster" class="input" placeholder="اتوماتیک از یوتیوب" style="direction:ltr;" />
-                </div>
-              </div>
-              <button type="submit" class="btn btn-gold">💾 ذخیره ویدیوی صفحه اول</button>
-            </form>
-          </div>
+         <!-- ====================================================================
+           === شروع محتوای اصلاح‌شده تب ۶ (ویدیوی معرفی و رضایت مشتریان صفحه اول) ===
+           راهنما: شامل ۲ کادر ساده و مستقیم برای صفحه اصلی + موتور اتصال خودکار به فایربیس
+           ==================================================================== -->
+      <div id="paradise-tab6-videos-manager" style="display:flex; flex-direction:column; gap:20px;">
 
-          <div class="card">
-            <div class="card-title">📺 ۲. ویترین ویدیویی محصولات (پشتیبانی از آپلود فایل ویدیو از گالری یا لینک یوتیوب)</div>
-            <form id="admin-add-showroom-video-form" style="margin-bottom:14px;">
-              <div class="grid-4" style="margin-bottom:10px;">
-                <div class="field">
-                  <label>📹 انتخاب فایل ویدیو از گوشی (اختیاری)</label>
-                  <input type="file" id="showroom-vid-file" class="input" accept="video/*,video/mp4,video/quicktime" />
-                </div>
-                <div class="field">
-                  <label>▶️ یا لینک یوتیوب / Shorts</label>
-                  <input type="text" id="showroom-vid-url" class="input" placeholder="https://youtube.com/shorts/..." style="direction:ltr;" />
-                </div>
-                <div class="field">
-                  <label>عنوان ویدیو *</label>
-                  <input type="text" id="showroom-vid-title" class="input" required placeholder="مثلاً: کالکشن جدید تیشرت مردانه" />
-                </div>
-                <div class="field">
-                  <label>بخش مرتبط</label>
-                  <select id="showroom-vid-dept" class="select">
-                    <option value="all">کل سایت</option>
-                    <option value="men">مردانه</option>
-                    <option value="women">زنانه</option>
-                    <option value="shoes">کفش</option>
-                    <option value="bags-accessories">کیف و اکسسوری</option>
-                  </select>
-                </div>
-              </div>
-              <button type="submit" class="btn btn-emerald" id="btn-submit-showroom-vid">+ آپلود و افزودن به ویترین ویدیویی</button>
-            </form>
-            <div class="table-wrap">
-              <table class="adm-table">
-                <thead>
-                  <tr>
-                    <th>کاور</th>
-                    <th>عنوان</th>
-                    <th>بخش</th>
-                    <th>لینک / شناسه</th>
-                    <th>حذف</th>
-                  </tr>
-                </thead>
-                <tbody id="admin-showroom-videos-tbody"></tbody>
-              </table>
+        <!-- کادر ۱: ویدیوی بزرگ آشنایی با مجموعه و انبار (نمایش در پایین دسته‌بندی‌های صفحه اول) -->
+        <div style="background:#ffffff; border-radius:16px; padding:18px 16px; border:1px solid #e2e8f0; box-shadow:0 2px 10px rgba(15,23,42,0.04);">
+          <h3 style="font-size:0.98rem; font-weight:800; color:#0f172a; margin-bottom:6px;">
+            🎬 ۱. ویدیوی بزرگ آشنایی با مجموعه و انبار (صفحه اصلی)
+          </h3>
+          <p style="font-size:0.78rem; color:#64748b; margin-bottom:14px; line-height:1.6;">
+            این ویدیو در صفحه اصلی سایت (پایین کارت‌های دسته‌بندی مردانه/زنانه) در یک کادر بزرگ سینمایی نمایش داده می‌شود و با کلیک مشتری در داخل خود سایت پخش می‌گردد.
+          </p>
+
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div>
+              <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:5px;">
+                ▶️ لینک ویدیوی یوتیوب / Shorts (یا لینک مستقیم MP4) *
+              </label>
+              <input
+                type="url"
+                id="t6-hero-yt-input"
+                placeholder="https://www.youtube.com/watch?v=... یا لینک Shorts"
+                style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid #cbd5e1; font-size:0.85rem; direction:ltr; text-align:left;"
+              />
             </div>
-          </div>
 
-          <div class="card">
-            <div class="card-title">✈️ ۳. ویدیوهای رضایت مشتریان و ارسال بار (Cargo & Reviews)</div>
-            <form id="admin-add-cargo-video-form" style="margin-bottom:14px;">
-              <div class="grid-4" style="margin-bottom:10px;">
-                <div class="field">
-                  <label>📹 آپلود فایل ویدیو از گوشی (اختیاری)</label>
-                  <input type="file" id="cargo-vid-file" class="input" accept="video/*,video/mp4,video/quicktime" />
-                </div>
-                <div class="field">
-                  <label>▶️ یا لینک یوتیوب / Shorts</label>
-                  <input type="text" id="cargo-vid-url" class="input" placeholder="https://youtube.com/shorts/..." style="direction:ltr;" />
-                </div>
-                <div class="field">
-                  <label>برچسب مقصد (مثلاً ITALY CARGO) *</label>
-                  <input type="text" id="cargo-vid-badge" class="input" required placeholder="MILAN CARGO" />
-                </div>
-                <div class="field">
-                  <label>توضیح کوتاه *</label>
-                  <input type="text" id="cargo-vid-title" class="input" required placeholder="180 Pcs Express Delivery" />
-                </div>
-              </div>
-              <button type="submit" class="btn btn-gold" id="btn-submit-cargo-vid">+ افزودن ویدیوی رضایت و بار</button>
-            </form>
-            <div class="table-wrap">
-              <table class="adm-table">
-                <thead>
-                  <tr>
-                    <th>کاور</th>
-                    <th>برچسب</th>
-                    <th>عنوان</th>
-                    <th>شناسه</th>
-                    <th>حذف</th>
-                  </tr>
-                </thead>
-                <tbody id="admin-cargo-videos-tbody"></tbody>
-              </table>
+            <div>
+              <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:5px;">
+                📝 عنوان روی ویدیو (انگلیسی)
+              </label>
+              <input
+                type="text"
+                id="t6-hero-title-input"
+                placeholder="Istanbul Warehouse & Live Order Packing"
+                style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid #cbd5e1; font-size:0.85rem; direction:ltr; text-align:left;"
+              />
             </div>
+
+            <div>
+              <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:5px;">
+                🖼️ لینک عکس کاور (اختیاری — اگر خالی بماند، کاور خودِ یوتیوب خودکار قرار می‌گیرد)
+              </label>
+              <input
+                type="url"
+                id="t6-hero-poster-input"
+                placeholder="https://..."
+                style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid #cbd5e1; font-size:0.85rem; direction:ltr; text-align:left;"
+              />
+            </div>
+
+            <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:4px;">
+              <button
+                type="button"
+                id="t6-btn-save-hero"
+                style="flex:1; min-width:170px; padding:11px 16px; border-radius:10px; border:none; background:#d4af37; color:#090d16; font-weight:800; font-size:0.86rem; cursor:pointer;"
+              >
+                💾 ذخیره ویدیوی معرفی صفحه اول
+              </button>
+              <button
+                type="button"
+                id="t6-btn-clear-hero"
+                style="padding:11px 14px; border-radius:10px; border:1px solid #fecaca; background:#fef2f2; color:#dc2626; font-weight:700; font-size:0.8rem; cursor:pointer;"
+              >
+                🗑 غیرفعال / حذف
+              </button>
+            </div>
+            <div id="t6-hero-status-msg" style="font-size:0.78rem; font-weight:700; color:#059669; display:none;"></div>
+          </div>
+        </div>
+
+        <!-- کادر ۲: ویدیوهای رضایت مشتریان، شووروم و ارسال بار (نمایش رندوم در صفحه اول) -->
+        <div style="background:#ffffff; border-radius:16px; padding:18px 16px; border:1px solid #e2e8f0; box-shadow:0 2px 10px rgba(15,23,42,0.04);">
+          <h3 style="font-size:0.98rem; font-weight:800; color:#0f172a; margin-bottom:6px;">
+            ⭐ ۲. ویدیوهای رضایت مشتریان، شووروم و ارسال بار (چرخش رندوم در صفحه اول)
+          </h3>
+          <p style="font-size:0.78rem; color:#64748b; margin-bottom:14px; line-height:1.6;">
+            تمام ویدیوهایی که در این لیست اضافه کنی، در صفحه اول سایت (پایین دسته‌بندی‌ها) <strong>به صورت تصادفی (Random)</strong> در هر بازدید جابه‌جا و نمایش داده می‌شوند تا مشتری همیشه ویدیوهای متنوع ببیند.
+          </p>
+
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div>
+              <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:5px;">
+                ▶️ لینک یوتیوب یا YouTube Shorts (پیشنهادی — بسیار سبک و پرسرعت) *
+              </label>
+              <input
+                type="url"
+                id="t6-review-yt-input"
+                placeholder="https://youtube.com/shorts/... یا لینک معمولی یوتیوب"
+                style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid #cbd5e1; font-size:0.85rem; direction:ltr; text-align:left;"
+              />
+            </div>
+
+            <div>
+              <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:5px;">
+                📹 یا آپلود مستقیم فایل ویدیو از گالری گوشی (اختیاری — فقط اگر لینک یوتیوب نداری)
+              </label>
+              <input
+                type="file"
+                id="t6-review-file-input"
+                accept="video/mp4,video/quicktime,video/webm"
+                style="width:100%; padding:8px; border-radius:10px; border:1px dashed #94a3b8; font-size:0.8rem; background:#f8fafc;"
+              />
+            </div>
+
+            <div>
+              <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:5px;">
+                🏷️ برچسب بالای ویدیو (روی یکی از دکمه‌های زیر بزن یا دستی تایپ کن) *
+              </label>
+              <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:7px;">
+                <button type="button" class="t6-preset-badge" data-badge="⭐ CLIENT REVIEW" style="padding:4px 10px; border-radius:14px; border:1px solid #cbd5e1; background:#f8fafc; font-size:0.74rem; font-weight:700; cursor:pointer;">⭐ CLIENT REVIEW</button>
+                <button type="button" class="t6-preset-badge" data-badge="🇮🇹 ITALY CARGO" style="padding:4px 10px; border-radius:14px; border:1px solid #cbd5e1; background:#f8fafc; font-size:0.74rem; font-weight:700; cursor:pointer;">🇮🇹 ITALY CARGO</button>
+                <button type="button" class="t6-preset-badge" data-badge="🇪🇸 SPAIN CARGO" style="padding:4px 10px; border-radius:14px; border:1px solid #cbd5e1; background:#f8fafc; font-size:0.74rem; font-weight:700; cursor:pointer;">🇪🇸 SPAIN CARGO</button>
+                <button type="button" class="t6-preset-badge" data-badge="🇪🇺 EUROPE CARGO" style="padding:4px 10px; border-radius:14px; border:1px solid #cbd5e1; background:#f8fafc; font-size:0.74rem; font-weight:700; cursor:pointer;">🇪🇺 EUROPE CARGO</button>
+                <button type="button" class="t6-preset-badge" data-badge="🏢 SHOWROOM" style="padding:4px 10px; border-radius:14px; border:1px solid #cbd5e1; background:#f8fafc; font-size:0.74rem; font-weight:700; cursor:pointer;">🏢 SHOWROOM</button>
+              </div>
+              <input
+                type="text"
+                id="t6-review-badge-input"
+                value="⭐ CLIENT REVIEW"
+                placeholder="مثلاً: ⭐ CLIENT REVIEW یا MILAN CARGO"
+                style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid #cbd5e1; font-size:0.85rem; direction:ltr; text-align:left;"
+              />
+            </div>
+
+            <div>
+              <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:5px;">
+                💬 توضیح کوتاه زیر ویدیو (انگلیسی) *
+              </label>
+              <input
+                type="text"
+                id="t6-review-title-input"
+                placeholder="مثلاً: 180 Pcs Express Delivery to Milan"
+                style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid #cbd5e1; font-size:0.85rem; direction:ltr; text-align:left;"
+              />
+            </div>
+
+            <button
+              type="button"
+              id="t6-btn-add-review"
+              style="width:100%; padding:12px 16px; border-radius:10px; border:none; background:#10b981; color:#ffffff; font-weight:800; font-size:0.88rem; cursor:pointer; margin-top:4px;"
+            >
+              + افزودن ویدیو به لیست رضایت مشتریان و کارگو
+            </button>
+
+            <div id="t6-review-status-msg" style="font-size:0.78rem; font-weight:700; color:#059669; display:none;"></div>
           </div>
 
+          <!-- لیست ویدیوهای ثبت‌شده -->
+          <div style="margin-top:18px; border-top:1px solid #e2e8f0; padding-top:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <strong style="font-size:0.84rem; color:#0f172a;">لیست ویدیوهای فعال در صفحه اصلی:</strong>
+              <span id="t6-reviews-count-badge" style="font-size:0.75rem; background:#f1f5f9; padding:3px 9px; border-radius:12px; font-weight:700;">0 ویدیو</span>
+            </div>
+
+            <div id="t6-reviews-list-container" style="display:flex; flex-direction:column; gap:8px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- موتور مستقل تب ۶ (متصل به Firebase بدون نیاز به ویرایش admin.js) -->
+      <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+        import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-storage.js";
+
+        const fbCfg = {
+          apiKey: "AIzaSyCQyBszaUZ4FJX2OJw4YrcLMwUbk2BtxL4",
+          authDomain: "paradise-wholesale.firebaseapp.com",
+          projectId: "paradise-wholesale",
+          storageBucket: "paradise-wholesale.firebasestorage.app",
+          messagingSenderId: "516659166400",
+          appId: "1:516659166400:web:9ac24230ebe5676cfe0125"
+        };
+
+        const appInstance = getApps().length ? getApp() : initializeApp(fbCfg);
+        const dbInst = getFirestore(appInstance);
+        const storageInst = getStorage(appInstance);
+
+        let currentHeroVideo = { ytId: "", title: "", poster: "" };
+        let currentCargoVideos = [];
+
+        function parseYoutubeId(input) {
+          const raw = String(input || "").trim();
+          if (!raw || raw === "dQw4w9WgXcQ") return "";
+          if (/^[a-zA-Z0-9_-]{11}$/.test(raw)) return raw;
+          const m = raw.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|shorts\/|watch\?v=|watch\?.+&v=))([a-zA-Z0-9_-]{11})/);
+          return m ? m[1] : "";
+        }
+
+        function showTempMsg(elId, text, isErr = false) {
+          const el = document.getElementById(elId);
+          if (!el) return;
+          el.textContent = text;
+          el.style.color = isErr ? "#dc2626" : "#059669";
+          el.style.display = "block";
+          setTimeout(() => { el.style.display = "none"; }, 3500);
+        }
+
+        async function loadTab6VideosFromFirebase() {
+          try {
+            const snap = await getDoc(doc(dbInst, "settings", "public_config"));
+            if (snap.exists()) {
+              const data = snap.data();
+              const hv = data.heroVideo || {};
+              const cleanHeroId = parseYoutubeId(hv.ytId || hv.url);
+
+              currentHeroVideo = {
+                ytId: cleanHeroId || (hv.ytId && hv.ytId !== "dQw4w9WgXcQ" ? hv.ytId : ""),
+                title: hv.title || "Istanbul Warehouse & Live Order Packing",
+                poster: hv.poster || ""
+              };
+
+              const cVids = Array.isArray(data.cargoVideos) ? data.cargoVideos : [];
+              const sVids = Array.isArray(data.showroomVideos) ? data.showroomVideos : [];
+              currentCargoVideos = [...cVids, ...sVids].filter((v) => v && (v.ytId || v.url));
+            }
+          } catch (e) {
+            console.warn("Tab 6 load warning:", e);
+          }
+
+          const heroYtInp = document.getElementById("t6-hero-yt-input");
+          const heroTitleInp = document.getElementById("t6-hero-title-input");
+          const heroPosterInp = document.getElementById("t6-hero-poster-input");
+
+          if (heroYtInp) heroYtInp.value = currentHeroVideo.ytId ? (currentHeroVideo.ytId.startsWith("http") ? currentHeroVideo.ytId : `https://www.youtube.com/watch?v=${currentHeroVideo.ytId}`) : "";
+          if (heroTitleInp) heroTitleInp.value = currentHeroVideo.title || "";
+          if (heroPosterInp) heroPosterInp.value = currentHeroVideo.poster || "";
+
+          renderTab6ReviewsList();
+        }
+
+        function renderTab6ReviewsList() {
+          const listEl = document.getElementById("t6-reviews-list-container");
+          const countEl = document.getElementById("t6-reviews-count-badge");
+          if (countEl) countEl.textContent = `${currentCargoVideos.length} ویدیو`;
+          if (!listEl) return;
+
+          if (currentCargoVideos.length === 0) {
+            listEl.innerHTML = `<div style="text-align:center; padding:18px; background:#f8fafc; border-radius:10px; color:#64748b; font-size:0.8rem;">هنوز ویدیویی برای رضایت مشتریان ثبت نشده است.</div>`;
+            return;
+          }
+
+          listEl.innerHTML = currentCargoVideos.map((v, idx) => {
+            const ytId = parseYoutubeId(v.ytId || v.url);
+            const thumb = v.thumb || (ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=200&q=70");
+            return `
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 10px; border-radius:10px; border:1px solid #e2e8f0; background:#f8fafc;">
+                <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+                  <img src="${thumb}" alt="" style="width:48px; height:64px; border-radius:8px; object-fit:cover; flex-shrink:0; border:1px solid #cbd5e1;" />
+                  <div style="min-width:0;">
+                    <span style="display:inline-block; font-size:0.68rem; font-weight:800; background:#fef3c7; color:#92400e; padding:2px 7px; border-radius:6px; margin-bottom:3px;">${v.badge || "⭐ REVIEW"}</span>
+                    <div style="font-size:0.82rem; font-weight:700; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.title || "Video"}</div>
+                    <div style="font-size:0.7rem; color:#64748b;">${ytId ? `YouTube ID: ${ytId}` : "Direct Video"}</div>
+                  </div>
+                </div>
+                <button type="button" data-t6-del-idx="${idx}" style="padding:6px 10px; border-radius:8px; border:1px solid #fecaca; background:#fef2f2; color:#dc2626; font-size:0.76rem; font-weight:700; cursor:pointer; flex-shrink:0;">
+                  🗑 حذف
+                </button>
+              </div>
+            `;
+          }).join("");
+        }
+
+        // ذخیره ویدیوی معرفی صفحه اول
+        document.getElementById("t6-btn-save-hero")?.addEventListener("click", async () => {
+          const rawUrl = (document.getElementById("t6-hero-yt-input")?.value || "").trim();
+          const title = (document.getElementById("t6-hero-title-input")?.value || "").trim() || "Istanbul Warehouse & Live Order Packing";
+          const posterInput = (document.getElementById("t6-hero-poster-input")?.value || "").trim();
+
+          const ytId = parseYoutubeId(rawUrl);
+          const finalYtOrUrl = ytId || rawUrl;
+          const autoPoster = posterInput || (ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : "");
+
+          currentHeroVideo = { ytId: finalYtOrUrl, title, poster: autoPoster };
+
+          try {
+            await setDoc(doc(dbInst, "settings", "public_config"), { heroVideo: currentHeroVideo }, { merge: true });
+            showTempMsg("t6-hero-status-msg", "✓ ویدیوی معرفی صفحه اول با موفقیت ذخیره شد!");
+          } catch (err) {
+            showTempMsg("t6-hero-status-msg", "خطا در ذخیره: " + err.message, true);
+          }
+        });
+
+        // غیرفعال / حذف کردن ویدیوی معرفی صفحه اول
+        document.getElementById("t6-btn-clear-hero")?.addEventListener("click", async () => {
+          currentHeroVideo = { ytId: "", title: "", poster: "" };
+          document.getElementById("t6-hero-yt-input").value = "";
+          document.getElementById("t6-hero-poster-input").value = "";
+          try {
+            await setDoc(doc(dbInst, "settings", "public_config"), { heroVideo: currentHeroVideo }, { merge: true });
+            showTempMsg("t6-hero-status-msg", "✓ ویدیوی معرفی از صفحه اول برداشته شد.");
+          } catch (err) {}
+        });
+
+        // دکمه‌های آماده برچسب رضایت مشتری و کارگو
+        document.querySelectorAll(".t6-preset-badge").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const badgeInp = document.getElementById("t6-review-badge-input");
+            if (badgeInp) badgeInp.value = btn.getAttribute("data-badge") || "⭐ CLIENT REVIEW";
+          });
+        });
+
+        // افزودن ویدیوی جدید به لیست رضایت مشتریان و ارسال بار
+        document.getElementById("t6-btn-add-review")?.addEventListener("click", async () => {
+          const addBtn = document.getElementById("t6-btn-add-review");
+          const rawYt = (document.getElementById("t6-review-yt-input")?.value || "").trim();
+          const fileInp = document.getElementById("t6-review-file-input");
+          const file = fileInp?.files?.[0];
+          const badge = (document.getElementById("t6-review-badge-input")?.value || "").trim() || "⭐ CLIENT REVIEW";
+          const title = (document.getElementById("t6-review-title-input")?.value || "").trim() || "Verified Wholesale Shipment";
+
+          const ytId = parseYoutubeId(rawYt);
+          if (!ytId && !rawYt && !file) {
+            showTempMsg("t6-review-status-msg", "لطفاً لینک یوتیوب/Shorts را وارد کن یا یک ویدیو انتخاب کن.", true);
+            return;
+          }
+
+          if (addBtn) {
+            addBtn.disabled = true;
+            addBtn.textContent = "⏳ در حال ثبت ویدیو...";
+          }
+
+          try {
+            let directVideoUrl = "";
+            if (file) {
+              const path = `videos/review_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "")}`;
+              const fileRef = sRef(storageInst, path);
+              await uploadBytes(fileRef, file);
+              directVideoUrl = await getDownloadURL(fileRef);
+            } else if (!ytId && rawYt.startsWith("http")) {
+              directVideoUrl = rawYt;
+            }
+
+            const newEntry = {
+              id: `rev_${Date.now()}`,
+              ytId: ytId || "",
+              url: directVideoUrl,
+              thumb: ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : "",
+              badge,
+              title
+            };
+
+            currentCargoVideos.unshift(newEntry);
+
+            await setDoc(
+              doc(dbInst, "settings", "public_config"),
+              { cargoVideos: currentCargoVideos, showroomVideos: [] },
+              { merge: true }
+            );
+
+            document.getElementById("t6-review-yt-input").value = "";
+            document.getElementById("t6-review-title-input").value = "";
+            if (fileInp) fileInp.value = "";
+
+            renderTab6ReviewsList();
+            showTempMsg("t6-review-status-msg", "✓ ویدیو اضافه شد و در صفحه اول به صورت رندوم نمایش داده می‌شود!");
+          } catch (err) {
+            showTempMsg("t6-review-status-msg", "خطا: " + err.message, true);
+          } finally {
+            if (addBtn) {
+              addBtn.disabled = false;
+              addBtn.textContent = "+ افزودن ویدیو به لیست رضایت مشتریان و کارگو";
+            }
+          }
+        });
+
+        // حذف ویدیو از لیست
+        document.getElementById("t6-reviews-list-container")?.addEventListener("click", async (e) => {
+          const delBtn = e.target.closest("[data-t6-del-idx]");
+          if (!delBtn) return;
+          const idx = parseInt(delBtn.getAttribute("data-t6-del-idx"), 10);
+          if (isNaN(idx) || !currentCargoVideos[idx]) return;
+
+          currentCargoVideos.splice(idx, 1);
+          renderTab6ReviewsList();
+          try {
+            await setDoc(
+              doc(dbInst, "settings", "public_config"),
+              { cargoVideos: currentCargoVideos, showroomVideos: [] },
+              { merge: true }
+            );
+          } catch (err) {}
+        });
+
+        loadTab6VideosFromFirebase();
+      </script>
+      <!-- === پایان محتوای اصلاح‌شده تب ۶ === -->
         </section>
 
         <!-- ==================================================================
@@ -1695,6 +1979,6 @@
   </div>
 
   <div class="admin-toast" id="admin-toast"></div>
-  <script type="module" src="admin.js?v=3"></script>
+  <script type="module" src="admin.js?v=4"></script>
 </body>
 </html>
