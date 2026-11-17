@@ -250,8 +250,8 @@ export function showCatalogToast(msg, duration = 2800) {
 
 /* ==========================================================================
    === شروع [MODULE-02: FIREBASE DATA LOADER, SSG ROUTER & EMPTY FILTER] (ماژول ۲) ===
-   راهنما: خواندن دسته‌بندی‌ها از دیتابیس، حذف خودکار بخش‌های کفش و کیف از صفحه اصلی،
-   و پیش‌بارگذاری (Preload) تصاویر منوها برای باز شدن آنی.
+   راهنما: خواندن دسته‌بندی‌ها، محصولات و مقالات از فایربیس، حذف کامل category.html
+   و مدیریت آدرس‌های استاندارد روی صفحه اصلی (index.html) و پوشه‌های فیزیکی.
    ========================================================================== */
 
 const FALLBACK_TAXONOMY = [
@@ -260,15 +260,32 @@ const FALLBACK_TAXONOMY = [
   { id: "kids-baby", labelFa: "بچگانه", labelEn: "Kids & Baby", labelIt: "Bambini", labelEs: "Niños y Bebés", hidden: false, subcategories: [] }
 ];
 
-/* شناسه‌هایی که نباید به عنوان بخش مستقل در صفحه اول کاتالوگ نمایش داده شوند */
 const REMOVED_ROOT_DEPT_IDS = new Set(["shoes", "bags-accessories", "bags", "footwear", "accessories"]);
+
+/**
+ * تشخیص هوشمند آدرس پایه سایت (سازگار با دامنه اصلی و آدرس گیت‌هاب)
+ */
+export function getBaseRootUrl() {
+  if (typeof window !== "undefined" && window.location.hostname.includes("github.io")) {
+    const parts = window.location.pathname.split("/").filter(Boolean);
+    const repoPart = parts[0] && !parts[0].endsWith(".html") && !["en", "it", "es"].includes(parts[0]) ? `/${parts[0]}` : "";
+    return `${window.location.origin}${repoPart}/`;
+  }
+  return `${SITE_DOMAIN}/`;
+}
 
 export async function loadCoreCatalogData() {
   coreState.displayLimit = 12;
+  coreState.blogs = [];
 
+  // ۱. خواندن تنظیمات عمومی، دسته‌بندی‌ها و ویدیوهای ویترین + فهرست مقالات وبلاگ
   try {
-    const cfgSnap = await getDoc(doc(db, "settings", "public_config"));
-    if (cfgSnap.exists()) {
+    const [cfgSnap, blogSnap] = await Promise.all([
+      getDoc(doc(db, "settings", "public_config")).catch(() => null),
+      getDoc(doc(db, "settings", "blog_index")).catch(() => null)
+    ]);
+
+    if (cfgSnap && cfgSnap.exists()) {
       const data = cfgSnap.data();
       coreState.publicConfig = { ...coreState.publicConfig, ...data };
       if (Array.isArray(data.taxonomy) && data.taxonomy.length > 0) {
@@ -277,17 +294,24 @@ export async function loadCoreCatalogData() {
         );
       }
     }
+
+    if (blogSnap && blogSnap.exists()) {
+      const bData = blogSnap.data();
+      if (Array.isArray(bData.articles)) {
+        coreState.blogs = bData.articles.slice(0, 6);
+      }
+    }
   } catch (e) {
-    console.warn("Config load warning:", e.message);
+    console.warn("Config/Blog load warning:", e.message);
   }
 
   if (!Array.isArray(coreState.taxonomy) || coreState.taxonomy.length === 0) {
     coreState.taxonomy = FALLBACK_TAXONOMY;
   }
 
-  // پیش‌بارگذاری (Preload) عکس‌های بخش‌ها و شاخه‌ها در پس‌زمینه برای باز شدن آنی در موبایل
   preloadCategoryMenuImages();
 
+  // ۲. خواندن سریع محصولات از شاردهای کاتالوگ
   try {
     const productsMap = new Map();
     const deptIds = coreState.taxonomy.map((d) => d.id);
@@ -349,9 +373,6 @@ export async function loadCoreCatalogData() {
   }
 }
 
-/**
- * پیش‌بارگذاری سبک عکس‌های کارت‌های منو تا به محض کلیک روی مردانه/زنانه، عکس شاخه‌ها بدون مکث باز شود
- */
 export function preloadCategoryMenuImages() {
   try {
     const urls = [];
@@ -391,9 +412,6 @@ export function getProductsForLeaf(deptId, subcatId, leafObj) {
   });
 }
 
-/**
- * سطح ۱ (بخش‌های اصلی صفحه اول): نمایش بخش‌های فعال به جز کفش و کیف
- */
 export function getNonEmptyDepartments() {
   return coreState.taxonomy.filter(
     (d) => !d.hidden && !REMOVED_ROOT_DEPT_IDS.has(String(d.id || "").toLowerCase())
@@ -424,7 +442,11 @@ export function resolveCurrentRouteFromUrl() {
   const params = new URLSearchParams(window.location.search);
   const pathname = window.location.pathname || "";
 
-  const pathSegments = pathname.split("/").filter(Boolean);
+  let pathSegments = pathname.split("/").filter(Boolean);
+  if (pathSegments[0] === "paradise_wholesale") {
+    pathSegments = pathSegments.slice(1);
+  }
+
   const langFromPath = ["en", "it", "es"].includes(pathSegments[0]) ? pathSegments[0] : "";
   const langParam = params.get("lang");
 
@@ -497,6 +519,9 @@ export function resolveCurrentRouteFromUrl() {
   }
 }
 
+/**
+ * ساخت لینک استاندارد روی ریشه سایت (بدون category.html)
+ */
 export function buildShareableUrl(overrides = {}) {
   const state = {
     lang: overrides.lang !== undefined ? overrides.lang : coreState.lang,
@@ -507,8 +532,10 @@ export function buildShareableUrl(overrides = {}) {
     product: overrides.product !== undefined ? overrides.product : coreState.activeProductSku
   };
 
-  const url = new URL(`${SITE_DOMAIN}/category.html`);
-  url.searchParams.set("lang", state.lang || "en");
+  const url = new URL(getBaseRootUrl());
+  if (state.lang && state.lang !== "en") {
+    url.searchParams.set("lang", state.lang);
+  }
   if (state.dept) url.searchParams.set("dept", state.dept);
   if (state.cat) url.searchParams.set("cat", state.cat);
   if (state.sub) url.searchParams.set("sub", state.sub);
@@ -521,9 +548,9 @@ export function buildShareableUrl(overrides = {}) {
 
 export function syncBrowserHistoryState() {
   const newUrl = buildShareableUrl();
-  const rel = newUrl.replace(SITE_DOMAIN, "");
   try {
-    window.history.replaceState({ ...coreState }, "", rel);
+    const parsed = new URL(newUrl);
+    window.history.replaceState({ ...coreState }, "", `${parsed.pathname}${parsed.search}`);
   } catch (e) {}
   updateDynamicSeoTags();
 }
@@ -628,9 +655,10 @@ export function updateDynamicSeoTags() {
 
 
 /* ==========================================================================
-   === شروع [MODULE-03: 3-STAGE ARCHITECTURE, VISUAL CARDS & GLASS BAR] (ماژول ۳) ===
-   راهنما: حذف دکمه اضافی Categories از ریل شیشه‌ای + حرکت رفت‌وبرگشتی طولانی
-   و محسوس ریل در لحظه ورود تا مشتری متوجه زیربخش‌های بعدی بشود.
+   === شروع [MODULE-03: UNIFIED HOME & 3-STAGE ARCHITECTURE] (ماژول ۳) ===
+   راهنما: مدیریت دو چهره هوشمند در index.html:
+   - در صفحه اول: نمایش کارت‌های اصلی + ویدیوهای انبار/کارگو + آخرین مقالات سئو
+   - در صفحات داخلی: مخفی کردن ویترین صفحه اول و فعال کردن دکمه‌های Back و Home
    ========================================================================== */
 
 const LANG_FLAGS = { en: "🇬🇧", it: "🇮🇹", es: "🇪🇸" };
@@ -675,12 +703,35 @@ export function applyLocalizedStaticTexts() {
   });
 }
 
+/**
+ * تشخیص اینکه آیا کاربر در صفحه اول (ریشه سایت) است یا داخل بخش‌ها شده است
+ */
+export function isRootHomeStage() {
+  return Boolean(!coreState.dept && !coreState.cat && !coreState.sub && coreState.price === null && !coreState.searchQuery);
+}
+
+export function isProductStageActive() {
+  return Boolean((coreState.dept && coreState.cat) || coreState.searchQuery);
+}
+
+/**
+ * کنترل هوشمند دکمه‌های Back، Home و نشان برند در هدر بالا:
+ * - در صفحه اول: دکمه Back و Home مخفی هستند و نشان PARADISE نمایش داده می‌شود.
+ * - در صفحات داخلی: دکمه Back و Home ظاهر می‌شوند و نشان متنی PARADISE کنار می‌رود تا هدر هرگز بیرون نزند.
+ */
 export function updateBackButtonVisibility() {
   const backBtn = document.getElementById("btn-nav-back");
-  if (!backBtn) return;
+  const homeBtn = document.getElementById("btn-nav-home");
+  const brandBadge = document.getElementById("home-brand-badge");
 
-  const canGoBack = Boolean(coreState.dept || coreState.cat || coreState.sub || coreState.price || coreState.searchQuery);
-  backBtn.style.display = canGoBack ? "inline-flex" : "none";
+  const inInnerPage = !isRootHomeStage();
+
+  if (backBtn) backBtn.style.display = inInnerPage ? "inline-flex" : "none";
+  if (homeBtn) homeBtn.style.display = inInnerPage ? "inline-flex" : "none";
+  if (brandBadge) {
+    const hasLogoImg = Boolean(coreState.publicConfig.logoUrl);
+    brandBadge.style.display = !inInnerPage && !hasLogoImg ? "inline-flex" : "none";
+  }
 }
 
 export function handleStepBackNavigation() {
@@ -705,13 +756,119 @@ export function handleStepBackNavigation() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-export function isProductStageActive() {
-  return Boolean((coreState.dept && coreState.cat) || coreState.searchQuery);
+export function resetToRootHome(e) {
+  if (e) e.preventDefault();
+  coreState.dept = "";
+  coreState.cat = "";
+  coreState.sub = "";
+  coreState.price = null;
+  coreState.searchQuery = "";
+  const sInp = document.getElementById("catalog-live-search");
+  if (sInp) sInp.value = "";
+  document.getElementById("search-drawer-bar")?.classList.remove("open");
+  coreState.displayLimit = 12;
+  syncBrowserHistoryState();
+  renderEntireCatalogView(true);
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 /**
- * رندر کارت‌های تصویری بزرگ ۲ ستونه (مراحل ۱ و ۲)
+ * رندر ویترین اختصاصی صفحه اول (ویدیوی انبار، ریل ویدیوهای کارگو و مقالات وبلاگ)
+ * این بخش فقط در صفحه اول روشن است و به محض ورود به مردانه/زنانه مخفی می‌شود.
  */
+export function renderHomeExclusiveShowcase() {
+  const showcaseSec = document.getElementById("home-exclusive-showcase");
+  if (!showcaseSec) return;
+
+  if (!isRootHomeStage()) {
+    showcaseSec.style.display = "none";
+    return;
+  }
+
+  showcaseSec.style.display = "flex";
+  const pub = coreState.publicConfig;
+
+  // ۱. ویدیوی اصلی انبار و بسته‌بندی استانبول (از تب ۶ پنل ادمین)
+  const heroBlock = document.getElementById("home-hero-video-block");
+  const heroStage = document.getElementById("home-hero-video-stage");
+  if (heroBlock && heroStage) {
+    const hv = pub.heroVideo;
+    if (hv && hv.ytId && hv.ytId !== "dQw4w9WgXcQ") {
+      heroBlock.style.display = "block";
+      const posterUrl = hv.poster || `https://i.ytimg.com/vi/${hv.ytId}/hqdefault.jpg`;
+      heroStage.innerHTML = `
+        <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(hv.title || "Warehouse Video")}" loading="lazy" />
+        <div class="hero-play-overlay" data-play-inline-yt="${escapeHtml(hv.ytId)}">
+          <div class="play-pulse-circle">▶</div>
+          <strong style="font-size:0.92rem;">${escapeHtml(hv.title || "Istanbul Warehouse & Order Packing")}</strong>
+        </div>
+      `;
+    } else {
+      heroBlock.style.display = "none";
+    }
+  }
+
+  // ۲. ریل ویدیوهای ویترین و ارسال بار کارگو (از تب ۶ پنل ادمین)
+  const reelsBlock = document.getElementById("home-reels-video-block");
+  const reelsTrack = document.getElementById("home-videos-reel-track");
+  if (reelsBlock && reelsTrack) {
+    const showroomVids = Array.isArray(pub.showroomVideos) ? pub.showroomVideos : [];
+    const cargoVids = Array.isArray(pub.cargoVideos) ? pub.cargoVideos : [];
+    const combinedVids = [...cargoVids, ...showroomVids];
+
+    if (combinedVids.length > 0) {
+      reelsBlock.style.display = "block";
+      reelsTrack.innerHTML = combinedVids
+        .map((v, idx) => {
+          const ytId = v.ytId || "";
+          const thumb = v.thumb || (ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=400&q=75");
+          const badge = v.badge || "SHOWROOM";
+          const title = v.title || `Video #${idx + 1}`;
+          return `
+            <div class="reel-video-card" data-play-reel-url="${escapeHtml(v.url || "")}" data-play-reel-yt="${escapeHtml(ytId)}">
+              <img src="${escapeHtml(thumb)}" alt="${escapeHtml(title)}" loading="lazy" />
+              <div class="reel-video-overlay">
+                <span style="font-size:0.62rem; background:var(--gold); color:#090d16; font-weight:900; padding:2px 6px; border-radius:6px; align-self:flex-start; margin-bottom:4px;">${escapeHtml(badge)}</span>
+                <strong style="font-size:0.75rem; line-height:1.25;">▶ ${escapeHtml(title)}</strong>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+    } else {
+      reelsBlock.style.display = "none";
+    }
+  }
+
+  // ۳. آخرین مقالات راهنمای سئو (از تب ۷ پنل ادمین)
+  const blogsBlock = document.getElementById("home-blogs-block");
+  const blogsGrid = document.getElementById("home-blogs-grid");
+  if (blogsBlock && blogsGrid) {
+    const articles = Array.isArray(coreState.blogs) ? coreState.blogs.slice(0, 3) : [];
+    if (articles.length > 0) {
+      blogsBlock.style.display = "block";
+      blogsGrid.innerHTML = articles
+        .map((b) => {
+          const title = b.title?.[coreState.lang] || b.title?.en || "Wholesale Guide";
+          const slug = b.slugs?.[coreState.lang] || b.slug || b.id;
+          const img = b.coverImage || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=400&q=75";
+          return `
+            <a href="blog.html?slug=${encodeURIComponent(slug)}&lang=${coreState.lang}" class="home-blog-card">
+              <img src="${escapeHtml(img)}" alt="${escapeHtml(title)}" loading="lazy" />
+              <div>
+                <strong style="font-size:0.82rem; display:block; margin-bottom:3px;">${escapeHtml(title)}</strong>
+                <span style="font-size:0.7rem; color:var(--emerald-dark); font-weight:700;">Read Guide ➔</span>
+              </div>
+            </a>
+          `;
+        })
+        .join("");
+    } else {
+      blogsBlock.style.display = "none";
+    }
+  }
+}
+
 export function renderVisualCategoryCards() {
   const section = document.getElementById("visual-categories-section");
   const grid = document.getElementById("visual-categories-grid");
@@ -722,7 +879,6 @@ export function renderVisualCategoryCards() {
     return;
   }
 
-  // مرحله ۱: صفحه اول کاتالوگ (بخش‌های اصلی)
   if (!coreState.dept) {
     const depts = getNonEmptyDepartments();
     section.style.display = "block";
@@ -755,7 +911,6 @@ export function renderVisualCategoryCards() {
     return;
   }
 
-  // مرحله ۲: کارت‌های شاخه‌های داخلی یک بخش (مثلاً شاخه‌های مردانه یا زنانه)
   if (coreState.dept && !coreState.cat) {
     const subcats = getNonEmptySubcategories(coreState.dept);
     if (subcats.length === 0) {
@@ -792,13 +947,9 @@ export function renderVisualCategoryCards() {
     return;
   }
 
-  // مرحله ۳: داخل شاخه هستیم -> کارت‌های بزرگ مخفی می‌شوند تا محصولات دیده شوند
   section.style.display = "none";
 }
 
-/**
- * رندر نوار شیشه‌ای زیربخش‌ها (بدون دکمه زرد اضافی + حرکت خودکار طولانی تا چند منوی جلوتر)
- */
 export function renderStickyGlassPills(triggerNudge = false) {
   const dock = document.getElementById("sticky-glass-dock");
   const subnavRow = document.getElementById("glass-subnav-row");
@@ -822,7 +973,6 @@ export function renderStickyGlassPills(triggerNudge = false) {
   const totalCatCount = getProductsForSubcat(coreState.dept, coreState.cat).length;
   const nonEmptyLeaves = getNonEmptyLeaves(coreState.dept, coreState.cat);
 
-  // اگر این شاخه هیچ زیربخش دارای عکسی ندارد، ردیف زیربخش را خلوت نگه دار
   if (nonEmptyLeaves.length === 0) {
     if (subnavRow) subnavRow.style.display = "none";
     updateGlassScrollIndicators();
@@ -833,7 +983,6 @@ export function renderStickyGlassPills(triggerNudge = false) {
 
   const pillsHtml = [];
 
-  // ۱. دکمه «همه» برای شاخه فعلی
   pillsHtml.push(`
     <button type="button" class="glass-pill ${!coreState.sub ? "active" : ""}" data-glass-leaf="">
       <span>${t("allStyles")} ${escapeHtml(getLocalizedTaxonomyLabel(subObj))}</span>
@@ -841,7 +990,6 @@ export function renderStickyGlassPills(triggerNudge = false) {
     </button>
   `);
 
-  // ۲. دکمه‌های زیربخش‌های دارای محصول (مثل یقه گرد، یقه‌دار پلو...)
   nonEmptyLeaves.forEach((lf) => {
     const leafCount = getProductsForLeaf(coreState.dept, coreState.cat, lf).length;
     const isSelected = coreState.sub === lf.id;
@@ -865,7 +1013,6 @@ export function renderStickyGlassPills(triggerNudge = false) {
     if (activePill && coreState.sub) {
       activePill.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
     } else if (triggerNudge && track.scrollWidth > track.clientWidth + 20) {
-      // حرکت راهنمای طولانی تا چند منوی بعدی (حدود ۲۶۰ پیکسل) و بازگشت نرم به نقطه اول
       const maxDist = track.scrollWidth - track.clientWidth;
       const demoDist = Math.min(260, maxDist);
       clearTimeout(track._nudgeTimer1);
@@ -939,6 +1086,31 @@ export function bindSmartHeaderAndGlassEvents() {
   );
 
   document.getElementById("btn-nav-back")?.addEventListener("click", handleStepBackNavigation);
+  document.getElementById("btn-nav-home")?.addEventListener("click", resetToRootHome);
+  document.getElementById("header-brand-link")?.addEventListener("click", resetToRootHome);
+
+  // پخش ویدیوهای ویترین صفحه اول
+  document.getElementById("home-hero-video-stage")?.addEventListener("click", (e) => {
+    const trigger = e.target.closest("[data-play-inline-yt]");
+    if (!trigger) return;
+    const ytId = trigger.getAttribute("data-play-inline-yt");
+    const stage = document.getElementById("home-hero-video-stage");
+    if (stage && ytId) {
+      stage.innerHTML = `<iframe src="https://www.youtube.com/embed/${escapeHtml(ytId)}?autoplay=1&rel=0&playsinline=1" style="width:100%;height:100%;border:none;" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    }
+  });
+
+  document.getElementById("home-videos-reel-track")?.addEventListener("click", (e) => {
+    const card = e.target.closest(".reel-video-card");
+    if (!card) return;
+    const ytId = card.getAttribute("data-play-reel-yt");
+    const vidUrl = card.getAttribute("data-play-reel-url");
+    if (ytId) {
+      window.open(`https://www.youtube.com/watch?v=${encodeURIComponent(ytId)}`, "_blank");
+    } else if (vidUrl) {
+      window.open(vidUrl, "_blank");
+    }
+  });
 
   document.getElementById("btn-lang-dropdown")?.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -1048,8 +1220,7 @@ export function bindSmartHeaderAndGlassEvents() {
     showCatalogToast(t("copiedToast"));
   });
 }
-/* === پایان [MODULE-03: 3-STAGE ARCHITECTURE, VISUAL CARDS & GLASS BAR] === */
-
+/* === پایان [MODULE-03: UNIFIED HOME & 3-STAGE ARCHITECTURE] === */
 
 /* ==========================================================================
    === شروع [MODULE-04: DYNAMIC PRICE-TIER DETECTOR ($5 | $9 | $12)] (ماژول ۴) ===
@@ -1838,8 +2009,8 @@ export function fireDirectWhatsappClickEvent() {
 
 /* ==========================================================================
    === شروع [MODULE-07: VISUAL ORDER LINK, OFFICIAL SVG FOOTER & INITIALIZER] (ماژول ۷) ===
-   راهنما: ارسال لینک مستقیم سبد خرید تصویری و قابل ویرایش در واتساپ (بدون متن‌های شلوغ)،
-   باز کردن خودکار سبد خرید مشترک با کلیک روی لینک، و لوگوهای رسمی SVG در فوتر.
+   راهنما: ارسال لینک مستقیم سبد خرید تصویری و قابل ویرایش روی آدرس اصلی سایت،
+   رندر خودکار ویترین صفحه اول (انبار/کارگو/وبلاگ) و لوگوهای رسمی SVG در فوتر.
    ========================================================================== */
 
 /* آیکون‌های وکتور رسمی و اورجینال شبکه‌های اجتماعی (SVG) */
@@ -1879,12 +2050,16 @@ export function applyDynamicBrandingAndFooter() {
   const { cleanDigits, formattedDisplay } = getUnifiedWhatsAppInfo();
 
   const logoImg = document.getElementById("header-logo-img");
+  const brandBadge = document.getElementById("home-brand-badge");
+
   if (logoImg) {
     if (pub.logoUrl) {
       logoImg.src = pub.logoUrl;
-      logoImg.style.display = "block";
+      logoImg.style.display = isRootHomeStage() ? "block" : "none";
+      if (brandBadge) brandBadge.style.display = "none";
     } else {
       logoImg.style.display = "none";
+      if (brandBadge) brandBadge.style.display = isRootHomeStage() ? "inline-flex" : "none";
     }
   }
 
@@ -1940,16 +2115,14 @@ export function applyDynamicBrandingAndFooter() {
 }
 
 /**
- * ساخت لینک اختصاصی سبد خرید تصویری و قابل ویرایش (برای ارسال در واتساپ)
- * شامل کد سفارش + بک‌آپ فشرده آیتم‌ها در خود آدرس تا در هر شرایطی ۱۰۰٪ باز شود.
+ * ساخت لینک اختصاصی سبد خرید تصویری و قابل ویرایش روی آدرس اصلی سایت (بدون category.html)
  */
 export function buildVisualOrderCartUrl(orderCode) {
-  const baseOrigin = window.location.origin && window.location.origin !== "null" ? window.location.origin : SITE_DOMAIN;
-  const basePath = window.location.pathname || "/category.html";
-  const url = new URL(`${baseOrigin}${basePath}`);
-
+  const url = new URL(getBaseRootUrl());
   url.searchParams.set("order", orderCode);
-  url.searchParams.set("lang", coreState.lang || "en");
+  if (coreState.lang && coreState.lang !== "en") {
+    url.searchParams.set("lang", coreState.lang);
+  }
 
   const compactItems = coreState.cart
     .map((c) => `${encodeURIComponent(c.sku)}:${Math.max(1, parseInt(c.packs, 10) || 1)}`)
@@ -1963,9 +2136,7 @@ export function buildVisualOrderCartUrl(orderCode) {
 }
 
 /**
- * ارسال سفارش به واتساپ:
- * بدون متن‌های طولانی و شلوغ! فقط یک لینک واحد که سبد خرید تصویری و قابل ویرایش را باز می‌کند
- * به همراه درخواست محاسبه هزینه ارسال (کارگو) و صدور فاکتور نهایی.
+ * ارسال سفارش به واتساپ (فقط یک لینک واحد سبد خرید تصویری و قابل ویرایش + درخواست محاسبه کارگو)
  */
 export async function submitCartOrderToWhatsApp() {
   if (coreState.cart.length === 0) {
@@ -1987,7 +2158,6 @@ export async function submitCartOrderToWhatsApp() {
 
   const nowIso = new Date().toISOString();
 
-  // شلیک کانورژن گوگل ادز با مبلغ دلاری سفارش
   fireGoogleAdsOrderConversion(stats.finalTotal, orderCode);
 
   const orderPayload = {
@@ -2011,7 +2181,6 @@ export async function submitCartOrderToWhatsApp() {
     submitBtn.disabled = true;
   }
 
-  // ذخیره در فایربیس (با سقف انتظار ۲ ثانیه تا در موبایل معطل نشود)
   try {
     await Promise.race([
       setDoc(doc(db, "orders", orderCode), orderPayload, { merge: true }),
@@ -2025,7 +2194,6 @@ export async function submitCartOrderToWhatsApp() {
 
   const visualCartLink = buildVisualOrderCartUrl(orderCode);
 
-  // متن کوتاه، تمیز و حرفه‌ای به زبان مشتری (بدون شلوغی حساب‌وکتاب متنی)
   const waTemplates = {
     en: [
       `🛍️ *WHOLESALE ORDER (${orderCode})*`,
@@ -2064,8 +2232,7 @@ export async function submitCartOrderToWhatsApp() {
 }
 
 /**
- * بازخوانی خودکار سفارش تصویری وقتی فروشنده یا مشتری روی لینک واتساپ (?order=ORD-XXXXX) کلیک می‌کند:
- * سبد خرید دقیقاً با همان عکس‌ها و تعداد پک‌ها باز می‌شود و قابل ویرایش (حذف، کم/زیاد یا افزودن محصول جدید) است.
+ * بازخوانی خودکار سبد خرید تصویری وقتی فروشنده یا مشتری روی لینک سفارش در واتساپ کلیک می‌کند
  */
 export async function loadSharedOrderFromUrlIfPresent() {
   const params = new URLSearchParams(window.location.search);
@@ -2078,7 +2245,6 @@ export async function loadSharedOrderFromUrlIfPresent() {
   let loadedBuyerName = "";
   let loadedBuyerCountry = "";
 
-  // ۱. تلاش اول: خواندن اطلاعات کامل سفارش از دیتابیس فایربیس
   if (orderCode) {
     try {
       const snap = await getDoc(doc(db, "orders", orderCode));
@@ -2093,7 +2259,6 @@ export async function loadSharedOrderFromUrlIfPresent() {
     } catch (e) {}
   }
 
-  // ۲. تلاش پشتیبان: اگر اینترنت ضعیف بود، از روی کدهای داخل لینک (&items=...) سبد را بازسازی کن
   if (loadedItems.length === 0 && compactItemsParam) {
     const pairs = compactItemsParam.split(",").map((s) => s.trim()).filter(Boolean);
     pairs.forEach((pair) => {
@@ -2152,7 +2317,6 @@ export function bindCartAndWhatsappEvents() {
     if (e.target.id === "cart-drawer-backdrop") closeDrawer();
   });
 
-  // کم و زیاد کردن تعداد پک، حذف آیتم، یا کلیک روی عکس داخل سبد برای بزرگنمایی HD
   document.getElementById("cart-items-list")?.addEventListener("click", (e) => {
     const qtyBtn = e.target.closest("[data-cart-qty]");
     if (qtyBtn) {
@@ -2179,7 +2343,6 @@ export function bindCartAndWhatsappEvents() {
       return;
     }
 
-    // اگر فروشنده یا مشتری روی عکس محصول در داخل سبد خرید کلیک کرد، عکس بزرگ HD آن باز شود
     const clickedImg = e.target.closest("img");
     if (clickedImg && clickedImg.alt) {
       openProductLightbox(clickedImg.alt, false);
@@ -2190,9 +2353,13 @@ export function bindCartAndWhatsappEvents() {
   document.getElementById("floating-whatsapp-btn")?.addEventListener("click", fireDirectWhatsappClickEvent);
 }
 
+/**
+ * تابع مرکزی رندر کل نمای سایت (کارت‌های دسته‌بندی + ویترین صفحه اول + نوار شیشه‌ای + قیمت + محصولات)
+ */
 export function renderEntireCatalogView(triggerNudge = false) {
   updateBackButtonVisibility();
-  renderVisualCategoryCards(false);
+  renderVisualCategoryCards();
+  renderHomeExclusiveShowcase();
   renderStickyGlassPills(triggerNudge);
   renderDynamicPriceFilterBar();
   renderProductsCatalogGrid();
@@ -2215,7 +2382,6 @@ export async function initParadiseCatalogCore() {
   renderEntireCatalogView(true);
   renderSteppedCartUI();
 
-  // اگر لینک واتساپ مربوط به یک سفارش (?order=ORD-XXXXX) باز شده، فوراً سبد خرید تصویری آن را باز کن
   await loadSharedOrderFromUrlIfPresent();
 
   if (coreState.activeProductSku) {
