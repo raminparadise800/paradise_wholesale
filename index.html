@@ -1015,8 +1015,8 @@
 
 <!-- ========================================================================
        === [SECTION-03: SMART HEADER & STICKY GLASS BARS] (شروع بخش ۳: هدر و نوار شیشه‌ای) ===
-       راهنما: در صفحه اول سایت دکمه‌های Back و Home مخفی هستند و نشان برند نمایش داده می‌شود.
-       به محض ورود به بخش‌ها، دکمه‌های Back و Home فعال می‌شوند و نشان متنی برند مخفی می‌گردد.
+       راهنما: نمایش همزمان لوگوی بزرگ (40px) + نام کامل Paradise Wholesale Clothing در صفحه اول،
+       و جایگزینی خودکار با دکمه‌های Back و Home در صفحات داخلی بدون بیرون‌زدگی در موبایل.
        ======================================================================== -->
   <style>
     @media (max-width: 520px) {
@@ -1045,25 +1045,71 @@
       }
     }
 
-    /* نشان برند در هدر (فقط در صفحه اصلی که دکمه Back و Home نیستند نمایش داده می‌شود) */
-    .home-brand-badge {
+    /* بلوک ترکیبی لوگو + نام رسمی شرکت در سمت چپ هدر (مخصوص صفحه اصلی) */
+    .brand-logo-wrap {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      font-size: 0.84rem;
-      font-weight: 800;
-      color: var(--gold);
-      letter-spacing: 0.5px;
+      gap: 9px;
       text-decoration: none;
+      min-width: 0;
+    }
+
+    .brand-logo-img {
+      height: 40px;
+      width: auto;
+      max-width: 110px;
+      border-radius: 8px;
+      object-fit: contain;
+      border: 1px solid rgba(212, 175, 55, 0.45);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 2px;
+      display: none;
+      flex-shrink: 0;
+    }
+
+    .home-brand-badge {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      line-height: 1.15;
       white-space: nowrap;
     }
 
-    /* استایل‌های اختصاصی ویترین صفحه اول (ویدیوهای انبار، کارگو و مقالات سئو) */
+    .brand-main-line {
+      font-size: 0.8rem;
+      font-weight: 900;
+      color: var(--gold);
+      letter-spacing: 0.4px;
+    }
+
+    .brand-sub-line {
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      letter-spacing: 0.7px;
+    }
+
+    @media (max-width: 375px) {
+      .brand-main-line { font-size: 0.72rem; }
+      .brand-sub-line { font-size: 0.56rem; }
+      .brand-logo-img { height: 35px; }
+    }
+
+    /* زیرعنوان سئو زیر تگ H1 در صفحه اصلی */
+    .view-context-subtitle {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 2px;
+      display: block;
+    }
+
+    /* استایل‌های اختصاصی ویترین پایین صفحه اول (ویدیوی معرفی، رضایت مشتریان و مقالات) */
     .home-exclusive-showcase {
-      margin-top: 28px;
+      margin-top: 26px;
       display: flex;
       flex-direction: column;
-      gap: 28px;
+      gap: 24px;
     }
 
     .b2b-trust-strip {
@@ -1102,15 +1148,17 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 8px;
       margin-bottom: 12px;
     }
 
     .showcase-block-title {
-      font-size: 0.96rem;
+      font-size: 0.95rem;
       font-weight: 800;
       color: var(--text-main);
     }
 
+    /* کادر سینمایی ۱۶:۹ ویدیوی معرفی انبار و مجموعه در صفحه اول */
     .hero-video-frame {
       position: relative;
       width: 100%;
@@ -1119,19 +1167,25 @@
       overflow: hidden;
       background: #090d16;
       cursor: pointer;
+      border: 1.5px solid rgba(212, 175, 55, 0.4);
     }
 
     .hero-video-frame img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      opacity: 0.85;
+      opacity: 0.88;
+      transition: transform 0.4s ease;
+    }
+
+    .hero-video-frame:hover img {
+      transform: scale(1.03);
     }
 
     .hero-play-overlay {
       position: absolute;
       inset: 0;
-      background: linear-gradient(180deg, rgba(9,13,22,0.15) 0%, rgba(9,13,22,0.82) 100%);
+      background: linear-gradient(180deg, rgba(9,13,22,0.12) 0%, rgba(9,13,22,0.85) 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -1142,26 +1196,34 @@
     }
 
     .play-pulse-circle {
-      width: 54px;
-      height: 54px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
       background: rgba(239, 68, 68, 0.95);
       color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.3rem;
+      font-size: 1.35rem;
       margin-bottom: 8px;
       box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.25);
     }
 
+    /* شبکه و ریل ویدیوهای رضایت مشتریان و ارسال بار کارگو */
+    .reviews-reel-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
     .videos-horizontal-reel {
       display: flex;
-      gap: 10px;
+      gap: 11px;
       overflow-x: auto;
       scroll-behavior: smooth;
       scrollbar-width: none;
-      padding-bottom: 4px;
+      padding: 2px 2px 6px;
+      width: 100%;
     }
 
     .videos-horizontal-reel::-webkit-scrollbar {
@@ -1169,14 +1231,23 @@
     }
 
     .reel-video-card {
-      flex: 0 0 155px;
+      flex: 0 0 44%;
+      max-width: 175px;
       aspect-ratio: 9 / 14;
       border-radius: var(--radius-md);
       overflow: hidden;
       position: relative;
       background: #0f172a;
       cursor: pointer;
-      border: 1px solid var(--border);
+      border: 1.5px solid var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    @media (min-width: 640px) {
+      .reel-video-card {
+        flex: 0 0 31%;
+        max-width: 210px;
+      }
     }
 
     .reel-video-card img {
@@ -1188,12 +1259,43 @@
     .reel-video-overlay {
       position: absolute;
       inset: 0;
-      background: linear-gradient(180deg, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.88) 100%);
+      background: linear-gradient(180deg, rgba(0,0,0,0.08) 35%, rgba(0,0,0,0.9) 100%);
       display: flex;
       flex-direction: column;
-      justify-content: flex-end;
-      padding: 10px 8px;
+      justify-content: space-between;
+      padding: 10px 9px;
       color: #fff;
+    }
+
+    .reel-play-center-icon {
+      align-self: center;
+      margin-top: auto;
+      margin-bottom: auto;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.9);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+
+    .shuffle-reviews-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 11px;
+      border-radius: 16px;
+      border: 1px solid var(--gold);
+      background: var(--bg-dark);
+      color: var(--gold);
+      font-size: 0.72rem;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
     }
 
     .home-blogs-grid {
@@ -1243,10 +1345,13 @@
         <span id="txt-nav-home" class="hide-on-mobile">Home</span>
       </a>
 
-      <!-- لوگو و عنوان برند (در صفحه اول نمایش داده می‌شود و در صفحات داخلی جا را به دکمه Back و Home می‌دهد) -->
+      <!-- لوگو + نام کامل شرکت (در صفحه اول هر دو با هم نمایش داده می‌شوند تا هدر پر و شیک باشد) -->
       <a href="./" class="brand-logo-wrap" id="header-brand-link">
-        <img src="" alt="Paradise Wholesale" class="brand-logo-img" id="header-logo-img" />
-        <span class="home-brand-badge" id="home-brand-badge">👑 PARADISE</span>
+        <img src="" alt="Paradise Wholesale Clothing" class="brand-logo-img" id="header-logo-img" />
+        <div class="home-brand-badge" id="home-brand-badge">
+          <span class="brand-main-line">PARADISE WHOLESALE</span>
+          <span class="brand-sub-line">CLOTHING • ISTANBUL</span>
+        </div>
       </a>
     </div>
 
@@ -1327,12 +1432,15 @@
 
   <!-- ========================================================================
        === [SECTION-04: VISUAL CARDS, PRODUCT GRID & HOME SHOWCASE] (شروع بخش ۴) ===
-       راهنما: در صفحه اول کارت‌های اصلی + ویدیوهای انبار/کارگو و وبلاگ نمایش داده می‌شوند.
-       به محض ورود به هر دسته‌بندی، بخش ویدیوها و وبلاگِ صفحه اول مخفی می‌شود.
+       راهنما: شامل تگ H1 با نام برند Paradise Wholesale Clothing برای سئو،
+       کارت‌های دسته‌بندی در بالا و ویدیوهای معرفی و رضایت مشتریان در پایین صفحه اول.
        ======================================================================== -->
   <main class="catalog-main-container">
     <div class="view-context-bar">
-      <h1 class="view-context-title" id="view-context-heading">Wholesale Catalog</h1>
+      <div>
+        <h1 class="view-context-title" id="view-context-heading">Paradise Wholesale Clothing</h1>
+        <span class="view-context-subtitle" id="view-context-subtitle">Direct Istanbul Factory Supplier — Select a Category</span>
+      </div>
       <button type="button" class="share-view-btn" id="btn-share-current-view">
         <span>🔗</span>
         <span id="txt-share-view">Share Link</span>
@@ -1340,7 +1448,7 @@
     </div>
 
     <!-- [SSG-CONTENT-START] -->
-    <!-- ۱. شبکه کارت‌های تصویری بزرگ ۲ ستونه (بخش‌های اصلی در صفحه اول / شاخه‌ها در صفحات داخلی) -->
+    <!-- ۱. شبکه کارت‌های تصویری بزرگ ۲ ستونه (در بالای صفحه اول برای ورود فوری مشتری به محصولات) -->
     <section id="visual-categories-section">
       <div class="visual-cards-grid" id="visual-categories-grid"></div>
     </section>
@@ -1360,7 +1468,7 @@
       </div>
     </section>
 
-    <!-- ۳. ویترین اختصاصی صفحه اول (فقط در ریشه سایت روشن است و در صفحات داخلی مخفی می‌شود) -->
+    <!-- ۳. ویترین اختصاصی پایین صفحه اول (فقط در صفحه اصلی روشن است و در صفحات داخلی مخفی می‌شود) -->
     <section class="home-exclusive-showcase" id="home-exclusive-showcase" style="display:none;">
       <!-- نوار مزیت‌های رقابتی تامین مستقیم از استانبول -->
       <div class="b2b-trust-strip">
@@ -1378,23 +1486,30 @@
         </div>
       </div>
 
-      <!-- ویدیوی اصلی انبار و بسته‌بندی (متصل به تب ۶ پنل ادمین) -->
+      <!-- بخش الف: ویدیویهای رضایت مشتریان و ارسال بار کارگو (چرخش رندوم در هر بازدید + پخش درون‌سایتی) -->
+      <div class="showcase-block-card" id="home-reels-video-block" style="display:none;">
+        <div class="showcase-block-header">
+          <h2 class="showcase-block-title" id="txt-cargo-reels-heading">⭐ Customer Reviews & Cargo Shipments</h2>
+          <button type="button" class="shuffle-reviews-btn" id="btn-shuffle-reviews">
+            <span>🔄</span>
+            <span id="txt-more-reviews-btn">More Videos</span>
+          </button>
+        </div>
+        <div class="reviews-reel-wrapper">
+          <div class="videos-horizontal-reel" id="home-videos-reel-track"></div>
+          <button type="button" class="scroll-arrow-btn visible" id="btn-reels-scroll-right" aria-label="Next Videos" style="position:absolute; right:4px; z-index:10;">›</button>
+        </div>
+      </div>
+
+      <!-- بخش ب: ویدیوی بزرگ آشنایی با مجموعه و انبار استانبول (پخش مستقیم داخل صفحه) -->
       <div class="showcase-block-card" id="home-hero-video-block" style="display:none;">
         <div class="showcase-block-header">
-          <h2 class="showcase-block-title" id="txt-hero-video-heading">🎬 Istanbul Warehouse & Live Packing</h2>
+          <h2 class="showcase-block-title" id="txt-hero-video-heading">🎬 About Paradise Wholesale & Istanbul Warehouse</h2>
         </div>
         <div class="hero-video-frame" id="home-hero-video-stage"></div>
       </div>
 
-      <!-- ریل ویدیوهای ویترین و رضایت/ارسال بار کارگو (متصل به تب ۶ پنل ادمین) -->
-      <div class="showcase-block-card" id="home-reels-video-block" style="display:none;">
-        <div class="showcase-block-header">
-          <h2 class="showcase-block-title" id="txt-cargo-reels-heading">📦 Live Showroom & Cargo Shipments</h2>
-        </div>
-        <div class="videos-horizontal-reel" id="home-videos-reel-track"></div>
-      </div>
-
-      <!-- آخرین مقالات راهنمای خرید عمده و کارگو (متصل به تب ۷ پنل ادمین) -->
+      <!-- بخش ج: آخرین مقالات راهنمای خرید عمده و کارگو (متصل به تب ۷ پنل ادمین) -->
       <div class="showcase-block-card" id="home-blogs-block" style="display:none;">
         <div class="showcase-block-header">
           <h2 class="showcase-block-title" id="txt-home-blogs-heading">📝 B2B Wholesale & Customs Guides</h2>
@@ -1618,7 +1733,7 @@
   <div id="catalog-toast" style="position:fixed; bottom:82px; left:50%; transform:translateX(-50%) translateY(20px); background:#090d16; color:var(--gold); border:1.5px solid var(--gold); padding:9px 18px; border-radius:25px; font-size:0.8rem; font-weight:800; z-index:9000; opacity:0; pointer-events:none; transition:all 0.25s ease;"></div>
 
   <!-- اتصال به هسته مرکزی ماژولار سایت -->
-  <script type="module" src="core.js?v=5"></script>
+  <script type="module" src="core.js?v=6"></script>
   <!-- === پایان [SECTION-07: DYNAMIC B2B FOOTER] === -->
 
 </body>
