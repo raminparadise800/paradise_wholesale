@@ -753,9 +753,10 @@ export function updateDynamicSeoTags() {
 
 
 /* ==========================================================================
-   === شروع [MODULE-03: 100% 3-LANG UI, COUNTRY-INTERLEAVED REVIEWS & FAQ] (ماژول ۳) ===
+   === شروع [MODULE-03: 100% 3-LANG UI, REELS PLAYER, COUNTRY REVIEWS & FAQ] (ماژول ۳) ===
    راهنما: ترجمه کامل تمام المان‌های صفحه (data-i18n)، توزیع یکی‌درمیان کشورها
-   فقط برای ویدیوهای رضایت مشتری در صفحه اول، و آکاردئون پرسش و پاسخ + اسکیمای گوگل.
+   فقط برای ویدیوهای رضایت مشتری در صفحه اول، پلیر تمام‌صفحه ریلز (سوایپ بالا/پایین
+   با پخش خودکار) و آکاردئون پرسش و پاسخ + اسکیمای گوگل.
    ========================================================================== */
 
 const LANG_FLAGS = { en: "🇬🇧", it: "🇮🇹", es: "🇪🇸" };
@@ -779,7 +780,7 @@ export function shuffleArrayRandomly(arr) {
 
 /**
  * الگوریتم توزیع هوشمند کشورها (Country Interleaving):
- * ویدیوها را بر اساس کشور گروه‌بندی می‌کند (مثلاً ایتالیا، اسپانیا، انگلیس، آلمان...)
+ * ویدیوها را بر اساس کشور گروه‌بندی می‌کند (ایتالیا، اسپانیا، انگلیس، آلمان...)
  * و به صورت یکی‌درمیان می‌چیند تا هرگز چند ویدیوی یک کشور پشت سر هم نیفتد.
  */
 export function interleaveReviewsByCountry(reviewsList, randomizeWithinCountry = true) {
@@ -829,7 +830,6 @@ export function getLocalizedField(valObj, fallback = "") {
  * ترجمه ۱۰۰٪ تمام متون ثابت صفحه، دکمه‌ها، فوتر و لینک‌های داخلی بر اساس زبان انتخاب‌شده
  */
 export function applyLocalizedStaticTexts() {
-  // ترجمه خودکار تمام تگ‌های دارای data-i18n در کل صفحه
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     const key = el.getAttribute("data-i18n");
     if (key) {
@@ -875,7 +875,6 @@ export function applyLocalizedStaticTexts() {
     btn.classList.toggle("active", btn.getAttribute("data-lang") === coreState.lang);
   });
 
-  // حفظ زبان انتخاب‌شده روی لینک‌های صفحات Reviews و Blog
   const langSuffix = coreState.lang && coreState.lang !== "en" ? `?lang=${coreState.lang}` : "";
   ["home-quick-reviews-link", "btn-view-all-reviews", "footer-reviews-link"].forEach((id) => {
     const a = document.getElementById(id);
@@ -966,8 +965,7 @@ export function resetToRootHome(e) {
 }
 
 /**
- * رندر ریل رضایت مشتریان در صفحه اول:
- * فقط ویدیوهای بخش «رضایت مشتریان» را می‌خواند (نه بسته‌بندی) و کشورها را یکی‌درمیان می‌چیند.
+ * رندر ریل رضایت مشتریان در صفحه اول (فقط بخش رضایت مشتری + توزیع هوشمند کشورها)
  */
 export function renderRandomReviewsReel() {
   const reelsBlock = document.getElementById("home-reels-video-block");
@@ -979,7 +977,6 @@ export function renderRandomReviewsReel() {
   const cVids = Array.isArray(pub.cargoVideos) ? pub.cargoVideos : [];
   const sVids = Array.isArray(pub.showroomVideos) ? pub.showroomVideos : [];
 
-  // فیلتر کردن فقط ویدیوهای رضایت مشتری (category === 'reviews' یا موارد قدیمی بدون دسته‌بندی)
   const customerReviewsOnly = [...cVids, ...sVids].filter((v) => {
     if (!v) return false;
     const cat = String(v.category || "reviews").toLowerCase();
@@ -990,11 +987,13 @@ export function renderRandomReviewsReel() {
 
   if (customerReviewsOnly.length === 0) {
     reelsBlock.style.display = "none";
+    coreState.activeReelsList = [];
     return;
   }
 
   reelsBlock.style.display = "block";
   const distributedReviews = interleaveReviewsByCountry(customerReviewsOnly, true);
+  coreState.activeReelsList = distributedReviews;
 
   if (rightArrow) {
     rightArrow.style.display = distributedReviews.length > 2 ? "inline-flex" : "none";
@@ -1003,7 +1002,6 @@ export function renderRandomReviewsReel() {
   reelsTrack.innerHTML = distributedReviews
     .map((v, idx) => {
       const ytId = extractCleanYoutubeId(v.ytId || v.url);
-      const directUrl = !ytId ? v.url || "" : "";
       const thumb =
         v.thumb ||
         (ytId
@@ -1013,11 +1011,7 @@ export function renderRandomReviewsReel() {
       const title = getLocalizedField(v.title, `Verified Wholesale Client #${idx + 1}`);
 
       return `
-        <div class="reel-video-card"
-             data-play-reel-yt="${escapeHtml(ytId)}"
-             data-play-reel-url="${escapeHtml(directUrl)}"
-             data-play-reel-title="${escapeHtml(title)}"
-             data-play-reel-badge="${escapeHtml(badge)}">
+        <div class="reel-video-card" data-reel-idx="${idx}">
           <img src="${escapeHtml(thumb)}" alt="${escapeHtml(title)}" loading="lazy" decoding="async" />
           <div class="reel-video-overlay">
             <span style="font-size:0.62rem; background:var(--gold); color:#090d16; font-weight:900; padding:2px 7px; border-radius:6px; align-self:flex-start;">
@@ -1034,45 +1028,247 @@ export function renderRandomReviewsReel() {
     .join("");
 }
 
-export function openInSiteReviewVideoModal(ytId, directUrl, title, badge) {
-  const modal = document.getElementById("hd-lightbox-modal");
-  const stage = document.getElementById("lightbox-media-stage");
-  const multiNavGroup = document.getElementById("lightbox-multi-nav-group");
-  const toggleVidBtn = document.getElementById("btn-lightbox-toggle-video");
-  const addPackBtn = document.getElementById("btn-lightbox-add-pack");
-  if (!modal || !stage) return;
+/* ==================== موتور پلیر تمام‌صفحه شبیه Reels اینستاگرام ==================== */
+let reelsState = {
+  index: 0,
+  muted: false,
+  paused: false,
+  bound: false,
+  wheelLock: false
+};
 
-  coreState.lightboxProduct = null;
-  if (multiNavGroup) multiNavGroup.style.display = "none";
-  if (toggleVidBtn) toggleVidBtn.style.display = "none";
-  if (addPackBtn) addPackBtn.style.display = "none";
+function sendYoutubeCommand(funcName) {
+  const iframe = document.getElementById("active-reel-iframe");
+  if (iframe && iframe.contentWindow) {
+    iframe.contentWindow.postMessage(
+      JSON.stringify({ event: "command", func: funcName, args: "" }),
+      "*"
+    );
+  }
+}
 
+function flashReelTapIcon(symbol) {
+  const fb = document.getElementById("reels-tap-feedback");
+  if (!fb) return;
+  fb.textContent = symbol;
+  fb.classList.add("show");
+  clearTimeout(fb._t);
+  fb._t = setTimeout(() => fb.classList.remove("show"), 550);
+}
+
+function renderActiveReelSlide(index, animDir = "none") {
+  const list = coreState.activeReelsList || [];
+  if (list.length === 0) return;
+
+  const clamped = Math.max(0, Math.min(list.length - 1, index));
+  reelsState.index = clamped;
+  reelsState.paused = false;
+
+  const item = list[clamped];
+  const ytId = extractCleanYoutubeId(item.ytId || item.url);
+  const directUrl = !ytId ? item.url || "" : "";
+  const badge = item.countryLabel || item.badge || "⭐ CLIENT REVIEW";
+  const title = getLocalizedField(item.title, `Verified Client Review #${clamped + 1}`);
+
+  const holder = document.getElementById("reels-media-holder");
+  if (!holder) return;
+
+  holder.classList.remove("reel-anim-up", "reel-anim-down");
+  void holder.offsetWidth;
+  if (animDir === "up") holder.classList.add("reel-anim-up");
+  if (animDir === "down") holder.classList.add("reel-anim-down");
+
+  const muteParam = reelsState.muted ? 1 : 0;
   if (ytId) {
-    stage.innerHTML = `
+    holder.innerHTML = `
       <iframe
-        src="https://www.youtube.com/embed/${escapeHtml(ytId)}?autoplay=1&rel=0&playsinline=1"
-        allow="autoplay; encrypted-media; picture-in-picture"
+        id="active-reel-iframe"
+        src="https://www.youtube.com/embed/${escapeHtml(ytId)}?autoplay=1&mute=${muteParam}&playsinline=1&rel=0&modestbranding=1&enablejsapi=1&loop=1&playlist=${escapeHtml(ytId)}"
+        allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
         allowfullscreen
       ></iframe>
     `;
   } else if (directUrl) {
-    stage.innerHTML = `<video src="${escapeHtml(directUrl)}" controls autoplay playsinline></video>`;
+    holder.innerHTML = `
+      <video id="active-reel-video" src="${escapeHtml(directUrl)}" autoplay playsinline loop ${reelsState.muted ? "muted" : ""}></video>
+    `;
   }
 
-  const setTxt = (id, val) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = val;
+  const countryEl = document.getElementById("reels-active-country");
+  const counterEl = document.getElementById("reels-active-counter");
+  const titleEl = document.getElementById("reels-active-title");
+  const prevBtn = document.getElementById("btn-reels-prev");
+  const nextBtn = document.getElementById("btn-reels-next");
+  const soundBtn = document.getElementById("btn-reels-sound");
+  const hintEl = document.getElementById("reels-swipe-hint-text");
+
+  if (countryEl) countryEl.textContent = badge;
+  if (counterEl) counterEl.textContent = `${clamped + 1} / ${list.length}`;
+  if (titleEl) titleEl.textContent = title;
+  if (prevBtn) prevBtn.disabled = clamped === 0;
+  if (nextBtn) nextBtn.disabled = clamped === list.length - 1;
+  if (soundBtn) soundBtn.textContent = reelsState.muted ? "🔇" : "🔊";
+
+  const hints = {
+    en: list.length > 1 ? "⬆ Swipe up / down for next review" : "Tap video to pause / play",
+    it: list.length > 1 ? "⬆ Scorri su / giù per altri video" : "Tocca per pausa / play",
+    es: list.length > 1 ? "⬆ Desliza arriba / abajo para más vídeos" : "Toca para pausar / reproducir"
+  };
+  if (hintEl) hintEl.textContent = hints[coreState.lang] || hints.en;
+}
+
+function closeReelsPlayerModal() {
+  const modal = document.getElementById("reels-fullscreen-modal");
+  const holder = document.getElementById("reels-media-holder");
+  if (holder) holder.innerHTML = "";
+  modal?.classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+function bindReelsPlayerControlsOnce() {
+  if (reelsState.bound) return;
+  reelsState.bound = true;
+
+  const modal = document.getElementById("reels-fullscreen-modal");
+  const gestureLayer = document.getElementById("reels-gesture-layer");
+  const holder = document.getElementById("reels-media-holder");
+
+  const goNext = () => {
+    if (reelsState.index < (coreState.activeReelsList?.length || 0) - 1) {
+      renderActiveReelSlide(reelsState.index + 1, "up");
+    }
   };
 
-  setTxt("lightbox-unit-price", badge || "⭐ VERIFIED");
-  setTxt("txt-lightbox-per-pc", "");
-  setTxt("lightbox-sku-badge", "ISTANBUL B2B");
-  setTxt("lightbox-prod-title", title || "Verified Customer Review");
-  setTxt("lightbox-prod-desc", t("footerCargoNote"));
-  setTxt("txt-lightbox-pack-info", t("trust2Title"));
-  setTxt("txt-lightbox-size-info", t("trust1Title"));
+  const goPrev = () => {
+    if (reelsState.index > 0) {
+      renderActiveReelSlide(reelsState.index - 1, "down");
+    }
+  };
 
+  document.getElementById("btn-close-reels-modal")?.addEventListener("click", closeReelsPlayerModal);
+  document.getElementById("btn-reels-prev")?.addEventListener("click", goPrev);
+  document.getElementById("btn-reels-next")?.addEventListener("click", goNext);
+
+  document.getElementById("btn-reels-sound")?.addEventListener("click", () => {
+    reelsState.muted = !reelsState.muted;
+    const btn = document.getElementById("btn-reels-sound");
+    if (btn) btn.textContent = reelsState.muted ? "🔇" : "🔊";
+
+    const vid = document.getElementById("active-reel-video");
+    if (vid) {
+      vid.muted = reelsState.muted;
+    } else {
+      sendYoutubeCommand(reelsState.muted ? "mute" : "unMute");
+    }
+  });
+
+  // تشخیص سوایپ بالا/پایین مثل ریلز اینستاگرام و ضربه برای توقف/پخش
+  let startY = 0;
+  let startX = 0;
+  let startTime = 0;
+
+  gestureLayer?.addEventListener(
+    "touchstart",
+    (e) => {
+      startY = e.touches[0].clientY;
+      startX = e.touches[0].clientX;
+      startTime = Date.now();
+      if (holder) holder.style.transition = "none";
+    },
+    { passive: true }
+  );
+
+  gestureLayer?.addEventListener(
+    "touchmove",
+    (e) => {
+      const dy = e.touches[0].clientY - startY;
+      if (Math.abs(dy) > 8) {
+        e.preventDefault();
+        if (holder) holder.style.transform = `translateY(${dy * 0.32}px)`;
+      }
+    },
+    { passive: false }
+  );
+
+  gestureLayer?.addEventListener("touchend", (e) => {
+    const endY = e.changedTouches[0].clientY;
+    const endX = e.changedTouches[0].clientX;
+    const dy = endY - startY;
+    const dx = endX - startX;
+    const dt = Date.now() - startTime;
+
+    if (holder) {
+      holder.style.transition = "transform 0.2s ease";
+      holder.style.transform = "translateY(0)";
+    }
+
+    if (dy < -50 && Math.abs(dy) > Math.abs(dx)) {
+      goNext();
+    } else if (dy > 50 && Math.abs(dy) > Math.abs(dx)) {
+      goPrev();
+    } else if (Math.abs(dy) < 12 && Math.abs(dx) < 12 && dt < 350) {
+      toggleActiveReelPlayback();
+    }
+  });
+
+  gestureLayer?.addEventListener("click", (e) => {
+    if (e.pointerType === "touch") return;
+    toggleActiveReelPlayback();
+  });
+
+  function toggleActiveReelPlayback() {
+    reelsState.paused = !reelsState.paused;
+    const vid = document.getElementById("active-reel-video");
+    if (vid) {
+      if (reelsState.paused) vid.pause();
+      else vid.play();
+    } else {
+      sendYoutubeCommand(reelsState.paused ? "pauseVideo" : "playVideo");
+    }
+    flashReelTapIcon(reelsState.paused ? "⏸" : "▶");
+  }
+
+  modal?.addEventListener(
+    "wheel",
+    (e) => {
+      if (!modal.classList.contains("open")) return;
+      e.preventDefault();
+      if (reelsState.wheelLock) return;
+      if (e.deltaY > 25) {
+        reelsState.wheelLock = true;
+        goNext();
+        setTimeout(() => (reelsState.wheelLock = false), 450);
+      } else if (e.deltaY < -25) {
+        reelsState.wheelLock = true;
+        goPrev();
+        setTimeout(() => (reelsState.wheelLock = false), 450);
+      }
+    },
+    { passive: false }
+  );
+
+  window.addEventListener("keydown", (e) => {
+    if (!modal?.classList.contains("open")) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      goNext();
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      goPrev();
+    } else if (e.key === "Escape") {
+      closeReelsPlayerModal();
+    }
+  });
+}
+
+export function openInSiteReviewVideoModal(startIndex = 0) {
+  const modal = document.getElementById("reels-fullscreen-modal");
+  if (!modal || !coreState.activeReelsList?.length) return;
+
+  bindReelsPlayerControlsOnce();
+  document.body.style.overflow = "hidden";
   modal.classList.add("open");
+  renderActiveReelSlide(startIndex, "none");
 }
 
 /**
@@ -1111,7 +1307,6 @@ export function renderHomeFaqSection() {
     }
   }
 
-  // تزریق اسکیمای سازمان (WholesaleStore) و پرسش و پاسخ (FAQPage) برای نتایج غنی گوگل
   const schemaEl = document.getElementById("seo-org-faq-json-ld");
   if (schemaEl) {
     const graph = [
@@ -1476,15 +1671,12 @@ export function bindSmartHeaderAndGlassEvents() {
     }
   });
 
-  // پخش درون‌سایتی ویدیوهای رضایت مشتری + اسکرول
+  // باز کردن پلیر تمام‌صفحه ریلز از روی ویدیوی انتخاب‌شده
   document.getElementById("home-videos-reel-track")?.addEventListener("click", (e) => {
-    const card = e.target.closest(".reel-video-card");
+    const card = e.target.closest("[data-reel-idx]");
     if (!card) return;
-    const ytId = card.getAttribute("data-play-reel-yt");
-    const vidUrl = card.getAttribute("data-play-reel-url");
-    const title = card.getAttribute("data-play-reel-title");
-    const badge = card.getAttribute("data-play-reel-badge");
-    openInSiteReviewVideoModal(ytId, vidUrl, title, badge);
+    const idx = parseInt(card.getAttribute("data-reel-idx"), 10) || 0;
+    openInSiteReviewVideoModal(idx);
   });
 
   document.getElementById("btn-reels-scroll-right")?.addEventListener("click", () => {
@@ -1599,7 +1791,7 @@ export function bindSmartHeaderAndGlassEvents() {
     showCatalogToast(t("copiedToast"));
   });
 }
-/* === پایان [MODULE-03: 100% 3-LANG UI, COUNTRY-INTERLEAVED REVIEWS & FAQ] === */
+/* === پایان [MODULE-03: 100% 3-LANG UI, REELS PLAYER, COUNTRY REVIEWS & FAQ] === */
 /* ==========================================================================
    === شروع [MODULE-04: DYNAMIC PRICE-TIER DETECTOR ($5 | $9 | $12)] (ماژول ۴) ===
    راهنما: تشخیص هوشمند قیمت‌های موجود در شاخه یا زیربخش فعلی از دیتابیس.
