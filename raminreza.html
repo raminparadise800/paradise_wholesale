@@ -1500,8 +1500,7 @@
           appId: "1:516659166400:web:9ac24230ebe5676cfe0125"
         };
 
-      const tab6AppName = "tab6_videos_isolated";
-        const appInstance = getApps().find((a) => a.name === tab6AppName) || initializeApp(fbCfg, tab6AppName);
+    const appInstance = getApps().find((a) => a.name === "[DEFAULT]") || initializeApp(fbCfg);
         const dbInst = getFirestore(appInstance);
         const storageInst = getStorage(appInstance);
 
