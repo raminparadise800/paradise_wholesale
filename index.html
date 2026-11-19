@@ -1808,7 +1808,262 @@
   </a>
   <!-- === پایان [SECTION-06: SLIDE-OUT STEPPED CART & FLOATING WHATSAPP] === -->
 
+<!-- ========================================================================
+       === [SECTION-REELS-PLAYER: FULLSCREEN INSTAGRAM-STYLE VIDEO PLAYER] ===
+       راهنما: پلیر تمام‌صفحه عمودی (9:16) با اسکرول انگشت بالا/پایین، پخش خودکار،
+       دکمه قطع/وصل صدا و دکمه‌های قبلی/بعدی — کاملاً جدا از پنجره محصولات.
+       ======================================================================== -->
+  <style>
+    .reels-fullscreen-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 6500;
+      background: #000000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      touch-action: none;
+      overscroll-behavior: contain;
+    }
 
+    .reels-fullscreen-modal.open {
+      display: flex;
+    }
+
+    .reels-viewport-shell {
+      position: relative;
+      width: 100%;
+      height: 100dvh;
+      max-width: 460px;
+      background: #090d16;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (min-width: 640px) {
+      .reels-viewport-shell {
+        height: 92vh;
+        border-radius: 18px;
+        border: 1.5px solid rgba(212, 175, 55, 0.45);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+      }
+    }
+
+    /* نوار بالایی بیرون از محدوده مرکز ویدیو (برچسب کشور، شماره و دکمه بستن) */
+    .reels-top-bar {
+      position: relative;
+      z-index: 25;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: #090d16;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      flex-shrink: 0;
+    }
+
+    .reels-country-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(212, 175, 55, 0.16);
+      color: var(--gold);
+      border: 1px solid rgba(212, 175, 55, 0.45);
+      padding: 4px 11px;
+      border-radius: 16px;
+      font-size: 0.76rem;
+      font-weight: 800;
+    }
+
+    .reels-counter-pill {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #cbd5e1;
+    }
+
+    .reels-close-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      font-size: 1rem;
+      font-weight: 900;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* صحنه اصلی تمام‌قد ویدیو (9:16) */
+    .reels-stage-wrap {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      background: #000000;
+      overflow: hidden;
+    }
+
+    .reels-media-holder {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.22s ease;
+    }
+
+    .reels-media-holder iframe,
+    .reels-media-holder video {
+      width: 100%;
+      height: 100%;
+      border: none;
+      object-fit: cover;
+      background: #000;
+    }
+
+    /* لایه لمسی هوشمند برای تشخیص سوایپ بالا/پایین مثل ریلز اینستاگرام */
+    .reels-gesture-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 15;
+      background: transparent;
+      touch-action: none;
+      cursor: pointer;
+    }
+
+    /* نشانگر لحظه‌ای توقف/پخش هنگام ضربه روی ویدیو */
+    .reels-tap-feedback {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      z-index: 18;
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.65);
+      color: #fff;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s ease;
+    }
+
+    .reels-tap-feedback.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    /* ستون دکمه‌های کناری سمت راست (صدا، قبلی، بعدی) */
+    .reels-side-actions {
+      position: absolute;
+      right: 12px;
+      bottom: 84px;
+      z-index: 22;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .reels-side-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(9, 13, 22, 0.72);
+      backdrop-filter: blur(8px);
+      color: #ffffff;
+      font-size: 1rem;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+    }
+
+    .reels-side-btn:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    /* نوار زیرنویس باریک پایین ویدیو */
+    .reels-bottom-caption {
+      position: relative;
+      z-index: 25;
+      background: #090d16;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 10px 14px 12px;
+      color: #ffffff;
+      flex-shrink: 0;
+    }
+
+    .reels-caption-title {
+      font-size: 0.86rem;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.35;
+    }
+
+    .reels-swipe-hint {
+      font-size: 0.7rem;
+      color: var(--gold);
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      opacity: 0.9;
+    }
+
+    @keyframes reelSlideFromBottom {
+      from { transform: translateY(38%); opacity: 0.35; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes reelSlideFromTop {
+      from { transform: translateY(-38%); opacity: 0.35; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .reel-anim-up { animation: reelSlideFromBottom 0.26s ease-out; }
+    .reel-anim-down { animation: reelSlideFromTop 0.26s ease-out; }
+  </style>
+
+  <div class="reels-fullscreen-modal" id="reels-fullscreen-modal" aria-hidden="true">
+    <div class="reels-viewport-shell">
+      <div class="reels-top-bar">
+        <span class="reels-country-pill" id="reels-active-country">⭐ REVIEW</span>
+        <span class="reels-counter-pill" id="reels-active-counter">1 / 1</span>
+        <button type="button" class="reels-close-btn" id="btn-close-reels-modal" aria-label="Close">✕</button>
+      </div>
+
+      <div class="reels-stage-wrap">
+        <div class="reels-media-holder" id="reels-media-holder"></div>
+        <div class="reels-gesture-layer" id="reels-gesture-layer"></div>
+        <div class="reels-tap-feedback" id="reels-tap-feedback">⏸</div>
+
+        <div class="reels-side-actions">
+          <button type="button" class="reels-side-btn" id="btn-reels-prev" aria-label="Previous Video" title="Previous">▲</button>
+          <button type="button" class="reels-side-btn" id="btn-reels-next" aria-label="Next Video" title="Next">▼</button>
+          <button type="button" class="reels-side-btn" id="btn-reels-sound" aria-label="Toggle Sound" title="Sound">🔊</button>
+        </div>
+      </div>
+
+      <div class="reels-bottom-caption">
+        <div class="reels-caption-title" id="reels-active-title">Verified Customer Review</div>
+        <div class="reels-swipe-hint">
+          <span id="reels-swipe-hint-text">⬆ Swipe up/down for next review</span>
+          <span>Paradise Wholesale Istanbul</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- === پایان [SECTION-REELS-PLAYER] === -->
 <!-- ========================================================================
        === [SECTION-07: FLOATING WHATSAPP, 3-LANG SEO FOOTER & SCRIPTS] (بخش ۷) ===
        راهنما: فوتر ۱۰۰٪ سه زبانه با کلمات کلیدی امن پوشاک لوکس و عمده ترکیه،
@@ -1898,6 +2153,6 @@
   <script type="application/ld+json" id="seo-org-faq-json-ld"></script>
 
   <!-- اتصال به موتور اصلی جاوااسکریپت -->
-  <script type="module" src="core.js?v=7"></script>
+  <script type="module" src="core.js?v=8"></script>
 </body>
 </html>
