@@ -1430,25 +1430,123 @@
   <!-- === پایان [SECTION-03: SMART HEADER & STICKY GLASS BARS] === -->
 
 
-  <!-- ========================================================================
+<!-- ========================================================================
        === [SECTION-04: VISUAL CARDS, PRODUCT GRID & HOME SHOWCASE] (شروع بخش ۴) ===
-       راهنما: شامل تگ H1 با نام برند Paradise Wholesale Clothing برای سئو،
-       کارت‌های دسته‌بندی در بالا و ویدیوهای معرفی و رضایت مشتریان در پایین صفحه اول.
+       راهنما: شامل دکمه‌های ورود مستقیم به Reviews و Blog، ریل اختصاصی رضایت مشتریان
+       با توزیع هوشمند کشورها، ویدیوی معرفی مجموعه، پرسش و پاسخ داینامیک (FAQ) و وبلاگ.
        ======================================================================== -->
+  <style>
+    /* نوار دسترسی سریع صفحه اول به صفحات ریویو و وبلاگ (جلوگیری از صفحات یتیم برای سئو) */
+    .home-quick-hub-links {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    .quick-hub-pill {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 13px;
+      border-radius: var(--radius-md);
+      background: #fff;
+      border: 1.5px solid var(--border);
+      text-decoration: none;
+      color: var(--text-main);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+    }
+
+    .quick-hub-pill:hover {
+      border-color: var(--gold);
+      transform: translateY(-1px);
+    }
+
+    .quick-hub-pill strong {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .quick-hub-pill span {
+      display: block;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* آکاردئون پرسش و پاسخ داینامیک (FAQ) */
+    .faq-accordion-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .faq-item {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #f8fafc;
+      overflow: hidden;
+    }
+
+    .faq-question-btn {
+      width: 100%;
+      background: transparent;
+      border: none;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      text-align: left;
+      font-size: 0.84rem;
+      font-weight: 800;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    .faq-chevron {
+      font-size: 0.8rem;
+      color: var(--gold-dark);
+      transition: transform 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .faq-item.open .faq-chevron {
+      transform: rotate(180deg);
+    }
+
+    .faq-answer-body {
+      display: none;
+      padding: 0 14px 13px;
+      font-size: 0.79rem;
+      line-height: 1.65;
+      color: #475569;
+      border-top: 1px dashed rgba(15, 23, 42, 0.08);
+      padding-top: 10px;
+    }
+
+    .faq-item.open .faq-answer-body {
+      display: block;
+    }
+  </style>
+
   <main class="catalog-main-container">
     <div class="view-context-bar">
       <div>
         <h1 class="view-context-title" id="view-context-heading">Paradise Wholesale Clothing</h1>
-        <span class="view-context-subtitle" id="view-context-subtitle">Direct Istanbul Factory Supplier — Select a Category</span>
+        <span class="view-context-subtitle" id="view-context-subtitle" data-i18n="homeSubtitle">Direct Istanbul Luxury & Premium Apparel Supplier</span>
       </div>
       <button type="button" class="share-view-btn" id="btn-share-current-view">
         <span>🔗</span>
-        <span id="txt-share-view">Share Link</span>
+        <span id="txt-share-view" data-i18n="shareLink">Share Link</span>
       </button>
     </div>
 
     <!-- [SSG-CONTENT-START] -->
-    <!-- ۱. شبکه کارت‌های تصویری بزرگ ۲ ستونه (در بالای صفحه اول برای ورود فوری مشتری به محصولات) -->
+    <!-- ۱. شبکه کارت‌های تصویری بزرگ ۲ ستونه -->
     <section id="visual-categories-section">
       <div class="visual-cards-grid" id="visual-categories-grid"></div>
     </section>
@@ -1473,47 +1571,75 @@
       <!-- نوار مزیت‌های رقابتی تامین مستقیم از استانبول -->
       <div class="b2b-trust-strip">
         <div class="trust-strip-item">
-          <strong id="txt-trust-1-title">🏭 Direct Supplier</strong>
-          <span id="txt-trust-1-sub">Istanbul Wholesale</span>
+          <strong id="txt-trust-1-title" data-i18n="trust1Title">🏭 Direct Supplier</strong>
+          <span id="txt-trust-1-sub" data-i18n="trust1Sub">Istanbul Wholesale</span>
         </div>
         <div class="trust-strip-item">
-          <strong id="txt-trust-2-title">✈️ 3–5 Days Cargo</strong>
-          <span id="txt-trust-2-sub">Express Worldwide</span>
+          <strong id="txt-trust-2-title" data-i18n="trust2Title">✈️ 3–5 Days Cargo</strong>
+          <span id="txt-trust-2-sub" data-i18n="trust2Sub">Express Worldwide</span>
         </div>
         <div class="trust-strip-item">
-          <strong id="txt-trust-3-title">📦 Serie Packs</strong>
-          <span id="txt-trust-3-sub">Factory B2B Rates</span>
+          <strong id="txt-trust-3-title" data-i18n="trust3Title">📦 Serie Packs</strong>
+          <span id="txt-trust-3-sub" data-i18n="trust3Sub">Premium B2B Rates</span>
         </div>
       </div>
 
-      <!-- بخش الف: ویدیویهای رضایت مشتریان و ارسال بار کارگو (چرخش رندوم در هر بازدید + پخش درون‌سایتی) -->
+      <!-- لینک‌های مستقیم ورود به صفحات ریویو و بلاگ از صفحه اصلی -->
+      <div class="home-quick-hub-links">
+        <a href="reviews.html" class="quick-hub-pill" id="home-quick-reviews-link">
+          <div>
+            <strong data-i18n="hubReviewsTitle">⭐ Client Reviews</strong>
+            <span data-i18n="hubReviewsSub">Videos, Packing & Quality</span>
+          </div>
+          <span style="color:var(--gold-dark); font-weight:900;">➔</span>
+        </a>
+        <a href="blog.html" class="quick-hub-pill" id="home-quick-blog-link">
+          <div>
+            <strong data-i18n="hubBlogTitle">📝 B2B Blog</strong>
+            <span data-i18n="hubBlogSub">Cargo & Wholesale Guides</span>
+          </div>
+          <span style="color:var(--emerald-dark); font-weight:900;">➔</span>
+        </a>
+      </div>
+
+      <!-- بخش الف: ریل اختصاصی رضایت مشتریان (فقط رضایت مشتری + توزیع هوشمند کشورهای مختلف) -->
       <div class="showcase-block-card" id="home-reels-video-block" style="display:none;">
         <div class="showcase-block-header">
-          <h2 class="showcase-block-title" id="txt-cargo-reels-heading">⭐ Customer Reviews & Cargo Shipments</h2>
-          <button type="button" class="shuffle-reviews-btn" id="btn-shuffle-reviews">
-            <span>🔄</span>
-            <span id="txt-more-reviews-btn">More Videos</span>
-          </button>
+          <h2 class="showcase-block-title" id="txt-cargo-reels-heading" data-i18n="homeReviewsHeading">⭐ Verified Customer Reviews</h2>
+          <a href="reviews.html" class="shuffle-reviews-btn" id="btn-view-all-reviews" style="text-decoration:none;">
+            <span data-i18n="viewAllReviews">View All</span>
+            <span>➔</span>
+          </a>
         </div>
         <div class="reviews-reel-wrapper">
           <div class="videos-horizontal-reel" id="home-videos-reel-track"></div>
-          <button type="button" class="scroll-arrow-btn visible" id="btn-reels-scroll-right" aria-label="Next Videos" style="position:absolute; right:4px; z-index:10;">›</button>
+          <button type="button" class="scroll-arrow-btn visible" id="btn-reels-scroll-right" aria-label="Next Reviews" style="position:absolute; right:4px; z-index:10;">›</button>
         </div>
       </div>
 
       <!-- بخش ب: ویدیوی بزرگ آشنایی با مجموعه و انبار استانبول (پخش مستقیم داخل صفحه) -->
       <div class="showcase-block-card" id="home-hero-video-block" style="display:none;">
         <div class="showcase-block-header">
-          <h2 class="showcase-block-title" id="txt-hero-video-heading">🎬 About Paradise Wholesale & Istanbul Warehouse</h2>
+          <h2 class="showcase-block-title" id="txt-hero-video-heading" data-i18n="heroVideoHeading">🎬 About Paradise Wholesale & Istanbul Showroom</h2>
         </div>
         <div class="hero-video-frame" id="home-hero-video-stage"></div>
       </div>
 
-      <!-- بخش ج: آخرین مقالات راهنمای خرید عمده و کارگو (متصل به تب ۷ پنل ادمین) -->
+      <!-- بخش ج: پرسش و پاسخ‌های متداول عمده‌فروشی (مدیریت از پنل ادمین + تزریق اسکیمای FAQ گوگل) -->
+      <div class="showcase-block-card" id="home-faq-block" style="display:none;">
+        <div class="showcase-block-header">
+          <h2 class="showcase-block-title" id="txt-home-faq-heading" data-i18n="homeFaqHeading">❓ Wholesale FAQ — Ordering & Cargo</h2>
+        </div>
+        <div class="faq-accordion-list" id="home-faq-list"></div>
+      </div>
+
+      <!-- بخش د: آخرین مقالات راهنمای خرید عمده و کارگو (متصل به تب ۷ پنل ادمین) -->
       <div class="showcase-block-card" id="home-blogs-block" style="display:none;">
         <div class="showcase-block-header">
-          <h2 class="showcase-block-title" id="txt-home-blogs-heading">📝 B2B Wholesale & Customs Guides</h2>
-          <a href="blog.html" style="font-size:0.78rem; font-weight:800; color:var(--emerald-dark); text-decoration:none;">View All ➔</a>
+          <h2 class="showcase-block-title" id="txt-home-blogs-heading" data-i18n="homeBlogsHeading">📝 B2B Wholesale & Customs Guides</h2>
+          <a href="blog.html" id="btn-view-all-blogs" style="font-size:0.78rem; font-weight:800; color:var(--emerald-dark); text-decoration:none;">
+            <span data-i18n="viewAllGuides">View All</span> ➔
+          </a>
         </div>
         <div class="home-blogs-grid" id="home-blogs-grid"></div>
       </div>
@@ -1683,58 +1809,95 @@
   <!-- === پایان [SECTION-06: SLIDE-OUT STEPPED CART & FLOATING WHATSAPP] === -->
 
 
-  <!-- ========================================================================
-       === [SECTION-07: DYNAMIC B2B FOOTER] (شروع بخش ۷: فوتر، آدرس و شبکه‌های اجتماعی) ===
-       راهنما: اطلاعات تماس، واتساپ و لینک‌های اینستاگرام، تلگرام، تیک‌تاک و اپ اندروید
-       به صورت خودکار از تب ۸ پنل ادمین خوانده و در این بخش جایگذاری می‌شوند.
+<!-- ========================================================================
+       === [SECTION-07: FLOATING WHATSAPP, 3-LANG SEO FOOTER & SCRIPTS] (بخش ۷) ===
+       راهنما: فوتر ۱۰۰٪ سه زبانه با کلمات کلیدی امن پوشاک لوکس و عمده ترکیه،
+       لینک مستقیم به صفحات Reviews و Blog، و جایگاه اسکیمای Organization + FAQ گوگل.
        ======================================================================== -->
+  <a
+    href="https://wa.me/905459099395"
+    target="_blank"
+    rel="noopener"
+    class="floating-whatsapp-btn"
+    id="floating-whatsapp-btn"
+    aria-label="WhatsApp Direct"
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12.031 2C6.508 2 2.016 6.492 2.016 12.016c0 1.766.461 3.488 1.336 5.008L2 22l5.109-1.34a9.97 9.97 0 0 0 4.922 1.293h.004c5.52 0 10.012-4.492 10.012-10.016C22.047 6.492 17.555 2 12.031 2zm5.828 14.184c-.246.695-1.43 1.328-1.992 1.41-.512.074-1.176.105-1.898-.125-.441-.141-1.008-.328-1.734-.641-3.055-1.32-5.047-4.402-5.199-4.605-.152-.203-1.242-1.652-1.242-3.152s.785-2.238 1.062-2.543c.277-.305.605-.383.809-.383.203 0 .406.004.582.012.187.008.438-.07.684.523.254.609.859 2.102.934 2.254.074.152.125.332.023.535-.102.203-.152.328-.305.508-.152.18-.32.398-.457.535-.152.152-.312.316-.133.621.18.305.797 1.316 1.711 2.133 1.176 1.047 2.168 1.371 2.473 1.523.305.152.484.129.664-.078.18-.207.762-.891.965-1.195.203-.305.406-.254.684-.152.277.102 1.762.832 2.066.984.305.152.508.227.582.352.074.125.074.73-.172 1.426z"/>
+    </svg>
+    <span id="txt-floating-wa" data-i18n="floatingWa">WhatsApp Direct</span>
+  </a>
+
   <footer class="b2b-footer">
     <div class="footer-grid">
+      <!-- ستون ۱: معرفی برند با کلمات کلیدی امن سئو (پوشاک لوکس و پریمیوم عمده از استانبول) -->
       <div>
-        <strong style="color:var(--gold); font-size:1.05rem; display:block; margin-bottom:8px;">PARADISE WHOLESALE ISTANBUL</strong>
-        <p id="txt-footer-about" style="font-size:0.8rem; color:#94a3b8; line-height:1.6;">
-          Direct Turkish clothing, footwear & accessories manufacturer and B2B wholesale supplier. Exporting serie packs across Europe, UK, USA & worldwide with 3–5 day express air cargo.
+        <h3 style="color:var(--gold); font-size:0.95rem; font-weight:900; letter-spacing:0.5px; margin-bottom:10px;">
+          PARADISE WHOLESALE CLOTHING
+        </h3>
+        <p data-i18n="footerAboutDesc" style="font-size:0.8rem; line-height:1.7; color:#cbd5e1;">
+          Direct Turkish luxury & premium quality apparel wholesale supplier based in Istanbul. Supplying boutiques and distributors across Europe, UK, USA & worldwide with factory-direct serie packs and 3–5 day express air cargo.
         </p>
-        <div class="footer-social-links" id="footer-social-container">
-          <!-- دکمه‌های اینستاگرام، تلگرام، تیک‌تاک و اپ اندروید از تنظیمات پنل ادمین اینجا قرار می‌گیرند -->
-        </div>
+        <div class="footer-social-links" id="footer-social-container"></div>
       </div>
 
+      <!-- ستون ۲: لینک‌های اصلی سایت (برای خزش کامل گوگل و جلوگیری از صفحات یتیم) -->
       <div>
-        <strong style="color:#fff; font-size:0.9rem; display:block; margin-bottom:8px;" id="txt-footer-contact-title">📍 Contact & Showroom Location</strong>
-        <p style="font-size:0.8rem; color:#cbd5e1; margin-bottom:6px;">
-          🏢 <strong>Address:</strong> Merter & Güngören Textile Wholesale District, Istanbul, Türkiye
-        </p>
-        <p style="font-size:0.8rem; color:#cbd5e1; margin-bottom:6px;">
-          📞 <strong>WhatsApp Sales:</strong>
-          <a href="https://wa.me/905459099395" id="footer-wa-link" style="color:var(--gold); text-decoration:none; font-weight:800;" dir="ltr">+90 545 909 93 95</a>
-        </p>
-        <p style="font-size:0.76rem; color:#94a3b8;">
-          🕒 Mon – Sat: 09:00 – 19:00 (Istanbul Time)
-        </p>
+        <h4 data-i18n="footerLinksTitle" style="color:#fff; font-size:0.88rem; font-weight:800; margin-bottom:12px;">
+          Explore Catalog & Trust
+        </h4>
+        <ul style="list-style:none; display:flex; flex-direction:column; gap:9px; font-size:0.82rem;">
+          <li>
+            <a href="./" id="footer-home-link" style="color:#cbd5e1; text-decoration:none; font-weight:600;" data-i18n="footerLinkCatalog">
+              🛍️ Wholesale Catalog (Men, Women, Kids)
+            </a>
+          </li>
+          <li>
+            <a href="reviews.html" id="footer-reviews-link" style="color:#cbd5e1; text-decoration:none; font-weight:600;" data-i18n="footerLinkReviews">
+              ⭐ Customer Reviews, Packing & Product Quality
+            </a>
+          </li>
+          <li>
+            <a href="blog.html" id="footer-blog-link" style="color:#cbd5e1; text-decoration:none; font-weight:600;" data-i18n="footerLinkBlog">
+              📝 Wholesale Ordering & Cargo Shipping Guides
+            </a>
+          </li>
+        </ul>
       </div>
 
+      <!-- ستون ۳: اطلاعات تماس، شوروم استانبول و ارسال کارگو -->
       <div>
-        <strong style="color:#fff; font-size:0.9rem; display:block; margin-bottom:8px;" id="txt-footer-links-title">🌐 Quick Navigation</strong>
-        <div style="display:flex; flex-direction:column; gap:6px; font-size:0.8rem;">
-          <a href="index.html" style="color:#cbd5e1; text-decoration:none;">🏠 Home Showcase</a>
-          <a href="./" style="color:var(--gold); text-decoration:none; font-weight:700;">🛍️ Full Wholesale Catalog</a>
-          <a href="blog.html" style="color:#cbd5e1; text-decoration:none;">📝 B2B Wholesale & Cargo Guides</a>
+        <h4 data-i18n="footerContactTitle" style="color:#fff; font-size:0.88rem; font-weight:800; margin-bottom:12px;">
+          📍 Istanbul Showroom & Direct Support
+        </h4>
+        <div style="display:flex; flex-direction:column; gap:8px; font-size:0.8rem; color:#cbd5e1;">
+          <div data-i18n="footerAddress">🏢 Merter & Laleli Wholesale Hub, Istanbul, Turkey</div>
+          <div>
+            📞 <span data-i18n="footerWaLabel">WhatsApp B2B Desk:</span>
+            <a href="https://wa.me/905459099395" id="footer-wa-link" target="_blank" rel="noopener" style="color:var(--gold); font-weight:800; text-decoration:none; direction:ltr; display:inline-block;">
+              +90 545 909 93 95
+            </a>
+          </div>
+          <div data-i18n="footerCargoNote">✈️ Express Air Cargo & Door-to-Door Delivery (3–5 Business Days)</div>
         </div>
       </div>
     </div>
 
-    <div style="max-width:1200px; margin:24px auto 0; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08); text-align:center; font-size:0.74rem; color:#64748b;">
-      © 2026 Paradise Wholesale Clothing Istanbul. All rights reserved.
+    <div style="max-width:1200px; margin:26px auto 0; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08); text-align:center; font-size:0.74rem; color:#94a3b8;" data-i18n="footerCopyright">
+      © 2026 Paradise Wholesale Clothing Istanbul. All Rights Reserved.
     </div>
   </footer>
 
-  <!-- اعلان شناور کپی لینک یا افزودن به سبد -->
-  <div id="catalog-toast" style="position:fixed; bottom:82px; left:50%; transform:translateX(-50%) translateY(20px); background:#090d16; color:var(--gold); border:1.5px solid var(--gold); padding:9px 18px; border-radius:25px; font-size:0.8rem; font-weight:800; z-index:9000; opacity:0; pointer-events:none; transition:all 0.25s ease;"></div>
+  <!-- نوتیفیکیشن شناور (Toast) -->
+  <div
+    id="catalog-toast"
+    style="position:fixed; bottom:88px; left:50%; transform:translateX(-50%) translateY(20px); opacity:0; pointer-events:none; background:#090d16; color:#d4af37; border:1px solid #d4af37; padding:10px 18px; border-radius:24px; font-size:0.8rem; font-weight:800; z-index:7000; transition:all 0.25s ease; box-shadow:0 8px 24px rgba(0,0,0,0.35); white-space:nowrap;"
+  ></div>
 
-  <!-- اتصال به هسته مرکزی ماژولار سایت -->
-  <script type="module" src="core.js?v=6"></script>
-  <!-- === پایان [SECTION-07: DYNAMIC B2B FOOTER] === -->
+  <!-- اسکیمای سازمان (WholesaleStore) و پرسش و پاسخ (FAQPage) برای ربات گوگل -->
+  <script type="application/ld+json" id="seo-org-faq-json-ld"></script>
 
+  <!-- اتصال به موتور اصلی جاوااسکریپت -->
+  <script type="module" src="core.js?v=7"></script>
 </body>
 </html>
