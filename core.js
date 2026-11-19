@@ -2,14 +2,14 @@
  * ============================================================================
  * PARADISE WHOLESALE CLOTHING ISTANBUL
  * Domain: https://paradisewholesaler.com
- * File: core.js (BLOCK 1 OF 3 — MODULES 01 & 02)
- * Architecture: Modular Section-Locked B2B Catalog, SSG Hydrator & Stepped Cart
+ * File: core.js (MODULES 01, 02 & 03 — 100% 3-LANG, COUNTRY REVIEWS & FAQ SCHEMA)
  * ============================================================================
  */
 
 /* ==========================================================================
-   === شروع [MODULE-01: CONFIG, STATE & 3-LANG DICTIONARY] (ماژول ۱) ===
-   راهنما: تنظیمات اتصال به فایربیس، حافظه وضعیت صفحه و ترجمه‌های ۳ زبانه
+   === شروع [MODULE-01: CONFIG, STATE & FULL 3-LANG DICTIONARY] (ماژول ۱) ===
+   راهنما: تنظیمات اتصال به فایربیس، وضعیت مرکزی سایت و دیکشنری کامل ۳ زبانه
+   برای تمام اجزای صفحه اصلی، کاتالوگ، سبد خرید و فوتر.
    ========================================================================== */
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import {
@@ -40,13 +40,41 @@ export const DEFAULT_WHATSAPP = "+905459099395";
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
-/* دیکشنری کامل رابط کاربری به ۳ زبان (انگلیسی، ایتالیایی، اسپانیایی) */
+/* دیکشنری کامل ۱۰۰٪ رابط کاربری، صفحه اصلی، ریویو، FAQ و فوتر به ۳ زبان (EN / IT / ES) */
 export const UI_DICT = {
   en: {
     back: "Back",
     home: "Home",
     searchBtn: "Search",
     searchPlaceholder: "Search code (e.g. M12), Polo, Tracksuit, Jeans...",
+    homeSubtitle: "Direct Istanbul Luxury & Premium Apparel Supplier",
+    trust1Title: "🏭 Direct Supplier",
+    trust1Sub: "Istanbul Wholesale",
+    trust2Title: "✈️ 3–5 Days Cargo",
+    trust2Sub: "Express Worldwide",
+    trust3Title: "📦 Serie Packs",
+    trust3Sub: "Premium B2B Rates",
+    hubReviewsTitle: "⭐ Client Reviews",
+    hubReviewsSub: "Videos, Packing & Quality",
+    hubBlogTitle: "📝 B2B Blog",
+    hubBlogSub: "Cargo & Wholesale Guides",
+    homeReviewsHeading: "⭐ Verified Customer Reviews",
+    viewAllReviews: "View All",
+    heroVideoHeading: "🎬 About Paradise Wholesale & Istanbul Showroom",
+    homeFaqHeading: "❓ Wholesale FAQ — Ordering & Cargo",
+    homeBlogsHeading: "📝 B2B Wholesale & Customs Guides",
+    viewAllGuides: "View All",
+    footerAboutDesc:
+      "Direct Turkish luxury & premium quality apparel wholesale supplier based in Istanbul. Supplying boutiques and distributors across Europe, UK, USA & worldwide with factory-direct serie packs and 3–5 day express air cargo.",
+    footerLinksTitle: "Explore Catalog & Trust",
+    footerLinkCatalog: "🛍️ Wholesale Catalog (Men, Women, Kids)",
+    footerLinkReviews: "⭐ Customer Reviews, Packing & Product Quality",
+    footerLinkBlog: "📝 Wholesale Ordering & Cargo Shipping Guides",
+    footerContactTitle: "📍 Istanbul Showroom & Direct Support",
+    footerAddress: "🏢 Merter & Laleli Wholesale Hub, Istanbul, Turkey",
+    footerWaLabel: "WhatsApp B2B Desk:",
+    footerCargoNote: "✈️ Express Air Cargo & Door-to-Door Delivery (3–5 Business Days)",
+    footerCopyright: "© 2026 Paradise Wholesale Clothing Istanbul. All Rights Reserved.",
     allCategories: "All Categories",
     allStyles: "All",
     allPrices: "All Prices",
@@ -75,7 +103,7 @@ export const UI_DICT = {
     shippingNote: "✈️ Shipping / Air Cargo cost will be calculated on WhatsApp based on your destination country & total weight.",
     buyerNamePh: "Your Name / Shop Name",
     buyerCountryPh: "Country / City (e.g. Italy, Milan)",
-    sendWhatsappBtn: "Send Order on WhatsApp (Instant Invoice)",
+    sendWhatsappBtn: "Send Order on WhatsApp (Instant Link)",
     floatingWa: "WhatsApp Direct",
     emptyCartMsg: "Your wholesale order list is currently empty. Tap '+ Add 1 Pack' on any product.",
     tierUnlockedMsg: "🎉 Best Factory Wholesale Rate Unlocked! ($0 small-order adjustment).",
@@ -91,6 +119,34 @@ export const UI_DICT = {
     home: "Home",
     searchBtn: "Cerca",
     searchPlaceholder: "Cerca codice (es. M12), Polo, Tuta, Jeans...",
+    homeSubtitle: "Fornitore Diretto di Abbigliamento di Lusso e Premium a Istanbul",
+    trust1Title: "🏭 Fornitore Diretto",
+    trust1Sub: "Ingrosso Istanbul",
+    trust2Title: "✈️ Cargo 3–5 Giorni",
+    trust2Sub: "Spedizione Rapida",
+    trust3Title: "📦 Pacchi Serie",
+    trust3Sub: "Prezzi B2B Fabbrica",
+    hubReviewsTitle: "⭐ Recensioni Clienti",
+    hubReviewsSub: "Video, Imballaggio e Qualità",
+    hubBlogTitle: "📝 Blog B2B",
+    hubBlogSub: "Guide Cargo e Ingrosso",
+    homeReviewsHeading: "⭐ Recensioni Verificate dei Clienti",
+    viewAllReviews: "Vedi Tutte",
+    heroVideoHeading: "🎬 Chi Siamo — Showroom e Magazzino Istanbul",
+    homeFaqHeading: "❓ Domande Frequenti (FAQ) — Ordini e Spedizioni",
+    homeBlogsHeading: "📝 Guide all'Ingrosso e Dogana",
+    viewAllGuides: "Vedi Tutte",
+    footerAboutDesc:
+      "Fornitore diretto all'ingrosso di abbigliamento turco di lusso e qualità premium con sede a Istanbul. Riforniamo boutique e distributori in Italia, Europa, Regno Unito e USA con pacchi serie diretti e cargo aereo espresso in 3–5 giorni.",
+    footerLinksTitle: "Esplora Catalogo e Garanzie",
+    footerLinkCatalog: "🛍️ Catalogo Ingrosso (Uomo, Donna, Bambini)",
+    footerLinkReviews: "⭐ Recensioni Clienti, Imballaggio e Qualità",
+    footerLinkBlog: "📝 Guide Ordini Ingrosso e Spedizioni Cargo",
+    footerContactTitle: "📍 Showroom Istanbul e Assistenza Diretta",
+    footerAddress: "🏢 Polo Ingrosso Merter e Laleli, Istanbul, Turchia",
+    footerWaLabel: "Ufficio B2B WhatsApp:",
+    footerCargoNote: "✈️ Cargo Aereo Espresso e Consegna Porta a Porta (3–5 Giorni Lavorativi)",
+    footerCopyright: "© 2026 Paradise Wholesale Clothing Istanbul. Tutti i diritti riservati.",
     allCategories: "Tutte le Categorie",
     allStyles: "Tutti",
     allPrices: "Tutti i Prezzi",
@@ -119,7 +175,7 @@ export const UI_DICT = {
     shippingNote: "✈️ Il costo di spedizione / Cargo Aereo verrà calcolato su WhatsApp in base al paese di destinazione e al peso.",
     buyerNamePh: "Tuo Nome / Negozio",
     buyerCountryPh: "Paese / Città (es. Italia, Milano)",
-    sendWhatsappBtn: "Invia Ordine su WhatsApp (Fattura Istantanea)",
+    sendWhatsappBtn: "Invia Ordine su WhatsApp (Link Diretto)",
     floatingWa: "WhatsApp Diretto",
     emptyCartMsg: "Il tuo carrello ingrosso è vuoto. Tocca '+1 Pacco Serie' sui prodotti.",
     tierUnlockedMsg: "🎉 Miglior Prezzo di Fabbrica Sbloccato! ($0 supplemento).",
@@ -135,6 +191,34 @@ export const UI_DICT = {
     home: "Inicio",
     searchBtn: "Buscar",
     searchPlaceholder: "Buscar código (ej. M12), Polo, Chándal, Vaqueros...",
+    homeSubtitle: "Proveedor Mayorista Directo de Ropa de Lujo y Premium en Estambul",
+    trust1Title: "🏭 Proveedor Directo",
+    trust1Sub: "Mayorista Estambul",
+    trust2Title: "✈️ Carga 3–5 Días",
+    trust2Sub: "Envío Exprés Mundial",
+    trust3Title: "📦 Paquetes Serie",
+    trust3Sub: "Precios B2B Fábrica",
+    hubReviewsTitle: "⭐ Reseñas Clientes",
+    hubReviewsSub: "Vídeos, Embalaje y Calidad",
+    hubBlogTitle: "📝 Blog B2B",
+    hubBlogSub: "Guías de Carga y Mayorista",
+    homeReviewsHeading: "⭐ Reseñas Verificadas de Clientes",
+    viewAllReviews: "Ver Todas",
+    heroVideoHeading: "🎬 Sobre Paradise Wholesale y Showroom en Estambul",
+    homeFaqHeading: "❓ Preguntas Frecuentes (FAQ) — Pedidos y Carga",
+    homeBlogsHeading: "📝 Guías de Compra al por Mayor y Aduanas",
+    viewAllGuides: "Ver Todas",
+    footerAboutDesc:
+      "Proveedor mayorista directo de ropa turca de lujo y calidad premium con sede en Estambul. Abastecemos boutiques y distribuidores en España, Europa, Reino Unido y EE. UU. con paquetes serie directos y carga aérea exprés en 3–5 días.",
+    footerLinksTitle: "Explorar Catálogo y Confianza",
+    footerLinkCatalog: "🛍️ Catálogo Mayorista (Hombre, Mujer, Niños)",
+    footerLinkReviews: "⭐ Reseñas de Clientes, Embalaje y Calidad",
+    footerLinkBlog: "📝 Guías de Pedidos Mayoristas y Carga Aérea",
+    footerContactTitle: "📍 Showroom Estambul y Soporte Directo",
+    footerAddress: "🏢 Centro Mayorista Merter y Laleli, Estambul, Turquía",
+    footerWaLabel: "Atención B2B WhatsApp:",
+    footerCargoNote: "✈️ Carga Aérea Exprés y Entrega Puerta a Puerta (3–5 Días Hábiles)",
+    footerCopyright: "© 2026 Paradise Wholesale Clothing Istanbul. Todos los derechos reservados.",
     allCategories: "Todas las Categorías",
     allStyles: "Todos",
     allPrices: "Todos los Precios",
@@ -163,7 +247,7 @@ export const UI_DICT = {
     shippingNote: "✈️ El costo de envío / Carga Aérea se calculará por WhatsApp según su país de destino y peso total.",
     buyerNamePh: "Su Nombre / Tienda",
     buyerCountryPh: "País / Ciudad (ej. España, Madrid)",
-    sendWhatsappBtn: "Enviar Pedido por WhatsApp (Factura Instantánea)",
+    sendWhatsappBtn: "Enviar Pedido por WhatsApp (Enlace Directo)",
     floatingWa: "WhatsApp Directo",
     emptyCartMsg: "Su pedido mayorista está vacío. Toque '+1 Paquete Serie' en cualquier producto.",
     tierUnlockedMsg: "🎉 ¡Mejor Precio de Fábrica Desbloqueado! ($0 ajuste).",
@@ -176,23 +260,23 @@ export const UI_DICT = {
   }
 };
 
-/* وضعیت مرکزی کاتالوگ، فیلترها و سبد خرید */
 export const coreState = {
   lang: localStorage.getItem("paradise_lang") || "en",
-  dept: "",        // سطح ۱: مثلاً "men"
-  cat: "",         // سطح ۲: مثلاً "men-tshirts"
-  sub: "",         // سطح ۳ (زیربخش): مثلاً "polo"
-  price: null,     // فیلتر قیمت: مثلاً 10
-  searchQuery: "", // عبارت جستجو
-  activeProductSku: "", // اگر لینک مستقیم یک عکس باز شده باشد
-  displayLimit: 48,
-  cardSlideIndexMap: new Map(), // ذخیره شماره اسلاید عکس روی هر کارت کوچک
+  dept: "",
+  cat: "",
+  sub: "",
+  price: null,
+  searchQuery: "",
+  activeProductSku: "",
+  displayLimit: 12,
+  cardSlideIndexMap: new Map(),
   lightboxProduct: null,
   lightboxSlideIdx: 0,
   lightboxVideoMode: false,
   cart: JSON.parse(localStorage.getItem("paradise_b2b_cart") || "[]"),
   taxonomy: [],
   allProducts: [],
+  blogs: [],
   publicConfig: {
     logoUrl: "",
     whatsappRaw: DEFAULT_WHATSAPP,
@@ -202,10 +286,12 @@ export const coreState = {
     ga4MeasurementId: "",
     googleAdsId: "",
     googleAdsConversionLabel: "",
-    instagramUrl: "https://instagram.com/paradisewholesaler",
+    instagramUrl: "https://www.instagram.com/paradisewholesaleclothing5401",
+    youtubeUrl: "https://www.youtube.com/@paradisewholesaleclothing5401",
     telegramUrl: "https://t.me/paradisewholesaler",
     tiktokUrl: "https://tiktok.com/@paradisewholesaler",
-    androidAppUrl: ""
+    androidAppUrl: "",
+    faqs: []
   }
 };
 
@@ -245,13 +331,13 @@ export function showCatalogToast(msg, duration = 2800) {
     el.style.transform = "translateX(-50%) translateY(20px)";
   }, duration);
 }
-/* === پایان [MODULE-01: CONFIG, STATE & 3-LANG DICTIONARY] === */
+/* === پایان [MODULE-01: CONFIG, STATE & FULL 3-LANG DICTIONARY] === */
 
 
 /* ==========================================================================
    === شروع [MODULE-02: FIREBASE DATA LOADER, SSG ROUTER & EMPTY FILTER] (ماژول ۲) ===
-   راهنما: خواندن دسته‌بندی‌ها، محصولات و مقالات از فایربیس، حذف کامل category.html
-   و مدیریت آدرس‌های استاندارد روی صفحه اصلی (index.html) و پوشه‌های فیزیکی.
+   راهنما: خواندن دسته‌بندی‌ها، محصولات، ویدیوها، سوالات متداول (FAQ) و وبلاگ
+   از فایربیس و حفظ پارامتر سفارش در آدرس مرورگر.
    ========================================================================== */
 
 const FALLBACK_TAXONOMY = [
@@ -262,9 +348,6 @@ const FALLBACK_TAXONOMY = [
 
 const REMOVED_ROOT_DEPT_IDS = new Set(["shoes", "bags-accessories", "bags", "footwear", "accessories"]);
 
-/**
- * تشخیص هوشمند آدرس پایه سایت (سازگار با دامنه اصلی و آدرس گیت‌هاب)
- */
 export function getBaseRootUrl() {
   if (typeof window !== "undefined" && window.location.hostname.includes("github.io")) {
     const parts = window.location.pathname.split("/").filter(Boolean);
@@ -278,7 +361,6 @@ export async function loadCoreCatalogData() {
   coreState.displayLimit = 12;
   coreState.blogs = [];
 
-  // ۱. خواندن تنظیمات عمومی، دسته‌بندی‌ها و ویدیوهای ویترین + فهرست مقالات وبلاگ
   try {
     const [cfgSnap, blogSnap] = await Promise.all([
       getDoc(doc(db, "settings", "public_config")).catch(() => null),
@@ -311,7 +393,6 @@ export async function loadCoreCatalogData() {
 
   preloadCategoryMenuImages();
 
-  // ۲. خواندن سریع محصولات از شاردهای کاتالوگ
   try {
     const productsMap = new Map();
     const deptIds = coreState.taxonomy.map((d) => d.id);
@@ -519,9 +600,6 @@ export function resolveCurrentRouteFromUrl() {
   }
 }
 
-/**
- * ساخت لینک استاندارد روی ریشه سایت (بدون category.html)
- */
 export function buildShareableUrl(overrides = {}) {
   const state = {
     lang: overrides.lang !== undefined ? overrides.lang : coreState.lang,
@@ -543,6 +621,14 @@ export function buildShareableUrl(overrides = {}) {
     url.searchParams.set("price", String(state.price));
   }
   if (state.product) url.searchParams.set("product", state.product);
+
+  // حفظ پارامترهای سفارش در صورت وجود
+  if (typeof window !== "undefined") {
+    const curParams = new URLSearchParams(window.location.search);
+    if (curParams.get("order")) url.searchParams.set("order", curParams.get("order"));
+    if (curParams.get("items")) url.searchParams.set("items", curParams.get("items"));
+  }
+
   return url.toString();
 }
 
@@ -577,20 +663,32 @@ export function updateDynamicSeoTags() {
   const priceSuffix = coreState.price ? ` ($${coreState.price})` : "";
 
   const headingEl = document.getElementById("view-context-heading");
-  if (headingEl) {
+  if (headingEl && !isRootHomeStage()) {
     headingEl.textContent = `${hierarchyLabel}${priceSuffix}`;
   }
 
   const seoTitleByLang = {
-    en: `Wholesale ${hierarchyLabel}${priceSuffix} | Direct Istanbul Factory Supplier`,
-    it: `Ingrosso ${hierarchyLabel}${priceSuffix} | Fornitore Diretto Istanbul Turchia`,
-    es: `Mayorista ${hierarchyLabel}${priceSuffix} | Proveedor Directo Estambul Turquía`
+    en: isRootHomeStage()
+      ? "Paradise Wholesale Clothing Istanbul | Direct Luxury & Premium Apparel Supplier"
+      : `Wholesale ${hierarchyLabel}${priceSuffix} | Direct Istanbul Factory Supplier`,
+    it: isRootHomeStage()
+      ? "Paradise Wholesale Clothing Istanbul | Fornitore Diretto Abbigliamento di Lusso Ingrosso"
+      : `Ingrosso ${hierarchyLabel}${priceSuffix} | Fornitore Diretto Istanbul Turchia`,
+    es: isRootHomeStage()
+      ? "Paradise Wholesale Clothing Istanbul | Proveedor Mayorista Ropa de Lujo y Premium"
+      : `Mayorista ${hierarchyLabel}${priceSuffix} | Proveedor Directo Estambul Turquía`
   };
 
   const seoDescByLang = {
-    en: `Buy wholesale ${hierarchyLabel} in serie packs directly from Istanbul, Turkey. Best factory prices & 3-5 day express air cargo.`,
-    it: `Acquista ${hierarchyLabel} all'ingrosso in pacchi serie direttamente da Istanbul, Turchia. Prezzi di fabbrica e spedizione espressa in 3-5 giorni.`,
-    es: `Compre ${hierarchyLabel} al por mayor en paquetes serie directo desde Estambul, Turquía. Precios de fábrica y envío exprés en 3-5 días.`
+    en: isRootHomeStage()
+      ? "Paradise Wholesale Clothing Istanbul: Direct Turkish luxury & premium apparel supplier. Factory-direct serie packs for boutiques with 3–5 day express air cargo worldwide."
+      : `Buy wholesale ${hierarchyLabel} in serie packs directly from Istanbul, Turkey. Best factory prices & 3-5 day express air cargo.`,
+    it: isRootHomeStage()
+      ? "Paradise Wholesale Clothing Istanbul: Fornitore diretto di abbigliamento turco di lusso e qualità premium. Pacchi serie diretti e spedizione espressa in 3–5 giorni."
+      : `Acquista ${hierarchyLabel} all'ingrosso in pacchi serie direttamente da Istanbul, Turchia. Prezzi di fabbrica e spedizione espressa in 3-5 giorni.`,
+    es: isRootHomeStage()
+      ? "Paradise Wholesale Clothing Istanbul: Proveedor directo de ropa turca de lujo y calidad premium. Paquetes serie directos de fábrica y carga aérea exprés en 3–5 días."
+      : `Compre ${hierarchyLabel} al por mayor en paquetes serie directo desde Estambul, Turquía. Precios de fábrica y envío exprés en 3-5 días.`
   };
 
   const pageTitle = seoTitleByLang[coreState.lang] || seoTitleByLang.en;
@@ -655,22 +753,13 @@ export function updateDynamicSeoTags() {
 
 
 /* ==========================================================================
-   === شروع [MODULE-03: UNIFIED HOME, RANDOM VIDEO REELS & 3-STAGE UI] (ماژول ۳) ===
-   راهنما: مدیریت هدر (نمایش همزمان لوگو + نام برند در صفحه اول)، سئوی نام شرکت،
-   چرخش تصادفی (Random) ویدیوهای رضایت مشتری و پخش درون‌سایتی ویدیوهای یوتیوب.
+   === شروع [MODULE-03: 100% 3-LANG UI, COUNTRY-INTERLEAVED REVIEWS & FAQ] (ماژول ۳) ===
+   راهنما: ترجمه کامل تمام المان‌های صفحه (data-i18n)، توزیع یکی‌درمیان کشورها
+   فقط برای ویدیوهای رضایت مشتری در صفحه اول، و آکاردئون پرسش و پاسخ + اسکیمای گوگل.
    ========================================================================== */
 
 const LANG_FLAGS = { en: "🇬🇧", it: "🇮🇹", es: "🇪🇸" };
 
-const HOME_SUBTITLES = {
-  en: "Direct Istanbul Factory Supplier — Select a Category",
-  it: "Fornitore Diretto Istanbul — Seleziona una Categoria",
-  es: "Proveedor Directo Estambul — Seleccione una Categoría"
-};
-
-/**
- * استخراج هوشمند شناسه ۱۱ کاراکتری یوتیوب از هر نوع لینک (معمولی، Shorts، اشتراک‌گذاری یا آیدی خام)
- */
 export function extractCleanYoutubeId(input) {
   const raw = String(input || "").trim();
   if (!raw || raw === "dQw4w9WgXcQ") return "";
@@ -679,9 +768,6 @@ export function extractCleanYoutubeId(input) {
   return match ? match[1] : "";
 }
 
-/**
- * الگوریتم بر زدن تصادفی (Fisher-Yates Shuffle) برای نمایش رندوم ویدیوهای رضایت مشتری
- */
 export function shuffleArrayRandomly(arr) {
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -691,7 +777,66 @@ export function shuffleArrayRandomly(arr) {
   return copy;
 }
 
+/**
+ * الگوریتم توزیع هوشمند کشورها (Country Interleaving):
+ * ویدیوها را بر اساس کشور گروه‌بندی می‌کند (مثلاً ایتالیا، اسپانیا، انگلیس، آلمان...)
+ * و به صورت یکی‌درمیان می‌چیند تا هرگز چند ویدیوی یک کشور پشت سر هم نیفتد.
+ */
+export function interleaveReviewsByCountry(reviewsList, randomizeWithinCountry = true) {
+  if (!Array.isArray(reviewsList) || reviewsList.length <= 1) return reviewsList || [];
+
+  const buckets = new Map();
+  reviewsList.forEach((item) => {
+    const countryKey = String(item.country || item.badge || "INTERNATIONAL").trim().toUpperCase();
+    if (!buckets.has(countryKey)) buckets.set(countryKey, []);
+    buckets.get(countryKey).push(item);
+  });
+
+  let countryKeys = Array.from(buckets.keys());
+  if (randomizeWithinCountry) {
+    countryKeys = shuffleArrayRandomly(countryKeys);
+    countryKeys.forEach((k) => {
+      buckets.set(k, shuffleArrayRandomly(buckets.get(k)));
+    });
+  }
+
+  const interleaved = [];
+  let added = true;
+  let round = 0;
+
+  while (added) {
+    added = false;
+    for (const k of countryKeys) {
+      const list = buckets.get(k);
+      if (round < list.length) {
+        interleaved.push(list[round]);
+        added = true;
+      }
+    }
+    round++;
+  }
+
+  return interleaved;
+}
+
+export function getLocalizedField(valObj, fallback = "") {
+  if (!valObj) return fallback;
+  if (typeof valObj === "string") return valObj;
+  return valObj[coreState.lang] || valObj.en || fallback;
+}
+
+/**
+ * ترجمه ۱۰۰٪ تمام متون ثابت صفحه، دکمه‌ها، فوتر و لینک‌های داخلی بر اساس زبان انتخاب‌شده
+ */
 export function applyLocalizedStaticTexts() {
+  // ترجمه خودکار تمام تگ‌های دارای data-i18n در کل صفحه
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    if (key) {
+      el.textContent = t(key);
+    }
+  });
+
   const setTxt = (id, key) => {
     const el = document.getElementById(id);
     if (el) el.textContent = t(key);
@@ -729,6 +874,17 @@ export function applyLocalizedStaticTexts() {
   document.querySelectorAll("#lang-dropdown-menu .lang-option-btn").forEach((btn) => {
     btn.classList.toggle("active", btn.getAttribute("data-lang") === coreState.lang);
   });
+
+  // حفظ زبان انتخاب‌شده روی لینک‌های صفحات Reviews و Blog
+  const langSuffix = coreState.lang && coreState.lang !== "en" ? `?lang=${coreState.lang}` : "";
+  ["home-quick-reviews-link", "btn-view-all-reviews", "footer-reviews-link"].forEach((id) => {
+    const a = document.getElementById(id);
+    if (a) a.href = `reviews.html${langSuffix}`;
+  });
+  ["home-quick-blog-link", "btn-view-all-blogs", "footer-blog-link"].forEach((id) => {
+    const a = document.getElementById(id);
+    if (a) a.href = `blog.html${langSuffix}`;
+  });
 }
 
 export function isRootHomeStage() {
@@ -739,12 +895,6 @@ export function isProductStageActive() {
   return Boolean((coreState.dept && coreState.cat) || coreState.searchQuery);
 }
 
-/**
- * کنترل هوشمند هدر و عنوان اصلی (H1):
- * - در صفحه اول: لوگوی بزرگ + نام دوخطی PARADISE WHOLESALE CLOTHING در هدر نمایش داده می‌شوند
- *   و تگ H1 بالای کارت‌ها نام کامل شرکت را برای سئوی گوگل نشان می‌دهد.
- * - در صفحات داخلی: نام برند و لوگو مخفی می‌شوند تا دکمه‌های Back و Home جا باز کنند.
- */
 export function updateBackButtonVisibility() {
   const backBtn = document.getElementById("btn-nav-back");
   const homeBtn = document.getElementById("btn-nav-home");
@@ -758,7 +908,6 @@ export function updateBackButtonVisibility() {
   if (backBtn) backBtn.style.display = inInnerPage ? "inline-flex" : "none";
   if (homeBtn) homeBtn.style.display = inInnerPage ? "inline-flex" : "none";
 
-  // در صفحه اصلی، همیشه نام برند نمایش داده شود (حتی وقتی لوگو آپلود شده است تا کنار لوگو خالی نماند)
   if (brandBadge) {
     brandBadge.style.display = inInnerPage ? "none" : "flex";
   }
@@ -767,19 +916,12 @@ export function updateBackButtonVisibility() {
     logoImg.style.display = !inInnerPage && hasLogo ? "block" : "none";
   }
 
-  // تنظیم تگ H1 و زیرعنوان در صفحه اول برای سئوی نام برند Paradise Wholesale Clothing
   if (!inInnerPage) {
     if (headingEl) headingEl.textContent = "Paradise Wholesale Clothing";
     if (subtitleEl) {
-      subtitleEl.textContent = HOME_SUBTITLES[coreState.lang] || HOME_SUBTITLES.en;
+      subtitleEl.textContent = t("homeSubtitle");
       subtitleEl.style.display = "block";
     }
-    const homeTitles = {
-      en: "Paradise Wholesale Clothing Istanbul | Direct Factory B2B Supplier",
-      it: "Paradise Wholesale Clothing Istanbul | Fornitore Diretto Abbigliamento Ingrosso",
-      es: "Paradise Wholesale Clothing Istanbul | Proveedor Mayorista Directo de Fábrica"
-    };
-    document.title = homeTitles[coreState.lang] || homeTitles.en;
   } else {
     if (subtitleEl) subtitleEl.style.display = "none";
   }
@@ -824,40 +966,41 @@ export function resetToRootHome(e) {
 }
 
 /**
- * رندر لیست ویدیوهای رضایت مشتریان و ارسال بار کارگو با چرخش تصادفی (Random Shuffle)
+ * رندر ریل رضایت مشتریان در صفحه اول:
+ * فقط ویدیوهای بخش «رضایت مشتریان» را می‌خواند (نه بسته‌بندی) و کشورها را یکی‌درمیان می‌چیند.
  */
 export function renderRandomReviewsReel() {
   const reelsBlock = document.getElementById("home-reels-video-block");
   const reelsTrack = document.getElementById("home-videos-reel-track");
-  const shuffleBtn = document.getElementById("btn-shuffle-reviews");
   const rightArrow = document.getElementById("btn-reels-scroll-right");
   if (!reelsBlock || !reelsTrack) return;
 
   const pub = coreState.publicConfig;
-  const showroomVids = Array.isArray(pub.showroomVideos) ? pub.showroomVideos : [];
-  const cargoVids = Array.isArray(pub.cargoVideos) ? pub.cargoVideos : [];
+  const cVids = Array.isArray(pub.cargoVideos) ? pub.cargoVideos : [];
+  const sVids = Array.isArray(pub.showroomVideos) ? pub.showroomVideos : [];
 
-  const allValidVideos = [...cargoVids, ...showroomVids].filter((v) => {
+  // فیلتر کردن فقط ویدیوهای رضایت مشتری (category === 'reviews' یا موارد قدیمی بدون دسته‌بندی)
+  const customerReviewsOnly = [...cVids, ...sVids].filter((v) => {
+    if (!v) return false;
+    const cat = String(v.category || "reviews").toLowerCase();
+    if (cat !== "reviews") return false;
     const ytId = extractCleanYoutubeId(v.ytId || v.url);
     return Boolean(ytId || v.url);
   });
 
-  if (allValidVideos.length === 0) {
+  if (customerReviewsOnly.length === 0) {
     reelsBlock.style.display = "none";
     return;
   }
 
   reelsBlock.style.display = "block";
-  const randomizedList = shuffleArrayRandomly(allValidVideos);
+  const distributedReviews = interleaveReviewsByCountry(customerReviewsOnly, true);
 
-  if (shuffleBtn) {
-    shuffleBtn.style.display = allValidVideos.length > 2 ? "inline-flex" : "none";
-  }
   if (rightArrow) {
-    rightArrow.style.display = allValidVideos.length > 2 ? "inline-flex" : "none";
+    rightArrow.style.display = distributedReviews.length > 2 ? "inline-flex" : "none";
   }
 
-  reelsTrack.innerHTML = randomizedList
+  reelsTrack.innerHTML = distributedReviews
     .map((v, idx) => {
       const ytId = extractCleanYoutubeId(v.ytId || v.url);
       const directUrl = !ytId ? v.url || "" : "";
@@ -866,8 +1009,8 @@ export function renderRandomReviewsReel() {
         (ytId
           ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`
           : "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=400&q=75");
-      const badge = v.badge || "⭐ CLIENT REVIEW";
-      const title = v.title || `Wholesale Shipment #${idx + 1}`;
+      const badge = v.countryLabel || v.badge || "⭐ CLIENT REVIEW";
+      const title = getLocalizedField(v.title, `Verified Wholesale Client #${idx + 1}`);
 
       return `
         <div class="reel-video-card"
@@ -889,13 +1032,8 @@ export function renderRandomReviewsReel() {
       `;
     })
     .join("");
-
-  reelsTrack.scrollTo({ left: 0, behavior: "smooth" });
 }
 
-/**
- * باز کردن ویدیوی رضایت مشتری در پنجره پخش داخل خودِ سایت (تا مشتری از سایت خارج نشود)
- */
 export function openInSiteReviewVideoModal(ytId, directUrl, title, badge) {
   const modal = document.getElementById("hd-lightbox-modal");
   const stage = document.getElementById("lightbox-media-stage");
@@ -928,18 +1066,94 @@ export function openInSiteReviewVideoModal(ytId, directUrl, title, badge) {
 
   setTxt("lightbox-unit-price", badge || "⭐ VERIFIED");
   setTxt("txt-lightbox-per-pc", "");
-  setTxt("lightbox-sku-badge", "ISTANBUL CARGO");
-  setTxt("lightbox-prod-title", title || "Customer Satisfaction & Cargo Delivery");
-  setTxt("lightbox-prod-desc", "Direct factory wholesale shipment from Istanbul, Turkey.");
-  setTxt("txt-lightbox-pack-info", "✈️ 3-5 Days Express");
-  setTxt("txt-lightbox-size-info", "🌍 Worldwide Delivery");
+  setTxt("lightbox-sku-badge", "ISTANBUL B2B");
+  setTxt("lightbox-prod-title", title || "Verified Customer Review");
+  setTxt("lightbox-prod-desc", t("footerCargoNote"));
+  setTxt("txt-lightbox-pack-info", t("trust2Title"));
+  setTxt("txt-lightbox-size-info", t("trust1Title"));
 
   modal.classList.add("open");
 }
 
 /**
- * رندر ویترین اختصاصی پایین صفحه اول (ویدیوهای رضایت مشتری + ویدیوی معرفی مجموعه + مقالات وبلاگ)
+ * رندر آکاردئون پرسش و پاسخ‌های متداول (FAQ) از پنل ادمین + تزریق اسکیمای Organization & FAQPage برای گوگل
  */
+export function renderHomeFaqSection() {
+  const faqBlock = document.getElementById("home-faq-block");
+  const faqList = document.getElementById("home-faq-list");
+  const rawFaqs = Array.isArray(coreState.publicConfig.faqs) ? coreState.publicConfig.faqs : [];
+
+  const validFaqs = rawFaqs
+    .map((item) => ({
+      q: getLocalizedField(item.question, ""),
+      a: getLocalizedField(item.answer, "")
+    }))
+    .filter((f) => f.q && f.a);
+
+  if (faqBlock && faqList) {
+    if (validFaqs.length === 0) {
+      faqBlock.style.display = "none";
+    } else {
+      faqBlock.style.display = "block";
+      faqList.innerHTML = validFaqs
+        .map(
+          (f, idx) => `
+          <div class="faq-item ${idx === 0 ? "open" : ""}">
+            <button type="button" class="faq-question-btn" data-toggle-faq="${idx}">
+              <span>${escapeHtml(f.q)}</span>
+              <span class="faq-chevron">▾</span>
+            </button>
+            <div class="faq-answer-body">${escapeHtml(f.a)}</div>
+          </div>
+        `
+        )
+        .join("");
+    }
+  }
+
+  // تزریق اسکیمای سازمان (WholesaleStore) و پرسش و پاسخ (FAQPage) برای نتایج غنی گوگل
+  const schemaEl = document.getElementById("seo-org-faq-json-ld");
+  if (schemaEl) {
+    const graph = [
+      {
+        "@type": "WholesaleStore",
+        name: "Paradise Wholesale Clothing Istanbul",
+        url: SITE_DOMAIN,
+        logo: coreState.publicConfig.logoUrl || `${SITE_DOMAIN}/favicon.ico`,
+        telephone: coreState.publicConfig.whatsappRaw || DEFAULT_WHATSAPP,
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: "Istanbul",
+          addressCountry: "TR"
+        },
+        sameAs: [
+          coreState.publicConfig.instagramUrl || "https://www.instagram.com/paradisewholesaleclothing5401",
+          coreState.publicConfig.youtubeUrl || "https://www.youtube.com/@paradisewholesaleclothing5401"
+        ]
+      }
+    ];
+
+    if (validFaqs.length > 0) {
+      graph.push({
+        "@type": "FAQPage",
+        mainEntity: validFaqs.map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: f.a
+          }
+        }))
+      });
+    }
+
+    schemaEl.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@graph": graph
+    });
+  }
+}
+
 export function renderHomeExclusiveShowcase() {
   const showcaseSec = document.getElementById("home-exclusive-showcase");
   if (!showcaseSec) return;
@@ -952,7 +1166,7 @@ export function renderHomeExclusiveShowcase() {
   showcaseSec.style.display = "flex";
   const pub = coreState.publicConfig;
 
-  // ۱. رندر ویدیوهای رضایت مشتری با چرخش تصادفی
+  // ۱. رندر ریل رضایت مشتریان با توزیع یکی‌درمیان کشورها
   renderRandomReviewsReel();
 
   // ۲. رندر ویدیوی بزرگ آشنایی با مجموعه و انبار استانبول
@@ -965,6 +1179,7 @@ export function renderHomeExclusiveShowcase() {
 
     if (cleanYtId || directMp4) {
       heroBlock.style.display = "block";
+      const heroTitle = getLocalizedField(hv.title, "Watch Our Istanbul Showroom & Live Order Packing");
       const posterUrl =
         hv.poster ||
         (cleanYtId
@@ -972,11 +1187,11 @@ export function renderHomeExclusiveShowcase() {
           : "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=80");
 
       heroStage.innerHTML = `
-        <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(hv.title || "Paradise Wholesale Istanbul Warehouse")}" loading="lazy" />
+        <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(heroTitle)}" loading="lazy" />
         <div class="hero-play-overlay" data-play-inline-yt="${escapeHtml(cleanYtId)}" data-play-inline-mp4="${escapeHtml(directMp4)}">
           <div class="play-pulse-circle">▶</div>
           <strong style="font-size:0.95rem; text-shadow:0 2px 6px rgba(0,0,0,0.7);">
-            ${escapeHtml(hv.title || "Watch Our Istanbul Warehouse & Live Order Packing")}
+            ${escapeHtml(heroTitle)}
           </strong>
         </div>
       `;
@@ -985,7 +1200,10 @@ export function renderHomeExclusiveShowcase() {
     }
   }
 
-  // ۳. رندر آخرین مقالات سئو
+  // ۳. رندر پرسش و پاسخ‌های متداول عمده‌فروشی (FAQ)
+  renderHomeFaqSection();
+
+  // ۴. رندر آخرین مقالات سئو
   const blogsBlock = document.getElementById("home-blogs-block");
   const blogsGrid = document.getElementById("home-blogs-grid");
   if (blogsBlock && blogsGrid) {
@@ -1002,7 +1220,7 @@ export function renderHomeExclusiveShowcase() {
               <img src="${escapeHtml(img)}" alt="${escapeHtml(title)}" loading="lazy" />
               <div>
                 <strong style="font-size:0.82rem; display:block; margin-bottom:3px;">${escapeHtml(title)}</strong>
-                <span style="font-size:0.7rem; color:var(--emerald-dark); font-weight:700;">Read Guide ➔</span>
+                <span style="font-size:0.7rem; color:var(--emerald-dark); font-weight:700;">${t("viewAllGuides")} ➔</span>
               </div>
             </a>
           `;
@@ -1234,7 +1452,15 @@ export function bindSmartHeaderAndGlassEvents() {
   document.getElementById("btn-nav-home")?.addEventListener("click", resetToRootHome);
   document.getElementById("header-brand-link")?.addEventListener("click", resetToRootHome);
 
-  // ۱. پخش درجا برای ویدیوی بزرگ معرفی شرکت و انبار در صفحه اول
+  // باز و بسته کردن آکاردئون پرسش و پاسخ (FAQ)
+  document.getElementById("home-faq-list")?.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-toggle-faq]");
+    if (!btn) return;
+    const item = btn.closest(".faq-item");
+    if (item) item.classList.toggle("open");
+  });
+
+  // پخش درجا برای ویدیوی بزرگ معرفی شرکت و انبار در صفحه اول
   document.getElementById("home-hero-video-stage")?.addEventListener("click", (e) => {
     const trigger = e.target.closest("[data-play-inline-yt], [data-play-inline-mp4]");
     if (!trigger) return;
@@ -1250,7 +1476,7 @@ export function bindSmartHeaderAndGlassEvents() {
     }
   });
 
-  // ۲. پخش درون‌سایتی ویدیوهای رضایت مشتری + دکمه چرخش تصادفی و اسکرول
+  // پخش درون‌سایتی ویدیوهای رضایت مشتری + اسکرول
   document.getElementById("home-videos-reel-track")?.addEventListener("click", (e) => {
     const card = e.target.closest(".reel-video-card");
     if (!card) return;
@@ -1259,10 +1485,6 @@ export function bindSmartHeaderAndGlassEvents() {
     const title = card.getAttribute("data-play-reel-title");
     const badge = card.getAttribute("data-play-reel-badge");
     openInSiteReviewVideoModal(ytId, vidUrl, title, badge);
-  });
-
-  document.getElementById("btn-shuffle-reviews")?.addEventListener("click", () => {
-    renderRandomReviewsReel();
   });
 
   document.getElementById("btn-reels-scroll-right")?.addEventListener("click", () => {
@@ -1377,8 +1599,7 @@ export function bindSmartHeaderAndGlassEvents() {
     showCatalogToast(t("copiedToast"));
   });
 }
-/* === پایان [MODULE-03: UNIFIED HOME, RANDOM VIDEO REELS & 3-STAGE UI] === */
-
+/* === پایان [MODULE-03: 100% 3-LANG UI, COUNTRY-INTERLEAVED REVIEWS & FAQ] === */
 /* ==========================================================================
    === شروع [MODULE-04: DYNAMIC PRICE-TIER DETECTOR ($5 | $9 | $12)] (ماژول ۴) ===
    راهنما: تشخیص هوشمند قیمت‌های موجود در شاخه یا زیربخش فعلی از دیتابیس.
@@ -2166,8 +2387,8 @@ export function fireDirectWhatsappClickEvent() {
 
 /* ==========================================================================
    === شروع [MODULE-07: VISUAL ORDER LINK, OFFICIAL SVG FOOTER & INITIALIZER] (ماژول ۷) ===
-   راهنما: نمایش همزمان لوگو + نام شرکت در هدر صفحه اصلی، لوگوهای رسمی SVG در فوتر،
-   و ارسال لینک مستقیم سبد خرید تصویری و قابل ویرایش در واتساپ.
+   راهنما: رفع کامل باگ باز شدن لینک سبد خرید واتساپ، ارسال لینک تصویری و قابل ویرایش،
+   نمایش همزمان لوگو + نام شرکت در صفحه اول، و لوگوهای رسمی SVG در فوتر.
    ========================================================================== */
 
 const OFFICIAL_SOCIAL_SVGS = {
@@ -2196,7 +2417,7 @@ export function getUnifiedWhatsAppInfo() {
 }
 
 /**
- * اعمال لوگو + نام برند در صفحه اصلی، شماره واتساپ یکپارچه و لوگوهای رسمی SVG در فوتر
+ * اعمال لوگو + نام شرکت در هدر صفحه اصلی، شماره واتساپ یکپارچه و لوگوهای رسمی SVG در فوتر
  */
 export function applyDynamicBrandingAndFooter() {
   const pub = coreState.publicConfig;
@@ -2206,7 +2427,6 @@ export function applyDynamicBrandingAndFooter() {
   const logoImg = document.getElementById("header-logo-img");
   const brandBadge = document.getElementById("home-brand-badge");
 
-  // در صفحه اصلی، هم لوگو (در صورت وجود) و هم نام دوخطی برند در کنار هم نمایش داده می‌شوند
   if (logoImg) {
     if (pub.logoUrl && onHome) {
       logoImg.src = pub.logoUrl;
@@ -2271,6 +2491,9 @@ export function applyDynamicBrandingAndFooter() {
   }
 }
 
+/**
+ * ساخت لینک اختصاصی سبد خرید تصویری و قابل ویرایش (سازگار با واتساپ موبایل)
+ */
 export function buildVisualOrderCartUrl(orderCode) {
   const url = new URL(getBaseRootUrl());
   url.searchParams.set("order", orderCode);
@@ -2279,7 +2502,8 @@ export function buildVisualOrderCartUrl(orderCode) {
   }
 
   const compactItems = coreState.cart
-    .map((c) => `${encodeURIComponent(c.sku)}:${Math.max(1, parseInt(c.packs, 10) || 1)}`)
+    .map((c) => `${String(c.sku || "").trim()}:${Math.max(1, parseInt(c.packs, 10) || 1)}`)
+    .filter((pair) => !pair.startsWith(":"))
     .join(",");
 
   if (compactItems) {
@@ -2289,6 +2513,9 @@ export function buildVisualOrderCartUrl(orderCode) {
   return url.toString();
 }
 
+/**
+ * ارسال سفارش به واتساپ (فقط یک لینک واحد سبد خرید تصویری قابل ویرایش + درخواست محاسبه هزینه ارسال)
+ */
 export async function submitCartOrderToWhatsApp() {
   if (coreState.cart.length === 0) {
     showCatalogToast(t("emptyCartMsg"));
@@ -2328,20 +2555,18 @@ export async function submitCartOrderToWhatsApp() {
     createdAt: serverTimestamp()
   };
 
-  if (submitBtn) {
-    submitBtn.disabled = true;
-  }
+  if (submitBtn) submitBtn.disabled = true;
 
   try {
     await Promise.race([
       setDoc(doc(db, "orders", orderCode), orderPayload, { merge: true }),
-      new Promise((resolve) => setTimeout(resolve, 2000))
+      new Promise((resolve) => setTimeout(resolve, 2500))
     ]);
-  } catch (e) {}
-
-  if (submitBtn) {
-    submitBtn.disabled = false;
+  } catch (e) {
+    console.warn("Order save fallback:", e.message);
   }
+
+  if (submitBtn) submitBtn.disabled = false;
 
   const visualCartLink = buildVisualOrderCartUrl(orderCode);
 
@@ -2382,10 +2607,13 @@ export async function submitCartOrderToWhatsApp() {
   window.location.href = waUrl;
 }
 
-export async function loadSharedOrderFromUrlIfPresent() {
+/**
+ * بازخوانی تضمینی سبد خرید تصویری وقتی فروشنده یا مشتری روی لینک واتساپ (?order=ORD-XXXXX) کلیک می‌کند
+ */
+export async function loadSharedOrderFromUrlIfPresent(capturedOrderCode = "", capturedItemsParam = "") {
   const params = new URLSearchParams(window.location.search);
-  const orderCode = (params.get("order") || "").trim().toUpperCase();
-  const compactItemsParam = (params.get("items") || "").trim();
+  const orderCode = (capturedOrderCode || params.get("order") || "").trim().toUpperCase();
+  const compactItemsParam = (capturedItemsParam || params.get("items") || "").trim();
 
   if (!orderCode && !compactItemsParam) return;
 
@@ -2393,6 +2621,7 @@ export async function loadSharedOrderFromUrlIfPresent() {
   let loadedBuyerName = "";
   let loadedBuyerCountry = "";
 
+  // ۱. خواندن نسخه کامل سفارش از دیتابیس فایربیس
   if (orderCode) {
     try {
       const snap = await getDoc(doc(db, "orders", orderCode));
@@ -2404,16 +2633,27 @@ export async function loadSharedOrderFromUrlIfPresent() {
         loadedBuyerName = data.buyerName || "";
         loadedBuyerCountry = data.buyerCountry || "";
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn("Firestore order lookup fallback:", e.message);
+    }
   }
 
+  // ۲. پشتیبان تضمینی: بازسازی دقیق سبد خرید از روی پارامتر items موجود در خود لینک
   if (loadedItems.length === 0 && compactItemsParam) {
     const pairs = compactItemsParam.split(",").map((s) => s.trim()).filter(Boolean);
     pairs.forEach((pair) => {
-      const [rawSku, rawPacks] = pair.split(":");
+      const sepIdx = pair.lastIndexOf(":");
+      const rawSku = sepIdx > -1 ? pair.slice(0, sepIdx) : pair;
+      const rawPacks = sepIdx > -1 ? pair.slice(sepIdx + 1) : "1";
       const sku = decodeURIComponent(rawSku || "").trim();
       const packs = Math.max(1, parseInt(rawPacks, 10) || 1);
-      const prod = coreState.allProducts.find((p) => (p.sku || p.id).toUpperCase() === sku.toUpperCase());
+
+      const prod = coreState.allProducts.find(
+        (p) =>
+          String(p.sku || "").trim().toUpperCase() === sku.toUpperCase() ||
+          String(p.id || "").trim().toUpperCase() === sku.toUpperCase()
+      );
+
       if (prod) {
         loadedItems.push({
           sku: prod.sku || prod.id,
@@ -2443,6 +2683,7 @@ export async function loadSharedOrderFromUrlIfPresent() {
 
     renderSteppedCartUI();
     document.getElementById("cart-drawer-backdrop")?.classList.add("open");
+    showCatalogToast(`🛒 ${orderCode || "Order"} (${loadedItems.length} items)`);
   }
 }
 
@@ -2463,6 +2704,16 @@ export function bindCartAndWhatsappEvents() {
 
   document.getElementById("cart-drawer-backdrop")?.addEventListener("click", (e) => {
     if (e.target.id === "cart-drawer-backdrop") closeDrawer();
+  });
+
+  // بازگردانی خودکار دکمه خرید پنجره لایت‌باکس بعد از بستن ویدیوهای رضایت مشتری
+  const restoreAddBtn = () => {
+    const addBtn = document.getElementById("btn-lightbox-add-pack");
+    if (addBtn) addBtn.style.display = "flex";
+  };
+  document.getElementById("btn-close-lightbox")?.addEventListener("click", restoreAddBtn);
+  document.getElementById("hd-lightbox-modal")?.addEventListener("click", (e) => {
+    if (e.target.id === "hd-lightbox-modal") restoreAddBtn();
   });
 
   document.getElementById("cart-items-list")?.addEventListener("click", (e) => {
@@ -2493,6 +2744,7 @@ export function bindCartAndWhatsappEvents() {
 
     const clickedImg = e.target.closest("img");
     if (clickedImg && clickedImg.alt) {
+      restoreAddBtn();
       openProductLightbox(clickedImg.alt, false);
     }
   });
@@ -2512,6 +2764,11 @@ export function renderEntireCatalogView(triggerNudge = false) {
 }
 
 export async function initParadiseCatalogCore() {
+  // ذخیره فوری پارامترهای سفارش در اولین لحظه قبل از هر تغییر در آدرس مرورگر
+  const initialParams = new URLSearchParams(window.location.search);
+  const initialOrderCode = (initialParams.get("order") || "").trim();
+  const initialItemsParam = (initialParams.get("items") || "").trim();
+
   applyLocalizedStaticTexts();
   bindSmartHeaderAndGlassEvents();
   bindPriceFilterEvents();
@@ -2527,7 +2784,8 @@ export async function initParadiseCatalogCore() {
   renderEntireCatalogView(true);
   renderSteppedCartUI();
 
-  await loadSharedOrderFromUrlIfPresent();
+  // باز کردن تضمینی سبد خرید تصویری وقتی روی لینک سفارش واتساپ کلیک شده باشد
+  await loadSharedOrderFromUrlIfPresent(initialOrderCode, initialItemsParam);
 
   if (coreState.activeProductSku) {
     openProductLightbox(coreState.activeProductSku, false);
