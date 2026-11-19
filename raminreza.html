@@ -1500,7 +1500,8 @@
           appId: "1:516659166400:web:9ac24230ebe5676cfe0125"
         };
 
-        const appInstance = getApps().length ? getApp() : initializeApp(fbCfg);
+      const tab6AppName = "tab6_videos_isolated";
+        const appInstance = getApps().find((a) => a.name === tab6AppName) || initializeApp(fbCfg, tab6AppName);
         const dbInst = getFirestore(appInstance);
         const storageInst = getStorage(appInstance);
 
@@ -1583,7 +1584,7 @@
           }
         }
 
-        async function loadTab6AllData() {
+    async function loadTab6AllData() {
           try {
             const snap = await getDoc(doc(dbInst, "settings", "public_config"));
             if (snap.exists()) {
@@ -1604,18 +1605,21 @@
               const cVids = Array.isArray(data.cargoVideos) ? data.cargoVideos : [];
               const sVids = Array.isArray(data.showroomVideos) ? data.showroomVideos : [];
               currentVideos = [...cVids, ...sVids]
-                .filter((v) => v && (v.ytId || v.url))
-                .map((v) => ({
-                  id: v.id || `vid_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-                  category: v.category || "reviews",
-                  country: v.country || "INTERNATIONAL",
-                  countryLabel: v.countryLabel || v.badge || "🌍 INTERNATIONAL",
-                  badge: v.countryLabel || v.badge || "🌍 INTERNATIONAL",
-                  ytId: parseYoutubeId(v.ytId || v.url),
-                  url: v.url || "",
-                  thumb: v.thumb || "",
-                  title: normalizeLangObj(v.title)
-                }));
+                .filter((v) => v && typeof v === "object")
+                .map((v) => {
+                  const rawLink = v.ytId || v.url || v.videoUrl || v.link || "";
+                  return {
+                    id: v.id || `vid_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+                    category: v.category || "reviews",
+                    country: v.country || "INTERNATIONAL",
+                    countryLabel: v.countryLabel || v.badge || "🌍 INTERNATIONAL",
+                    badge: v.countryLabel || v.badge || "🌍 INTERNATIONAL",
+                    ytId: parseYoutubeId(rawLink),
+                    url: v.url || v.videoUrl || (!parseYoutubeId(rawLink) ? rawLink : ""),
+                    thumb: v.thumb || "",
+                    title: normalizeLangObj(v.title)
+                  };
+                });
 
               currentFaqs = Array.isArray(data.faqs)
                 ? data.faqs.map((f) => ({
@@ -1626,7 +1630,7 @@
                 : [];
             }
           } catch (e) {
-            console.warn("Tab 6 load warning:", e);
+            showTempMsg("t6-review-status-msg", "خطا در خواندن دیتابیس: " + e.message, true);
           }
 
           renderCountryOptions();
