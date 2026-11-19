@@ -1537,16 +1537,12 @@
         let editingVideoIdx = -1;
         let editingFaqIdx = -1;
 
-        function esc(s) {
-          return String(s || "").replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">").replace(/"/g, """);
-        }
-
-        function parseYoutubeId(input) {
-          const raw = String(input || "").trim();
-          if (!raw || raw === "dQw4w9WgXcQ") return "";
-          if (/^[a-zA-Z0-9_-]{11}$/.test(raw)) return raw;
-          const m = raw.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|shorts\/|watch\?v=|watch\?.+&v=))([a-zA-Z0-9_-]{11})/);
-          return m ? m[1] : "";
+     function esc(s) {
+          return String(s || "")
+            .replace(/&/g, "&" + "amp;")
+            .replace(/</g, "&" + "lt;")
+            .replace(/>/g, "&" + "gt;")
+            .replace(/"/g, "&" + "quot;");
         }
 
         function normalizeLangObj(val) {
