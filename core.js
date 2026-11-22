@@ -2713,7 +2713,7 @@ export function fireDirectWhatsappClickEvent() {
 }
 /* === پایان [MODULE-06: STEPPED CART ENGINE (EUR/USD), LIVE SYNC & GOOGLE ADS] === */
 
-}/* ==========================================================================
+ ==========================================================================
    === شروع [MODULE-07: LIVE ORDER SYNC, AUTO-DOMAIN SHORT LINK & ACCOUNTING EXPORT] (ماژول ۷) ===
    راهنما: همگام‌سازی زنده سفارش روی لینک کوتاه خودکار (سازگار با تست روی گیت‌هاب و
    تبدیل اتوماتیک به دامنه اصلی هنگام لانچ)، نام کوتاه Category-Code برای سیستم
