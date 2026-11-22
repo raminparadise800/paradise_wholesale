@@ -883,9 +883,80 @@
   </header>
   <!-- === پایان [SECTION-03: SMART TOP HEADER] === -->
 
-  <!-- ========================================================================
-       === [SECTION-04: HERO, STICKY 3-TABS, COUNTRY FILTER & 2-COL VIDEO GRID] ===
+ <!-- ========================================================================
+       === [SECTION-04: HERO, STICKY 3-TABS, SMART COUNTRY RAIL & 2-COL GRID] ===
        ======================================================================== -->
+  <style>
+    .country-rail-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    @keyframes softCountryArrowGlow {
+      0%, 100% {
+        background: rgba(16, 185, 129, 0.16);
+        border-color: rgba(16, 185, 129, 0.65);
+        transform: scale(1);
+      }
+      50% {
+        background: rgba(212, 175, 55, 0.32);
+        border-color: rgba(212, 175, 55, 0.95);
+        transform: scale(1.08);
+      }
+    }
+
+    .country-scroll-arrow {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(16, 185, 129, 0.7);
+      background: rgba(16, 185, 129, 0.18);
+      color: #064e3b;
+      font-size: 0.95rem;
+      font-weight: 900;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      line-height: 1;
+      animation: softCountryArrowGlow 2.2s infinite ease-in-out;
+    }
+
+    .country-scroll-arrow.visible {
+      display: inline-flex;
+    }
+
+    .country-filter-track {
+      flex: 1;
+      scroll-behavior: smooth;
+    }
+
+    .country-micro-bar-wrap {
+      height: 3px;
+      width: 100%;
+      margin-top: 5px;
+      background: rgba(15, 23, 42, 0.08);
+      border-radius: 4px;
+      overflow: hidden;
+      display: none;
+    }
+
+    .country-micro-bar-wrap.visible {
+      display: block;
+    }
+
+    .country-micro-bar-fill {
+      height: 100%;
+      width: 30%;
+      background: linear-gradient(90deg, var(--gold-dark), var(--emerald));
+      border-radius: 4px;
+      transition: transform 0.12s linear, width 0.2s ease;
+    }
+  </style>
+
   <section class="reviews-hero-strip">
     <div class="reviews-hero-inner">
       <h1 class="reviews-hero-title" data-i18n="heroTitle">⭐ Verified Customer Reviews, Cargo & Quality</h1>
@@ -912,7 +983,14 @@
     </div>
 
     <div class="country-filter-wrap" id="country-filter-wrap">
-      <div class="country-filter-track" id="country-filter-track"></div>
+      <div class="country-rail-wrapper">
+        <button type="button" class="country-scroll-arrow" id="btn-country-prev" aria-label="Scroll Left">‹</button>
+        <div class="country-filter-track" id="country-filter-track"></div>
+        <button type="button" class="country-scroll-arrow" id="btn-country-next" aria-label="Scroll Right">›</button>
+      </div>
+      <div class="country-micro-bar-wrap" id="country-micro-bar-wrap">
+        <div class="country-micro-bar-fill" id="country-micro-bar-fill"></div>
+      </div>
     </div>
   </div>
 
@@ -931,7 +1009,7 @@
       </button>
     </div>
   </main>
-  <!-- === پایان [SECTION-04: HERO, STICKY 3-TABS, COUNTRY FILTER & VIDEO GRID] === -->
+  <!-- === پایان [SECTION-04: HERO, STICKY 3-TABS, SMART COUNTRY RAIL & 2-COL GRID] === -->
 
   <!-- ========================================================================
        === [SECTION-05: FULLSCREEN INSTAGRAM-STYLE REELS PLAYER] ===
@@ -1254,8 +1332,8 @@
     /* === پایان [MODULE-02: GOOGLE ANALYTICS, GOOGLE ADS & SEO VIDEO SCHEMA] === */
 
 
-    /* ======================================================================
-       === شروع [MODULE-03: DATA LOADER, INTERLEAVING & COUNTRY FILTER] ===
+  /* ======================================================================
+       === شروع [MODULE-03: DATA LOADER, COUNT-SORTED COUNTRIES & RAIL UX] ===
        ====================================================================== */
     async function loadReviewsConfigAndVideos() {
       try {
@@ -1292,7 +1370,7 @@
     }
 
     /**
-     * چیدمان متوازن یکی‌درمیان کشورها با حفظ ترتیب دستی پنل ادمین در هر کشور
+     * چیدمان متوازن یکی‌درمیان کشورها با اولویت کشورهای پرتعدادتر و حفظ ترتیب دستی در هر کشور
      */
     function interleavePreservingAdminOrder(list) {
       if (!Array.isArray(list) || list.length <= 1) return list || [];
@@ -1303,7 +1381,11 @@
         buckets.get(key).push(item);
       });
 
-      const keys = Array.from(buckets.keys());
+      const keys = Array.from(buckets.keys()).sort((a, b) => {
+        const diff = buckets.get(b).length - buckets.get(a).length;
+        return diff !== 0 ? diff : a.localeCompare(b);
+      });
+
       const result = [];
       let round = 0;
       let added = true;
@@ -1337,7 +1419,49 @@
       setCount("count-tab-quality", counts.quality);
     }
 
-    function renderCountryFilterPills(tabVideos) {
+    /**
+     * بروزرسانی فلش‌های چپ/راست و نوار باریک پیشرفت زیر ریل کشورها
+     */
+    function updateCountryRailIndicators() {
+      const wrap = document.getElementById("country-filter-wrap");
+      const track = document.getElementById("country-filter-track");
+      const prevBtn = document.getElementById("btn-country-prev");
+      const nextBtn = document.getElementById("btn-country-next");
+      const barWrap = document.getElementById("country-micro-bar-wrap");
+      const barFill = document.getElementById("country-micro-bar-fill");
+
+      if (!track || !wrap || wrap.style.display === "none") {
+        prevBtn?.classList.remove("visible");
+        nextBtn?.classList.remove("visible");
+        barWrap?.classList.remove("visible");
+        return;
+      }
+
+      const maxScroll = track.scrollWidth - track.clientWidth;
+      const isOverflowing = maxScroll > 8;
+
+      prevBtn?.classList.toggle("visible", isOverflowing && track.scrollLeft > 8);
+      nextBtn?.classList.toggle("visible", isOverflowing && track.scrollLeft < maxScroll - 8);
+      barWrap?.classList.toggle("visible", isOverflowing);
+
+      if (isOverflowing && barFill) {
+        const visibleRatio = Math.max(0.18, Math.min(0.85, track.clientWidth / track.scrollWidth));
+        const scrollRatio = maxScroll > 0 ? track.scrollLeft / maxScroll : 0;
+        const widthPct = visibleRatio * 100;
+        const translatePct = scrollRatio * ((1 - visibleRatio) / visibleRatio) * 100;
+        barFill.style.width = `${widthPct}%`;
+        barFill.style.transform = `translateX(${translatePct}%)`;
+      }
+    }
+
+    function cancelCountryRailNudge() {
+      const track = document.getElementById("country-filter-track");
+      if (!track) return;
+      clearTimeout(track._nudgeTimer1);
+      clearTimeout(track._nudgeTimer2);
+    }
+
+    function renderCountryFilterPills(tabVideos, autoAdvanceOnClick = false, triggerNudge = false) {
       const wrap = document.getElementById("country-filter-wrap");
       const track = document.getElementById("country-filter-track");
       if (!wrap || !track) return;
@@ -1353,6 +1477,7 @@
       if (countryMap.size <= 1) {
         wrap.style.display = "none";
         state.activeCountry = "ALL";
+        updateCountryRailIndicators();
         return;
       }
 
@@ -1360,14 +1485,22 @@
         state.activeCountry = "ALL";
       }
 
+      // مرتب‌سازی کشورها از بیشترین تعداد رضایت/ویدیو به کمترین تعداد
+      const sortedCountries = Array.from(countryMap.values()).sort((a, b) => {
+        if (b.count !== a.count) return b.count - a.count;
+        return a.code.localeCompare(b.code);
+      });
+
+      const prevScrollLeft = track.scrollLeft;
       wrap.style.display = "block";
+
       const pills = [
         `<button type="button" class="country-chip-btn ${state.activeCountry === "ALL" ? "active" : ""}" data-country="ALL">
           ${escapeHtml(t("allCountries"))} (${tabVideos.length})
         </button>`
       ];
 
-      countryMap.forEach((c) => {
+      sortedCountries.forEach((c) => {
         pills.push(`
           <button type="button" class="country-chip-btn ${state.activeCountry === c.code ? "active" : ""}" data-country="${escapeHtml(c.code)}">
             ${escapeHtml(c.label)} (${c.count})
@@ -1376,18 +1509,46 @@
       });
 
       track.innerHTML = pills.join("");
+      track.scrollLeft = prevScrollLeft;
+
+      requestAnimationFrame(() => {
+        updateCountryRailIndicators();
+
+        if (autoAdvanceOnClick) {
+          cancelCountryRailNudge();
+          if (state.activeCountry === "ALL") {
+            track.scrollTo({ left: 0, behavior: "smooth" });
+          } else {
+            const activeBtn = track.querySelector(".country-chip-btn.active");
+            if (activeBtn) {
+              // انتقال دکمه انتخاب‌شده به ابتدای ریل تا کشورهای بعدی بلافاصله در دید مشتری ظاهر شوند
+              const targetLeft = Math.max(0, activeBtn.offsetLeft - 20);
+              track.scrollTo({ left: targetLeft, behavior: "smooth" });
+            }
+          }
+        } else if (triggerNudge && state.activeCountry === "ALL" && track.scrollWidth > track.clientWidth + 16) {
+          cancelCountryRailNudge();
+          const maxDist = track.scrollWidth - track.clientWidth;
+          const peekDist = Math.min(110, maxDist);
+          track._nudgeTimer1 = setTimeout(() => {
+            track.scrollTo({ left: peekDist, behavior: "smooth" });
+            track._nudgeTimer2 = setTimeout(() => {
+              track.scrollTo({ left: 0, behavior: "smooth" });
+            }, 850);
+          }, 350);
+        }
+      });
     }
 
-    function applyTabAndCountrySelection() {
+    function applyTabAndCountrySelection(autoAdvanceOnClick = false, triggerNudge = false) {
       const tabVideos = state.allVideos.filter((v) => v.category === state.activeTab);
-      renderCountryFilterPills(tabVideos);
+      renderCountryFilterPills(tabVideos, autoAdvanceOnClick, triggerNudge);
 
       let finalList =
         state.activeCountry === "ALL"
           ? tabVideos
           : tabVideos.filter((v) => v.country === state.activeCountry);
 
-      // در تب رضایت مشتریان (حالت همه کشورها) کشورها را یکی‌درمیان پخش می‌کنیم؛ در بقیه حالت‌ها ترتیب دقیق ادمین حفظ می‌شود
       if (state.activeTab === "reviews" && state.activeCountry === "ALL") {
         finalList = interleavePreservingAdminOrder(finalList);
       }
@@ -1395,7 +1556,7 @@
       state.activeFilteredList = finalList;
       renderGridFromScratch();
     }
-    /* === پایان [MODULE-03: DATA LOADER, INTERLEAVING & COUNTRY FILTER] === */
+    /* === پایان [MODULE-03: DATA LOADER, COUNT-SORTED COUNTRIES & RAIL UX] === */
 
 
     /* ======================================================================
@@ -1714,7 +1875,7 @@
     /* === پایان [MODULE-05: FULLSCREEN REELS PLAYER (SWIPE + AUTOPLAY)] === */
 
 
-    /* ======================================================================
+   /* ======================================================================
        === شروع [MODULE-06: BRANDING, 3-LANG SYNC, EVENTS & INITIALIZATION] ===
        ====================================================================== */
     const OFFICIAL_SOCIAL_SVGS = {
@@ -1799,6 +1960,7 @@
 
     function bindPageEvents() {
       const langMenu = document.getElementById("lang-dropdown-menu");
+      const countryTrack = document.getElementById("country-filter-track");
 
       document.getElementById("btn-lang-dropdown")?.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -1812,7 +1974,7 @@
         localStorage.setItem("paradise_lang", state.lang);
         langMenu?.classList.remove("open");
         applyLocalizedTextsAndLinks();
-        applyTabAndCountrySelection();
+        applyTabAndCountrySelection(false, false);
         injectGoogleVideoSchema();
       });
 
@@ -1832,16 +1994,31 @@
         document.querySelectorAll("#reviews-tabs-bar .review-tab-btn").forEach((b) => {
           b.classList.toggle("active", b.getAttribute("data-tab") === state.activeTab);
         });
-        applyTabAndCountrySelection();
+        applyTabAndCountrySelection(false, true);
         window.scrollTo({ top: 0, behavior: "smooth" });
       });
 
-      // فیلتر کشورها
-      document.getElementById("country-filter-track")?.addEventListener("click", (e) => {
+      // فیلتر کشورها + پیشروی خودکار ریل برای نمایش کشور بعدی
+      countryTrack?.addEventListener("click", (e) => {
         const btn = e.target.closest("[data-country]");
         if (!btn) return;
         state.activeCountry = btn.getAttribute("data-country") || "ALL";
-        applyTabAndCountrySelection();
+        applyTabAndCountrySelection(true, false);
+      });
+
+      // بروزرسانی فلش‌ها و نوار باریک پیشرفت هنگام اسکرول یا لمس
+      countryTrack?.addEventListener("scroll", updateCountryRailIndicators, { passive: true });
+      countryTrack?.addEventListener("touchstart", cancelCountryRailNudge, { passive: true });
+      window.addEventListener("resize", updateCountryRailIndicators);
+
+      document.getElementById("btn-country-prev")?.addEventListener("click", () => {
+        cancelCountryRailNudge();
+        countryTrack?.scrollBy({ left: -180, behavior: "smooth" });
+      });
+
+      document.getElementById("btn-country-next")?.addEventListener("click", () => {
+        cancelCountryRailNudge();
+        countryTrack?.scrollBy({ left: 180, behavior: "smooth" });
       });
 
       // کلیک روی کارت ویدیو ← باز کردن پلیر تمام‌صفحه ریلز
@@ -1882,7 +2059,7 @@
       initGoogleAdsAndAnalyticsTag();
       applyDynamicBrandingAndFooter();
       updateTabCounts();
-      applyTabAndCountrySelection();
+      applyTabAndCountrySelection(false, true);
       injectGoogleVideoSchema();
     }
 
