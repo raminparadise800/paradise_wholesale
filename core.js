@@ -2437,23 +2437,32 @@ export function bindProductGridAndLightboxEvents() {
 
 
 /* ==========================================================================
-   === شروع [MODULE-06: STEPPED CART ENGINE (EUR/USD) & GOOGLE ADS CONVERSION] (ماژول ۶) ===
-   راهنما: محاسبه هوشمند قیمت پله‌ای با ارز فعال (€ برای اروپا با ۵٪ حاشیه امن و
-   رند رو به بالا تا ۰.۵ یورو، و $ برای سایر کشورها)، بروزرسانی کشوی سبد خرید و
-   همگام‌سازی خودکار وضعیت دکمه فاکتورساز ادمین.
+   === شروع [MODULE-06: STEPPED CART ENGINE (EUR/USD), LIVE SYNC & GOOGLE ADS] (ماژول ۶) ===
+   راهنما: ذخیره شاخه اصلی محصول در آیتم سبد خرید، همگام‌سازی خودکار و زنده (Live Sync)
+   تغییرات مشتری روی همان لینک سفارش در فایربیس، و محاسبه پله‌ای با ارز فعال.
    ========================================================================== */
 
-export function saveCartToStorage() {
+export function saveCartToStorage(syncToCloud = true) {
   try {
     localStorage.setItem("paradise_b2b_cart", JSON.stringify(coreState.cart));
   } catch (e) {}
+
+  if (coreState.cart.length === 0) {
+    // اگر مشتری کل سبد خریدش را خالی کرد، برای خرید بعدی کد سفارش تازه ساخته شود (سفارش قبلی در دیتابیس دست نمی‌خورد)
+    coreState.activeOrderCode = "";
+    coreState.lastExportedFingerprint = "";
+    coreState.lastExportedAt = "";
+    try {
+      localStorage.removeItem("paradise_active_order_code");
+    } catch (e) {}
+    return;
+  }
+
+  if (syncToCloud && typeof scheduleLiveOrderSyncToFirestore === "function") {
+    scheduleLiveOrderSyncToFirestore();
+  }
 }
 
-/**
- * محاسبه پله‌ای قیمت بر اساس حد نصاب پنل ادمین (پیش‌فرض ۲۵ عدد) و ارز فعال:
- * مابه‌التفاوت هر عدد نیز به ارز فعال تبدیل و تا ۰.۵ یورو رند رو به بالا می‌شود تا
- * مجموع (قیمت واحد موثر × تعداد کل عدد) در سیستم فاکتورساز دقیقاً برابر جمع نهایی باشد.
- */
 export function calculateSteppedCartTotals() {
   const threshold = Math.max(1, parseInt(coreState.publicConfig.bestRateThreshold, 10) || 25);
 
@@ -2513,10 +2522,14 @@ export function addPackToCart(prod, packsToAdd = 1) {
     existing.packs = (Number(existing.packs) || 1) + packsToAdd;
     existing.unitPrice = Number(prod.unitPrice) || existing.unitPrice;
     existing.pcsPerPack = Math.max(1, parseInt(prod.pcsPerPack, 10) || existing.pcsPerPack || 6);
+    if (prod.department) existing.department = prod.department;
+    if (prod.subcategory) existing.subcategory = prod.subcategory;
   } else {
     coreState.cart.push({
       sku,
       title: getLocalizedProductTitle(prod),
+      department: prod.department || "",
+      subcategory: prod.subcategory || "",
       unitPrice: Number(prod.unitPrice) || 5,
       pcsPerPack: Math.max(1, parseInt(prod.pcsPerPack, 10) || 6),
       sizeRange: prod.sizeRange || "S-XXL",
@@ -2525,7 +2538,7 @@ export function addPackToCart(prod, packsToAdd = 1) {
     });
   }
 
-  saveCartToStorage();
+  saveCartToStorage(true);
   renderSteppedCartUI();
   showCatalogToast(`${t("addedToast")} (${sku})`);
 }
@@ -2641,7 +2654,6 @@ export function renderSteppedCartUI() {
     feeRow.style.display = stats.smallOrderFee > 0 ? "flex" : "none";
   }
 
-  // بروزرسانی همزمان وضعیت دکمه انتقال به فاکتورساز (فقط برای ادمین/حسابدار لاگین‌شده)
   if (typeof renderAdminInvoiceExportBox === "function") {
     renderAdminInvoiceExportBox();
   }
@@ -2699,13 +2711,13 @@ export function fireDirectWhatsappClickEvent() {
     });
   }
 }
-/* === پایان [MODULE-06: STEPPED CART ENGINE (EUR/USD) & GOOGLE ADS CONVERSION] === */
+/* === پایان [MODULE-06: STEPPED CART ENGINE (EUR/USD), LIVE SYNC & GOOGLE ADS] === */
 
 
 /* ==========================================================================
-   === شروع [MODULE-07: SMART ACCOUNTING EXPORT, VISUAL ORDER LINK & INIT] (ماژول ۷) ===
-   راهنما: سیستم انتقال هوشمند سبد خرید به پنل فاکتورساز (با اثر انگشت Fingerprint
-   و دسترسی فقط برای ادمین/حسابدار)، قفل ارز روی لینک سفارش واتساپ، و فوتر SVG.
+   === شروع [MODULE-07: LIVE ORDER SYNC, SHORT DOMAIN LINK & ACCOUNTING EXPORT] (ماژول ۷) ===
+   راهنما: همگام‌سازی زنده سفارش روی لینک ثابت کوتاه (paradisewholesaler.com/?order=ORD-XXXXX)،
+   نام کوتاه Category-Code برای سیستم فاکتورساز و اثر انگشت ۳ حالته (Fingerprint).
    ========================================================================== */
 
 const OFFICIAL_SOCIAL_SVGS = {
@@ -2719,6 +2731,8 @@ const OFFICIAL_SOCIAL_SVGS = {
 export const DEFAULT_INSTAGRAM_URL = "https://www.instagram.com/paradisewholesaleclothing5401";
 export const DEFAULT_YOUTUBE_URL = "https://www.youtube.com/@paradisewholesaleclothing5401";
 const INVOICE_PANEL_BASE_URL = "https://raminparadise800.github.io/Paradise_panel/retail.html";
+
+let liveSyncTimer = null;
 
 export function getUnifiedWhatsAppInfo() {
   const pub = coreState.publicConfig;
@@ -2757,7 +2771,7 @@ export function applyDynamicBrandingAndFooter() {
 
   const floatBtn = document.getElementById("floating-whatsapp-btn");
   if (floatBtn && cleanDigits) {
-    const pageUrl = buildShareableUrl();
+    const pageUrl = `${SITE_DOMAIN}/`;
     const greet = `Hello Paradise Wholesale Istanbul! I am browsing your catalog (${pageUrl}) and have a wholesale inquiry.`;
     floatBtn.href = `https://wa.me/${cleanDigits}?text=${encodeURIComponent(greet)}`;
   }
@@ -2807,34 +2821,138 @@ export function applyDynamicBrandingAndFooter() {
 }
 
 /* ==========================================================================
-   === سیستم انتقال هوشمند به فاکتورساز آنلاین (فقط ادمین/حسابدار + Fingerprint) ===
+   === مدیریت کد سفارش ثابت + همگام‌سازی زنده در فایربیس (Live Sync) ===
    ========================================================================== */
+
+function setStableActiveOrderCode(code) {
+  const clean = String(code || "").trim().toUpperCase();
+  if (!clean) return "";
+  coreState.activeOrderCode = clean;
+  try {
+    localStorage.setItem("paradise_active_order_code", clean);
+  } catch (e) {}
+  return clean;
+}
 
 function getOrCreateStableOrderCode() {
   if (coreState.activeOrderCode && /^ORD-\d+$/i.test(coreState.activeOrderCode)) {
-    return coreState.activeOrderCode.toUpperCase();
+    return setStableActiveOrderCode(coreState.activeOrderCode);
   }
   const params = new URLSearchParams(window.location.search);
   const urlCode = (params.get("order") || "").trim().toUpperCase();
   if (urlCode && /^ORD-\d+$/i.test(urlCode)) {
-    coreState.activeOrderCode = urlCode;
-    return urlCode;
+    return setStableActiveOrderCode(urlCode);
   }
-  const newCode = `ORD-${Math.floor(10000 + Math.random() * 90000)}`;
-  coreState.activeOrderCode = newCode;
-  return newCode;
+  try {
+    const savedCode = (localStorage.getItem("paradise_active_order_code") || "").trim().toUpperCase();
+    if (savedCode && /^ORD-\d+$/i.test(savedCode)) {
+      return setStableActiveOrderCode(savedCode);
+    }
+  } catch (e) {}
+
+  return setStableActiveOrderCode(`ORD-${Math.floor(10000 + Math.random() * 90000)}`);
+}
+
+/**
+ * ذخیره خودکار و زنده تغییرات سبد خرید مشتری روی همان سند سفارش در Firestore
+ * تا لینک قبلی ارسال‌شده در واتساپ همیشه جدیدترین تغییرات را نمایش دهد.
+ */
+function pushActiveOrderSnapshotToFirestore() {
+  const orderCode = coreState.activeOrderCode;
+  if (!orderCode || !/^ORD-\d+$/i.test(orderCode) || coreState.cart.length === 0) return;
+
+  const stats = calculateSteppedCartTotals();
+  const buyerName = (document.getElementById("cart-buyer-name")?.value || "").trim() || "Wholesale Buyer";
+  const buyerCountry = (document.getElementById("cart-buyer-country")?.value || "").trim() || "International";
+
+  setDoc(
+    doc(db, "orders", orderCode),
+    {
+      orderCode,
+      buyerName,
+      buyerCountry,
+      currency: coreState.currency,
+      currencySymbol: getCurrencySymbol(),
+      eurRate: coreState.eurRate,
+      totalPacks: stats.totalPacks,
+      totalPieces: stats.totalPieces,
+      baseSubtotal: stats.baseSubtotal,
+      smallOrderFee: stats.smallOrderFee,
+      totalAmount: stats.finalTotal,
+      items: coreState.cart,
+      updatedAtIso: new Date().toISOString()
+    },
+    { merge: true }
+  ).catch((err) => {
+    console.warn("Live order sync warning:", err.message);
+  });
+}
+
+export function scheduleLiveOrderSyncToFirestore() {
+  if (!coreState.activeOrderCode || coreState.cart.length === 0) return;
+  clearTimeout(liveSyncTimer);
+  liveSyncTimer = setTimeout(() => {
+    liveSyncTimer = null;
+    pushActiveOrderSnapshotToFirestore();
+  }, 350);
+}
+
+/* ==========================================================================
+   === سیستم انتقال هوشمند به فاکتورساز آنلاین (نام کوتاه Category-Code + Fingerprint) ===
+   ========================================================================== */
+
+/**
+ * استخراج نام انگلیسی شاخه اصلی محصول (مثلاً Hoodies, T-Shirts, Jeans) برای ترکیب با کد محصول
+ */
+function getProductMainCategoryName(item) {
+  const skuUpper = String(item.sku || "").trim().toUpperCase();
+  const prod = coreState.allProducts.find(
+    (p) =>
+      String(p.sku || "").trim().toUpperCase() === skuUpper ||
+      String(p.id || "").trim().toUpperCase() === skuUpper
+  );
+
+  const deptId = item.department || prod?.department || "";
+  const subcatId = item.subcategory || prod?.subcategory || "";
+
+  if (subcatId && Array.isArray(coreState.taxonomy)) {
+    const deptObj = coreState.taxonomy.find((d) => d.id === deptId);
+    const inDept = (deptObj?.subcategories || []).find(
+      (sc) => String(sc.id || "").toLowerCase() === String(subcatId).toLowerCase()
+    );
+    if (inDept) {
+      return (inDept.labelEn || inDept.label || subcatId).trim();
+    }
+
+    for (const d of coreState.taxonomy) {
+      const inAny = (d.subcategories || []).find(
+        (sc) => String(sc.id || "").toLowerCase() === String(subcatId).toLowerCase()
+      );
+      if (inAny) {
+        return (inAny.labelEn || inAny.label || subcatId).trim();
+      }
+    }
+    return String(subcatId).trim();
+  }
+
+  if (deptId && Array.isArray(coreState.taxonomy)) {
+    const deptObj = coreState.taxonomy.find((d) => d.id === deptId);
+    if (deptObj) return (deptObj.labelEn || deptObj.label || deptId).trim();
+  }
+
+  return "Product";
 }
 
 /**
  * ساخت آبجکت دقیق JSON طبق قرارداد سیستم فاکتورساز آنلاین:
+ * - name = دقیقاً به فرمت "Category-Code" (مثلاً Hoodies-PRD-6898)
  * - qty = تعداد کل عدد (تعداد پک × تعداد در پک) از نوع Number
  * - price = قیمت واحد موثر با اعمال افزایش سفارش کوچک از نوع Number
- * - currency = نماد دقیق ("€" یا "$")
  */
 export function buildAccountingExportPayload() {
   const stats = calculateSteppedCartTotals();
   const websiteOrderId = getOrCreateStableOrderCode();
-  const currencySymbol = getCurrencySymbol(); // "€" یا "$"
+  const currencySymbol = getCurrencySymbol();
 
   const rawName = (document.getElementById("cart-buyer-name")?.value || "").trim();
   const rawCountry = (document.getElementById("cart-buyer-country")?.value || "").trim();
@@ -2845,9 +2963,8 @@ export function buildAccountingExportPayload() {
     const totalQty = Number(packs * pcsPerPack);
     const displayBaseUnit = convertUsdToDisplay(Number(item.unitPrice) || 0);
     const effectiveUnitPrice = Number((displayBaseUnit + stats.surchargePerPc).toFixed(2));
-    const sizeInfo = item.sizeRange ? ` | ${item.sizeRange}` : "";
-    const titlePart = item.title ? ` - ${item.title}` : "";
-    const itemName = `${item.sku}${titlePart} (${packs} Packs × ${pcsPerPack} pcs${sizeInfo})`;
+    const mainCategory = getProductMainCategoryName(item);
+    const itemName = `${mainCategory}-${item.sku}`;
 
     return {
       name: itemName,
@@ -2871,9 +2988,6 @@ export function buildAccountingExportPayload() {
   };
 }
 
-/**
- * ساخت اثر انگشت ثابت (Fingerprint) از اقلام، ارز و مشخصات مشتری برای تشخیص هرگونه تغییر سبد
- */
 export function computeOrderFingerprint(payload) {
   const normalized = {
     currency: payload.currency,
@@ -2892,9 +3006,297 @@ export function computeOrderFingerprint(payload) {
   return JSON.stringify(normalized);
 }
 
+function buildAccountingTargetUrl(orderPayload) {
+  const jsonStr = JSON.stringify(orderPayload);
+  const bytes = new TextEncoder().encode(jsonStr);
+  let binary = "";
+  bytes.forEach((b) => (binary += String.fromCharCode(b)));
+  const encoded = btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return `${INVOICE_PANEL_BASE_URL}#import=${encoded}`;
+}/* ==========================================================================
+   === شروع [MODULE-07: LIVE ORDER SYNC, AUTO-DOMAIN SHORT LINK & ACCOUNTING EXPORT] (ماژول ۷) ===
+   راهنما: همگام‌سازی زنده سفارش روی لینک کوتاه خودکار (سازگار با تست روی گیت‌هاب و
+   تبدیل اتوماتیک به دامنه اصلی هنگام لانچ)، نام کوتاه Category-Code برای سیستم
+   فاکتورساز و اثر انگشت ۳ حالته (Fingerprint).
+   ========================================================================== */
+
+const OFFICIAL_SOCIAL_SVGS = {
+  instagram: `<svg viewBox="0 0 24 24" fill="none"><rect width="20" height="20" x="2" y="2" rx="5" stroke="#E1306C" stroke-width="2"/><circle cx="12" cy="12" r="4.5" stroke="#F77737" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.2" fill="#E1306C"/></svg>`,
+  telegram: `<svg viewBox="0 0 24 24" fill="#2AABEE"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.37-.49 1.02-.74 3.99-1.74 6.65-2.89 7.99-3.45 3.8-1.58 4.59-1.86 5.1-1.87.11 0 .37.03.54.17.14.12.18.28.2.45-.01.06.01.24 0 .33z"/></svg>`,
+  tiktok: `<svg viewBox="0 0 24 24" fill="#ffffff"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>`,
+  youtube: `<svg viewBox="0 0 24 24" fill="#FF0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`,
+  android: `<svg viewBox="0 0 24 24" fill="#3DDC84"><path d="M17.523 15.341a.96.96 0 0 1-.959-.959c0-.53.43-.96.959-.96s.96.43.96.96-.43.959-.96.959m-11.046 0a.96.96 0 0 1-.96-.959c0-.53.43-.96.96-.96s.959.43.959.96-.43.959-.959.959m11.4-6.022l1.996-3.458a.416.416 0 0 0-.152-.567.416.416 0 0 0-.568.152L17.11 8.95a11.96 11.96 0 0 0-10.22 0L4.847 5.446a.416.416 0 0 0-.568-.152.416.416 0 0 0-.152.567l1.996 3.458C2.688 11.186.343 14.658 0 18.761h24c-.343-4.103-2.688-7.575-6.123-9.442"/></svg>`
+};
+
+export const DEFAULT_INSTAGRAM_URL = "https://www.instagram.com/paradisewholesaleclothing5401";
+export const DEFAULT_YOUTUBE_URL = "https://www.youtube.com/@paradisewholesaleclothing5401";
+const INVOICE_PANEL_BASE_URL = "https://raminparadise800.github.io/Paradise_panel/retail.html";
+
+let liveSyncTimer = null;
+
+export function getUnifiedWhatsAppInfo() {
+  const pub = coreState.publicConfig;
+  const raw = String(pub.whatsappRaw || DEFAULT_WHATSAPP).trim();
+  const cleanDigits = raw.replace(/[^0-9]/g, "");
+
+  const displayClean = String(pub.whatsappDisplay || "").replace(/[^0-9]/g, "");
+  let formattedDisplay = pub.whatsappDisplay;
+  if (!formattedDisplay || displayClean !== cleanDigits) {
+    formattedDisplay = `+${cleanDigits.replace(/^(\d{2})(\d{3})(\d{3})(\d{2})(\d{2})$/, "$1 $2 $3 $4 $5")}`;
+  }
+
+  return { cleanDigits, formattedDisplay };
+}
+
+export function applyDynamicBrandingAndFooter() {
+  const pub = coreState.publicConfig;
+  const { cleanDigits, formattedDisplay } = getUnifiedWhatsAppInfo();
+  const onHome = isRootHomeStage();
+
+  const logoImg = document.getElementById("header-logo-img");
+  const brandBadge = document.getElementById("home-brand-badge");
+
+  if (logoImg) {
+    if (pub.logoUrl && onHome) {
+      logoImg.src = pub.logoUrl;
+      logoImg.style.display = "block";
+    } else {
+      logoImg.style.display = "none";
+    }
+  }
+
+  if (brandBadge) {
+    brandBadge.style.display = onHome ? "flex" : "none";
+  }
+
+  const floatBtn = document.getElementById("floating-whatsapp-btn");
+  if (floatBtn && cleanDigits) {
+    const pageUrl = getBaseRootUrl();
+    const greet = `Hello Paradise Wholesale Istanbul! I am browsing your catalog (${pageUrl}) and have a wholesale inquiry.`;
+    floatBtn.href = `https://wa.me/${cleanDigits}?text=${encodeURIComponent(greet)}`;
+  }
+
+  const footerWa = document.getElementById("footer-wa-link");
+  if (footerWa && cleanDigits) {
+    footerWa.href = `https://wa.me/${cleanDigits}`;
+    footerWa.textContent = formattedDisplay;
+  }
+
+  const socialBox = document.getElementById("footer-social-container");
+  if (socialBox) {
+    const igUrl =
+      pub.instagramUrl && !pub.instagramUrl.endsWith("/paradisewholesaler")
+        ? pub.instagramUrl
+        : DEFAULT_INSTAGRAM_URL;
+    const tgUrl = pub.telegramUrl || "https://t.me/paradisewholesaler";
+    const tkUrl = pub.tiktokUrl || "https://tiktok.com/@paradisewholesaler";
+    const ytUrl = pub.youtubeUrl || DEFAULT_YOUTUBE_URL;
+    const appUrl = pub.androidAppUrl || "https://play.google.com/store/search?q=PARADISE+WHOLESALE+CLOTHING&c=apps";
+
+    const links = [
+      `<a href="${escapeHtml(igUrl)}" target="_blank" rel="noopener" class="social-pill-link">
+        ${OFFICIAL_SOCIAL_SVGS.instagram}
+        <span>Instagram</span>
+      </a>`,
+      `<a href="${escapeHtml(ytUrl)}" target="_blank" rel="noopener" class="social-pill-link" style="border-color:rgba(255,0,0,0.4);">
+        ${OFFICIAL_SOCIAL_SVGS.youtube}
+        <span>YouTube</span>
+      </a>`,
+      `<a href="${escapeHtml(tgUrl)}" target="_blank" rel="noopener" class="social-pill-link">
+        ${OFFICIAL_SOCIAL_SVGS.telegram}
+        <span>Telegram</span>
+      </a>`,
+      `<a href="${escapeHtml(tkUrl)}" target="_blank" rel="noopener" class="social-pill-link">
+        ${OFFICIAL_SOCIAL_SVGS.tiktok}
+        <span>TikTok</span>
+      </a>`,
+      `<a href="${escapeHtml(appUrl)}" target="_blank" rel="noopener" class="social-pill-link" style="border-color:rgba(61,220,132,0.5);">
+        ${OFFICIAL_SOCIAL_SVGS.android}
+        <span>Android App</span>
+      </a>`
+    ];
+
+    socialBox.innerHTML = links.join("");
+  }
+}
+
+/* ==========================================================================
+   === مدیریت کد سفارش ثابت + همگام‌سازی زنده در فایربیس (Live Sync) ===
+   ========================================================================== */
+
+function setStableActiveOrderCode(code) {
+  const clean = String(code || "").trim().toUpperCase();
+  if (!clean) return "";
+  coreState.activeOrderCode = clean;
+  try {
+    localStorage.setItem("paradise_active_order_code", clean);
+  } catch (e) {}
+  return clean;
+}
+
+function getOrCreateStableOrderCode() {
+  if (coreState.activeOrderCode && /^ORD-\d+$/i.test(coreState.activeOrderCode)) {
+    return setStableActiveOrderCode(coreState.activeOrderCode);
+  }
+  const params = new URLSearchParams(window.location.search);
+  const urlCode = (params.get("order") || "").trim().toUpperCase();
+  if (urlCode && /^ORD-\d+$/i.test(urlCode)) {
+    return setStableActiveOrderCode(urlCode);
+  }
+  try {
+    const savedCode = (localStorage.getItem("paradise_active_order_code") || "").trim().toUpperCase();
+    if (savedCode && /^ORD-\d+$/i.test(savedCode)) {
+      return setStableActiveOrderCode(savedCode);
+    }
+  } catch (e) {}
+
+  return setStableActiveOrderCode(`ORD-${Math.floor(10000 + Math.random() * 90000)}`);
+}
+
 /**
- * انکد UTF-8 URL-Safe Base64 و ساخت لینک انتقال به سیستم فاکتورساز
+ * ذخیره خودکار و زنده تغییرات سبد خرید مشتری روی همان سند سفارش در Firestore
+ * تا لینک قبلی ارسال‌شده در واتساپ همیشه جدیدترین تغییرات را نمایش دهد.
  */
+function pushActiveOrderSnapshotToFirestore() {
+  const orderCode = coreState.activeOrderCode;
+  if (!orderCode || !/^ORD-\d+$/i.test(orderCode) || coreState.cart.length === 0) return;
+
+  const stats = calculateSteppedCartTotals();
+  const buyerName = (document.getElementById("cart-buyer-name")?.value || "").trim() || "Wholesale Buyer";
+  const buyerCountry = (document.getElementById("cart-buyer-country")?.value || "").trim() || "International";
+
+  setDoc(
+    doc(db, "orders", orderCode),
+    {
+      orderCode,
+      buyerName,
+      buyerCountry,
+      currency: coreState.currency,
+      currencySymbol: getCurrencySymbol(),
+      eurRate: coreState.eurRate,
+      totalPacks: stats.totalPacks,
+      totalPieces: stats.totalPieces,
+      baseSubtotal: stats.baseSubtotal,
+      smallOrderFee: stats.smallOrderFee,
+      totalAmount: stats.finalTotal,
+      items: coreState.cart,
+      updatedAtIso: new Date().toISOString()
+    },
+    { merge: true }
+  ).catch((err) => {
+    console.warn("Live order sync warning:", err.message);
+  });
+}
+
+export function scheduleLiveOrderSyncToFirestore() {
+  if (!coreState.activeOrderCode || coreState.cart.length === 0) return;
+  clearTimeout(liveSyncTimer);
+  liveSyncTimer = setTimeout(() => {
+    liveSyncTimer = null;
+    pushActiveOrderSnapshotToFirestore();
+  }, 350);
+}
+
+/* ==========================================================================
+   === سیستم انتقال هوشمند به فاکتورساز آنلاین (نام کوتاه Category-Code + Fingerprint) ===
+   ========================================================================== */
+
+function getProductMainCategoryName(item) {
+  const skuUpper = String(item.sku || "").trim().toUpperCase();
+  const prod = coreState.allProducts.find(
+    (p) =>
+      String(p.sku || "").trim().toUpperCase() === skuUpper ||
+      String(p.id || "").trim().toUpperCase() === skuUpper
+  );
+
+  const deptId = item.department || prod?.department || "";
+  const subcatId = item.subcategory || prod?.subcategory || "";
+
+  if (subcatId && Array.isArray(coreState.taxonomy)) {
+    const deptObj = coreState.taxonomy.find((d) => d.id === deptId);
+    const inDept = (deptObj?.subcategories || []).find(
+      (sc) => String(sc.id || "").toLowerCase() === String(subcatId).toLowerCase()
+    );
+    if (inDept) {
+      return (inDept.labelEn || inDept.label || subcatId).trim();
+    }
+
+    for (const d of coreState.taxonomy) {
+      const inAny = (d.subcategories || []).find(
+        (sc) => String(sc.id || "").toLowerCase() === String(subcatId).toLowerCase()
+      );
+      if (inAny) {
+        return (inAny.labelEn || inAny.label || subcatId).trim();
+      }
+    }
+    return String(subcatId).trim();
+  }
+
+  if (deptId && Array.isArray(coreState.taxonomy)) {
+    const deptObj = coreState.taxonomy.find((d) => d.id === deptId);
+    if (deptObj) return (deptObj.labelEn || deptObj.label || deptId).trim();
+  }
+
+  return "Product";
+}
+
+export function buildAccountingExportPayload() {
+  const stats = calculateSteppedCartTotals();
+  const websiteOrderId = getOrCreateStableOrderCode();
+  const currencySymbol = getCurrencySymbol();
+
+  const rawName = (document.getElementById("cart-buyer-name")?.value || "").trim();
+  const rawCountry = (document.getElementById("cart-buyer-country")?.value || "").trim();
+
+  const items = coreState.cart.map((item) => {
+    const packs = Math.max(1, parseInt(item.packs, 10) || 1);
+    const pcsPerPack = Math.max(1, parseInt(item.pcsPerPack, 10) || 6);
+    const totalQty = Number(packs * pcsPerPack);
+    const displayBaseUnit = convertUsdToDisplay(Number(item.unitPrice) || 0);
+    const effectiveUnitPrice = Number((displayBaseUnit + stats.surchargePerPc).toFixed(2));
+    const mainCategory = getProductMainCategoryName(item);
+    const itemName = `${mainCategory}-${item.sku}`;
+
+    return {
+      name: itemName,
+      price: effectiveUnitPrice,
+      qty: totalQty,
+      weight: 0
+    };
+  });
+
+  return {
+    websiteOrderId,
+    invoiceType: "wholesale",
+    fromWebsite: true,
+    currency: currencySymbol,
+    customerName: rawName === "Wholesale Buyer" ? "" : rawName,
+    customerPhone: "",
+    customerCountry: rawCountry === "International" ? "" : rawCountry,
+    customerAddress: "",
+    shippingCost: 0,
+    items
+  };
+}
+
+export function computeOrderFingerprint(payload) {
+  const normalized = {
+    currency: payload.currency,
+    customerName: payload.customerName,
+    customerPhone: payload.customerPhone,
+    customerCountry: payload.customerCountry,
+    customerAddress: payload.customerAddress,
+    shippingCost: Number(payload.shippingCost) || 0,
+    items: (payload.items || []).map((it) => ({
+      name: it.name,
+      price: Number(it.price) || 0,
+      qty: Number(it.qty) || 0,
+      weight: Number(it.weight) || 0
+    }))
+  };
+  return JSON.stringify(normalized);
+}
+
 function buildAccountingTargetUrl(orderPayload) {
   const jsonStr = JSON.stringify(orderPayload);
   const bytes = new TextEncoder().encode(jsonStr);
@@ -2904,9 +3306,6 @@ function buildAccountingTargetUrl(orderPayload) {
   return `${INVOICE_PANEL_BASE_URL}#import=${encoded}`;
 }
 
-/**
- * رندر باکس اختصاصی ادمین/حسابدار (۳ حالته بر اساس Fingerprint) — برای مشتری عادی کاملاً مخفی
- */
 export function renderAdminInvoiceExportBox() {
   const box = document.getElementById("admin-invoice-export-box");
   if (!box) return;
@@ -2923,7 +3322,6 @@ export function renderAdminInvoiceExportBox() {
   const lastFp = String(coreState.lastExportedFingerprint || "");
 
   if (!lastFp) {
-    // حالت ۱: هنوز ارسال نشده
     box.innerHTML = `
       <button
         type="button"
@@ -2934,7 +3332,6 @@ export function renderAdminInvoiceExportBox() {
       </button>
     `;
   } else if (lastFp === currentFingerprint) {
-    // حالت ۲: ارسال شده و بدون تغییر
     box.innerHTML = `
       <div style="background:#ecfdf5; border:1px solid #6ee7b7; border-radius:10px; padding:9px 11px; display:flex; flex-direction:column; gap:7px;">
         <div style="font-size:0.78rem; font-weight:800; color:#065f46;">
@@ -2950,7 +3347,6 @@ export function renderAdminInvoiceExportBox() {
       </div>
     `;
   } else {
-    // حالت ۳: سفارش پس از آخرین ارسال تغییر کرده و نیاز به آپدیت دارد
     box.innerHTML = `
       <div style="background:#fff7ed; border:1px solid #fdba74; border-radius:10px; padding:9px 11px; display:flex; flex-direction:column; gap:8px;">
         <div style="font-size:0.77rem; font-weight:800; color:#c2410c;">
@@ -2968,9 +3364,6 @@ export function renderAdminInvoiceExportBox() {
   }
 }
 
-/**
- * اجرای همزمان باز کردن تب فاکتورساز (بدون بلاک شدن در موبایل) + ذخیره پس‌زمینه Fingerprint در Firestore
- */
 export function handleAdminExportToAccounting() {
   if (!coreState.isAdminLoggedIn || coreState.cart.length === 0) return;
 
@@ -2978,16 +3371,14 @@ export function handleAdminExportToAccounting() {
   const currentFingerprint = computeOrderFingerprint(orderPayload);
   const targetUrl = buildAccountingTargetUrl(orderPayload);
 
-  // ۱. باز کردن همزمان تب جدید داخل رویداد کلیک (برای جلوگیری از بلاک پاپ‌آپ در مرورگرهای موبایل)
+  // باز کردن همزمان تب جدید (بدون بلاک شدن در موبایل)
   window.open(targetUrl, "_blank");
 
-  // ۲. بروزرسانی فوری ظاهر دکمه به حالت «ارسال شده (بدون تغییر)»
   const exportedAtIso = new Date().toISOString();
   coreState.lastExportedFingerprint = currentFingerprint;
   coreState.lastExportedAt = exportedAtIso;
   renderAdminInvoiceExportBox();
 
-  // ۳. ذخیره غیرمسدودکننده (پس‌زمینه) اثر انگشت و زمان ارسال در Firestore سایت عمده
   const stats = calculateSteppedCartTotals();
   const orderCode = orderPayload.websiteOrderId;
   setDoc(
@@ -3015,23 +3406,15 @@ export function handleAdminExportToAccounting() {
   });
 }
 
+/**
+ * ساخت لینک کوتاه و تمیز (روی گیت‌هاب برای تست فعلی، و خودکار روی paradisewholesaler.com پس از اتصال دامنه)
+ */
 export function buildVisualOrderCartUrl(orderCode) {
   const url = new URL(getBaseRootUrl());
   url.searchParams.set("order", orderCode);
-  url.searchParams.set("cur", coreState.currency);
   if (coreState.lang && coreState.lang !== "en") {
     url.searchParams.set("lang", coreState.lang);
   }
-
-  const compactItems = coreState.cart
-    .map((c) => `${String(c.sku || "").trim()}:${Math.max(1, parseInt(c.packs, 10) || 1)}`)
-    .filter((pair) => !pair.startsWith(":"))
-    .join(",");
-
-  if (compactItems) {
-    url.searchParams.set("items", compactItems);
-  }
-
   return url.toString();
 }
 
@@ -3066,7 +3449,6 @@ export async function submitCartOrderToWhatsApp() {
     totalAmount: stats.finalTotal,
     status: "pending_whatsapp",
     items: coreState.cart,
-    createdAtIso: nowIso,
     updatedAtIso: nowIso,
     createdAt: serverTimestamp()
   };
@@ -3076,7 +3458,7 @@ export async function submitCartOrderToWhatsApp() {
   try {
     await Promise.race([
       setDoc(doc(db, "orders", orderCode), orderPayload, { merge: true }),
-      new Promise((resolve) => setTimeout(resolve, 2500))
+      new Promise((resolve) => setTimeout(resolve, 4000))
     ]);
   } catch (e) {
     console.warn("Order save fallback:", e.message);
@@ -3136,7 +3518,7 @@ export async function loadSharedOrderFromUrlIfPresent(
   if (!orderCode && !compactItemsParam) return;
 
   if (orderCode) {
-    coreState.activeOrderCode = orderCode;
+    setStableActiveOrderCode(orderCode);
   }
 
   let loadedItems = [];
@@ -3200,6 +3582,8 @@ export async function loadSharedOrderFromUrlIfPresent(
         loadedItems.push({
           sku: prod.sku || prod.id,
           title: getLocalizedProductTitle(prod),
+          department: prod.department || "",
+          subcategory: prod.subcategory || "",
           unitPrice: Number(prod.unitPrice) || 5,
           pcsPerPack: Math.max(1, parseInt(prod.pcsPerPack, 10) || 6),
           sizeRange: prod.sizeRange || "S-XXL",
@@ -3212,7 +3596,7 @@ export async function loadSharedOrderFromUrlIfPresent(
 
   if (loadedItems.length > 0) {
     coreState.cart = loadedItems;
-    saveCartToStorage();
+    saveCartToStorage(false);
 
     const nameInp = document.getElementById("cart-buyer-name");
     const countryInp = document.getElementById("cart-buyer-country");
@@ -3270,7 +3654,7 @@ export function bindCartAndWhatsappEvents() {
       if (coreState.cart[idx].packs <= 0) {
         coreState.cart.splice(idx, 1);
       }
-      saveCartToStorage();
+      saveCartToStorage(true);
       renderSteppedCartUI();
       return;
     }
@@ -3279,7 +3663,7 @@ export function bindCartAndWhatsappEvents() {
     if (rmBtn) {
       const idx = parseInt(rmBtn.getAttribute("data-cart-remove"), 10);
       coreState.cart.splice(idx, 1);
-      saveCartToStorage();
+      saveCartToStorage(true);
       renderSteppedCartUI();
       return;
     }
@@ -3291,11 +3675,21 @@ export function bindCartAndWhatsappEvents() {
     }
   });
 
-  // بروزرسانی زنده وضعیت Fingerprint هنگام تغییر نام یا کشور مشتری
-  document.getElementById("cart-buyer-name")?.addEventListener("input", renderAdminInvoiceExportBox);
-  document.getElementById("cart-buyer-country")?.addEventListener("input", renderAdminInvoiceExportBox);
+  const onBuyerFieldChange = () => {
+    renderAdminInvoiceExportBox();
+    scheduleLiveOrderSyncToFirestore();
+  };
+  document.getElementById("cart-buyer-name")?.addEventListener("input", onBuyerFieldChange);
+  document.getElementById("cart-buyer-country")?.addEventListener("input", onBuyerFieldChange);
 
-  // کلیک روی دکمه‌های انتقال / آپدیت / باز کردن مجدد در سیستم فاکتورساز (فقط ادمین)
+  window.addEventListener("pagehide", () => {
+    if (liveSyncTimer) {
+      clearTimeout(liveSyncTimer);
+      liveSyncTimer = null;
+      pushActiveOrderSnapshotToFirestore();
+    }
+  });
+
   document.getElementById("admin-invoice-export-box")?.addEventListener("click", (e) => {
     const exportBtn = e.target.closest("[data-export-invoice]");
     if (!exportBtn) return;
@@ -3322,15 +3716,23 @@ export async function initParadiseCatalogCore() {
   const initialItemsParam = (initialParams.get("items") || "").trim();
   const initialCurParam = (initialParams.get("cur") || "").trim().toUpperCase();
 
-  // اتصال رفرش ارز برای دکمه تغییر دستی € / $ در هدر
+  if (!initialOrderCode) {
+    try {
+      const savedOrder = (localStorage.getItem("paradise_active_order_code") || "").trim().toUpperCase();
+      if (savedOrder && /^ORD-\d+$/i.test(savedOrder) && coreState.cart.length > 0) {
+        coreState.activeOrderCode = savedOrder;
+      }
+    } catch (e) {}
+  }
+
   window._paradiseRefreshCurrencyUI = () => {
     renderDynamicPriceFilterBar();
     renderProductsCatalogGrid();
     if (coreState.lightboxProduct) renderLightboxStageContent();
     renderSteppedCartUI();
+    scheduleLiveOrderSyncToFirestore();
   };
 
-  // تشخیص زنده نشست لاگین ادمین/حسابدار (برای مشتری عادی false می‌ماند)
   onAuthStateChanged(auth, (user) => {
     coreState.isAdminLoggedIn = Boolean(user);
     renderAdminInvoiceExportBox();
