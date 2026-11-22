@@ -2,15 +2,15 @@
  * ============================================================================
  * PARADISE WHOLESALE CLOTHING ISTANBUL
  * Domain: https://paradisewholesaler.com
- * File: core.js (MODULE-01 — AUTH, ONLINE EUR/USD ENGINE, BIG LOGO HEADER & 3-LANG DICT)
+ * File: core.js (MODULE-01 — AUTH, EUR/USD ENGINE, BIG CIRCLE LOGO & 3-LANG DICT)
  * ============================================================================
  */
 
 /* ==========================================================================
    === شروع [MODULE-01: CONFIG, AUTH, ONLINE CURRENCY ENGINE & 3-LANG DICT] (ماژول ۱) ===
    راهنما: اتصال به Firebase Auth، موتور آنلاین تبدیل دلار به یورو (+۵٪ حاشیه امن
-   و رند رو به بالا تا ۰.۵ یورو)، استایل لوگوی بزرگ تمام‌ارتفاع در هدر + نام تمیز
-   بدون بریدگی، اسکلتون لودینگ فوری منوها، کنترلر تعداد کارت محصول و دیکشنری ۳ زبانه.
+   و رند رو به بالا تا ۰.۵ یورو)، قاب دایره‌ای بزرگ و بدون کادر اضافه برای لوگو،
+   نام پله‌کانی PARADISE / WHOLESALE، اسکلتون لودینگ منوها و دیکشنری ۳ زبانه.
    ========================================================================== */
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
@@ -345,11 +345,37 @@ export function formatMoney(amount, forceDecimals = false) {
 }
 
 /**
- * استایل‌های بهینه هدر (لوگوی بزرگ تقریباً تمام‌ارتفاع نوار + نام برند تمیز بدون ...)،
+ * قرار دادن لوگو در قاب دایره‌ای تمام‌ارتفاع (۴۶×۴۶ پیکسل) و حذف کامل مستطیل زرد و حاشیه اضافی
+ */
+function ensureCircularLogoFrame() {
+  const logoImg = document.getElementById("header-logo-img");
+  if (!logoImg || logoImg.dataset.circleWrapped) return;
+  logoImg.dataset.circleWrapped = "1";
+
+  const frame = document.createElement("span");
+  frame.id = "header-logo-circle-frame";
+  frame.className = "brand-logo-circle-frame";
+  logoImg.parentNode.insertBefore(frame, logoImg);
+  frame.appendChild(logoImg);
+
+  const syncFrameVisibility = () => {
+    const isHidden = logoImg.style.display === "none" || !logoImg.getAttribute("src");
+    frame.style.display = isHidden ? "none" : "inline-flex";
+  };
+
+  syncFrameVisibility();
+  const obs = new MutationObserver(syncFrameVisibility);
+  obs.observe(logoImg, { attributes: true, attributeFilter: ["style", "src"] });
+}
+
+/**
+ * استایل‌های بهینه هدر (لوگوی دایره‌ای بزرگ بدون کادر زرد + نام پله‌کانی PARADISE / WHOLESALE)،
  * اسکلتون لودینگ آنی منوها و کنترلر تعداد سری (+ / - / 🗑) روی کارت محصول
  */
 export function injectResponsiveHeaderAndStepperStyles() {
+  ensureCircularLogoFrame();
   if (document.getElementById("paradise-ux-enhancements-css")) return;
+
   const style = document.createElement("style");
   style.id = "paradise-ux-enhancements-css";
   style.textContent = `
@@ -368,7 +394,7 @@ export function injectResponsiveHeaderAndStepperStyles() {
       100% { background-position: -200% 0; }
     }
 
-    /* چیدمان حرفه‌ای لوگو (حداکثر ارتفاع داخل نوار هدر) و نام تمیز برند بدون بریدگی */
+    /* چیدمان حرفه‌ای لوگو: دایره بزرگ تقریباً تمام‌ارتفاع نوار هدر و بدون کادر مستطیلی زرد */
     #header-brand-link {
       display: inline-flex !important;
       align-items: center !important;
@@ -376,16 +402,41 @@ export function injectResponsiveHeaderAndStepperStyles() {
       text-decoration: none;
       min-width: 0;
       height: 100%;
+      border: none !important;
+      background: transparent !important;
+      padding: 0 !important;
     }
-    .brand-logo-img {
-      height: 46px !important;
-      max-height: 46px !important;
-      width: auto !important;
-      max-width: 120px !important;
-      border-radius: 6px;
-      object-fit: contain;
+    .brand-logo-circle-frame {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       flex-shrink: 0;
+      border: none !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      padding: 0 !important;
     }
+    .brand-logo-circle-frame #header-logo-img {
+      width: 100% !important;
+      height: 100% !important;
+      max-width: none !important;
+      max-height: none !important;
+      object-fit: cover !important;
+      object-position: center !important;
+      transform: scale(1.3) !important;
+      border: none !important;
+      outline: none !important;
+      border-radius: 0 !important;
+      padding: 0 !important;
+      box-shadow: none !important;
+      background: transparent !important;
+    }
+
+    /* نام برند پله‌کانی (PARADISE بالا، WHOLESALE کمی جلوتر در خط پایین) */
     #home-brand-badge {
       flex-direction: column;
       justify-content: center;
@@ -395,18 +446,19 @@ export function injectResponsiveHeaderAndStepperStyles() {
     }
     .brand-line-main {
       color: var(--gold, #d4af37);
-      font-size: 0.9rem;
+      font-size: 0.92rem;
       font-weight: 800;
       letter-spacing: 0.45px;
       white-space: nowrap;
     }
     .brand-line-sub {
       color: #e2e8f0;
-      font-size: 0.64rem;
+      font-size: 0.65rem;
       font-weight: 700;
-      letter-spacing: 0.9px;
+      letter-spacing: 0.95px;
       white-space: nowrap;
-      opacity: 0.92;
+      opacity: 0.94;
+      padding-left: 18px;
     }
     .brand-mobile-only { display: none; }
     .brand-desktop-only { display: inline; }
@@ -493,7 +545,7 @@ export function injectResponsiveHeaderAndStepperStyles() {
       font-size: 0.67rem;
     }
 
-    /* بهینه‌سازی دقیق هدر موبایل: لوگوی بزرگ تمام‌ارتفاع + نام تمیز بدون ... + بدون بیرون‌زدگی */
+    /* بهینه‌سازی دقیق هدر موبایل: دایره لوگو بزرگ (46px) + نام پله‌کانی + بدون بیرون‌زدگی */
     @media (max-width: 600px) {
       .smart-top-header {
         padding: 0 6px !important;
@@ -509,24 +561,22 @@ export function injectResponsiveHeaderAndStepperStyles() {
         flex-shrink: 0;
       }
       #header-brand-link {
-        gap: 6px !important;
+        gap: 7px !important;
       }
-      .brand-logo-img {
+      .brand-logo-circle-frame {
+        width: 46px !important;
         height: 46px !important;
-        max-height: 46px !important;
-        width: auto !important;
-        max-width: 68px !important;
-        flex-shrink: 0;
       }
       .brand-desktop-only { display: none !important; }
       .brand-mobile-only { display: inline !important; }
       .brand-line-main {
         font-size: 0.82rem !important;
-        letter-spacing: 0.3px !important;
+        letter-spacing: 0.35px !important;
       }
       .brand-line-sub {
-        font-size: 0.58rem !important;
-        letter-spacing: 0.8px !important;
+        font-size: 0.6rem !important;
+        letter-spacing: 0.85px !important;
+        padding-left: 14px !important;
       }
       #txt-search-btn {
         display: none !important;
@@ -560,16 +610,16 @@ export function injectResponsiveHeaderAndStepperStyles() {
     }
 
     @media (max-width: 370px) {
-      .brand-logo-img {
+      .brand-logo-circle-frame {
+        width: 42px !important;
         height: 42px !important;
-        max-height: 42px !important;
-        max-width: 56px !important;
       }
       .brand-line-main {
         font-size: 0.74rem !important;
       }
       .brand-line-sub {
-        font-size: 0.53rem !important;
+        font-size: 0.54rem !important;
+        padding-left: 10px !important;
       }
     }
   `;
