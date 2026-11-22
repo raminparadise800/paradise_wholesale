@@ -1,0 +1,1898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- ========================================================================
+       === [SECTION-01: HEAD, SEO META, FONTS & GOOGLE VIDEO SCHEMA] ===
+       راهنما: تنظیمات سئو، تگ‌های پیش‌نمایش واتساپ و جایگاه اسکیمای VideoObject گوگل.
+       ======================================================================== -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title id="seo-page-title">Verified Customer Reviews, Air Cargo & Quality | Paradise Wholesale Istanbul</title>
+  <meta
+    name="description"
+    id="seo-meta-desc"
+    content="Watch verified wholesale client reviews from Europe, UK & USA, live order packing & air cargo dispatches, and close-up fabric quality checks from Paradise Wholesale Clothing Istanbul."
+  />
+  <link rel="canonical" id="seo-canonical" href="https://paradisewholesaler.com/reviews.html" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" id="og-title" content="Verified Customer Reviews & Live Cargo | Paradise Wholesale Istanbul" />
+  <meta property="og:description" id="og-desc" content="Real boutique client reviews, express air cargo packing & luxury fabric quality videos from Istanbul." />
+  <meta property="og:image" id="og-image" content="https://raminparadise800.github.io/paradise_wholesale/og-cover.jpg" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Vazirmatn:wght@500;700;800&display=swap" rel="stylesheet" />
+
+  <!-- اسکیمای ویدیوی گوگل (توسط ماژول ۲ به صورت خودکار پر می‌شود) -->
+  <script type="application/ld+json" id="seo-reviews-video-schema">{}</script>
+  <!-- === پایان [SECTION-01: HEAD, SEO META & VIDEO SCHEMA] === -->
+
+  <!-- ========================================================================
+       === [SECTION-02: MODULAR CSS STYLES] ===
+       راهنما: استایل هماهنگ با صفحه اصلی (هدر ریسپانسیو موبایل، ۳ تب چسبان،
+       فیلتر کشورها، شبکه ۲ ستونه عمودی، پلیر تمام‌صفحه ریلز، واتساپ و فوتر).
+       ======================================================================== -->
+  <style>
+    :root {
+      --bg-page: #f4f6f9;
+      --bg-card: #ffffff;
+      --bg-dark: #090d16;
+      --bg-dark-soft: #131b2e;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --gold: #d4af37;
+      --gold-dark: #b08d24;
+      --emerald: #10b981;
+      --emerald-dark: #059669;
+      --border: #e2e8f0;
+      --glass-white: rgba(255, 255, 255, 0.94);
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --shadow-sm: 0 2px 10px rgba(15, 23, 42, 0.06);
+      --shadow-md: 0 10px 26px rgba(15, 23, 42, 0.1);
+      --header-h: 54px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', 'Vazirmatn', sans-serif;
+      background: var(--bg-page);
+      color: var(--text-main);
+      font-size: 14px;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* ۱. هدر تاریک یکسان با صفحه اصلی + ریسپانسیو موبایل بدون بیرون‌زدگی */
+    .smart-top-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--header-h);
+      background: rgba(9, 13, 22, 0.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: #fff;
+      z-index: 3000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 0 10px;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.28);
+    }
+
+    .nav-left-group,
+    .nav-right-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .nav-right-group {
+      flex-shrink: 0;
+    }
+
+    .minimal-nav-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      height: 34px;
+      padding: 0 11px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: #f8fafc;
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .minimal-nav-btn:hover,
+    .minimal-nav-btn:active {
+      background: var(--gold);
+      color: #090d16;
+      border-color: var(--gold);
+    }
+
+    .brand-link-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      text-decoration: none;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .brand-logo-img {
+      height: 30px;
+      width: auto;
+      max-width: 82px;
+      border-radius: 6px;
+      object-fit: contain;
+      display: none;
+      flex-shrink: 0;
+    }
+
+    .brand-title-text {
+      color: var(--gold);
+      font-size: 0.84rem;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* منوی ۳ زبانه */
+    .lang-dropdown-wrap {
+      position: relative;
+    }
+
+    .lang-trigger-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      height: 34px;
+      padding: 0 10px;
+      border-radius: 20px;
+      background: rgba(212, 175, 55, 0.16);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      font-size: 0.75rem;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .lang-dropdown-menu {
+      position: absolute;
+      top: calc(100% + 7px);
+      right: 0;
+      min-width: 145px;
+      background: rgba(9, 13, 22, 0.98);
+      backdrop-filter: blur(16px);
+      border: 1.5px solid var(--gold);
+      border-radius: 14px;
+      padding: 6px;
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.55);
+      z-index: 3500;
+    }
+
+    .lang-dropdown-menu.open {
+      display: flex;
+    }
+
+    .lang-option-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 9px;
+      border: none;
+      background: transparent;
+      color: #f8fafc;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .lang-option-btn.active {
+      background: var(--gold);
+      color: #090d16;
+      font-weight: 800;
+    }
+
+    /* ۲. بنر معرفی کوتاه بالای صفحه */
+    .reviews-hero-strip {
+      margin-top: var(--header-h);
+      background: linear-gradient(135deg, #090d16 0%, #152238 100%);
+      color: #ffffff;
+      padding: 18px 14px 16px;
+      border-bottom: 1.5px solid rgba(212, 175, 55, 0.35);
+    }
+
+    .reviews-hero-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .reviews-hero-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--gold);
+      line-height: 1.3;
+    }
+
+    .reviews-hero-sub {
+      font-size: 0.78rem;
+      color: #cbd5e1;
+      margin-top: 4px;
+      max-width: 720px;
+    }
+
+    /* ۳. نوار چسبان ۳ تب اصلی + فیلتر کشورها */
+    .sticky-tabs-dock {
+      position: sticky;
+      top: var(--header-h);
+      z-index: 2500;
+      background: var(--glass-white);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+    }
+
+    .tabs-bar-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 9px 10px 8px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .review-tab-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      padding: 8px 6px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      background: #ffffff;
+      color: var(--text-main);
+      font-size: 0.74rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .review-tab-btn .tab-count-pill {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 10px;
+      background: #f1f5f9;
+      color: var(--text-muted);
+    }
+
+    .review-tab-btn.active {
+      background: var(--bg-dark);
+      color: var(--gold);
+      border-color: var(--gold);
+      box-shadow: 0 4px 14px rgba(9, 13, 22, 0.2);
+    }
+
+    .review-tab-btn.active .tab-count-pill {
+      background: rgba(212, 175, 55, 0.2);
+      color: #fde68a;
+    }
+
+    /* نوار فیلتر کشوری زیر تب‌ها */
+    .country-filter-wrap {
+      display: none;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2px 10px 9px;
+      border-top: 1px dashed rgba(15, 23, 42, 0.08);
+    }
+
+    .country-filter-track {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding: 4px 0 1px;
+    }
+
+    .country-filter-track::-webkit-scrollbar {
+      display: none;
+    }
+
+    .country-chip-btn {
+      padding: 5px 11px;
+      border-radius: 18px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: var(--text-main);
+      font-size: 0.73rem;
+      font-weight: 800;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.18s;
+      flex-shrink: 0;
+    }
+
+    .country-chip-btn.active {
+      background: var(--emerald);
+      color: #ffffff;
+      border-color: var(--emerald-dark);
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.28);
+    }
+
+    /* ۴. شبکه ۲ ستونه موبایل (و ۳-۴ ستونه دسکتاپ) برای کارت‌های ویدیو */
+    .reviews-main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 10px 28px;
+      min-height: 55vh;
+    }
+
+    .reviews-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    @media (min-width: 768px) {
+      .reviews-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+      }
+      .review-tab-btn {
+        flex-direction: row;
+        gap: 7px;
+        font-size: 0.84rem;
+        padding: 10px 12px;
+      }
+    }
+
+    @media (min-width: 1080px) {
+      .reviews-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+      }
+    }
+
+    .video-reel-card {
+      position: relative;
+      border-radius: 15px;
+      overflow: hidden;
+      aspect-ratio: 9 / 14;
+      background: #0f172a;
+      border: 1.5px solid rgba(15, 23, 42, 0.08);
+      box-shadow: var(--shadow-md);
+      cursor: pointer;
+      transition: transform 0.22s ease;
+    }
+
+    .video-reel-card:active {
+      transform: scale(0.98);
+    }
+
+    .video-reel-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+
+    .video-reel-card:hover img {
+      transform: scale(1.04);
+    }
+
+    .video-card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(9, 13, 22, 0.42) 0%, rgba(9, 13, 22, 0.08) 42%, rgba(9, 13, 22, 0.92) 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 10px;
+      color: #ffffff;
+    }
+
+    .video-country-badge {
+      align-self: flex-start;
+      background: var(--gold);
+      color: #090d16;
+      font-size: 0.65rem;
+      font-weight: 900;
+      padding: 3px 8px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .video-play-center {
+      align-self: center;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: rgba(9, 13, 22, 0.62);
+      backdrop-filter: blur(6px);
+      border: 2px solid rgba(255, 255, 255, 0.88);
+      color: #ffffff;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-left: 3px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    }
+
+    .video-card-title {
+      font-size: 0.76rem;
+      font-weight: 700;
+      line-height: 1.32;
+      color: #ffffff;
+      text-shadow: 0 2px 5px rgba(0, 0, 0, 0.85);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* اسکلتون لودینگ و ناظر اسکرول بی‌نهایت */
+    .skeleton-card {
+      aspect-ratio: 9 / 14;
+      border-radius: 15px;
+      background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+      background-size: 200% 100%;
+      animation: shimmerLoad 1.2s infinite;
+    }
+
+    @keyframes shimmerLoad {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .infinite-footer-area {
+      text-align: center;
+      padding: 18px 10px 8px;
+    }
+
+    .load-more-fallback-btn {
+      display: none;
+      padding: 10px 22px;
+      border-radius: 22px;
+      border: 1.5px solid var(--bg-dark);
+      background: #ffffff;
+      color: var(--bg-dark);
+      font-size: 0.8rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .empty-tab-box {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 48px 16px;
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    /* ۵. پلیر تمام‌صفحه شبیه Reels اینستاگرام (اسکرول انگشت بالا/پایین + پخش خودکار + دکمه‌ها) */
+    .reels-fullscreen-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 6500;
+      background: #000000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      touch-action: none;
+      overscroll-behavior: contain;
+    }
+
+    .reels-fullscreen-modal.open {
+      display: flex;
+    }
+
+    .reels-viewport-shell {
+      position: relative;
+      width: 100%;
+      height: 100dvh;
+      max-width: 460px;
+      background: #090d16;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (min-width: 640px) {
+      .reels-viewport-shell {
+        height: 92vh;
+        border-radius: 18px;
+        border: 1.5px solid rgba(212, 175, 55, 0.45);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+      }
+    }
+
+    .reels-top-bar {
+      position: relative;
+      z-index: 25;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: #090d16;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      flex-shrink: 0;
+    }
+
+    .reels-country-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(212, 175, 55, 0.16);
+      color: var(--gold);
+      border: 1px solid rgba(212, 175, 55, 0.45);
+      padding: 4px 11px;
+      border-radius: 16px;
+      font-size: 0.76rem;
+      font-weight: 800;
+    }
+
+    .reels-counter-pill {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #cbd5e1;
+    }
+
+    .reels-close-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      font-size: 1rem;
+      font-weight: 900;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .reels-stage-wrap {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      background: #000000;
+      overflow: hidden;
+    }
+
+    .reels-media-holder {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.22s ease;
+    }
+
+    .reels-media-holder iframe,
+    .reels-media-holder video {
+      width: 100%;
+      height: 100%;
+      border: none;
+      object-fit: cover;
+      background: #000;
+    }
+
+    .reels-gesture-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 15;
+      background: transparent;
+      touch-action: none;
+      cursor: pointer;
+    }
+
+    .reels-tap-feedback {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      z-index: 18;
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.65);
+      color: #fff;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s ease;
+    }
+
+    .reels-tap-feedback.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .reels-side-actions {
+      position: absolute;
+      right: 12px;
+      bottom: 84px;
+      z-index: 22;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .reels-side-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(9, 13, 22, 0.72);
+      backdrop-filter: blur(8px);
+      color: #ffffff;
+      font-size: 1rem;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+    }
+
+    .reels-side-btn:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    .reels-bottom-caption {
+      position: relative;
+      z-index: 25;
+      background: #090d16;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 10px 14px 12px;
+      color: #ffffff;
+      flex-shrink: 0;
+    }
+
+    .reels-caption-title {
+      font-size: 0.86rem;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.35;
+    }
+
+    .reels-swipe-hint {
+      font-size: 0.7rem;
+      color: var(--gold);
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      opacity: 0.9;
+    }
+
+    @keyframes reelSlideFromBottom {
+      from { transform: translateY(38%); opacity: 0.35; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes reelSlideFromTop {
+      from { transform: translateY(-38%); opacity: 0.35; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .reel-anim-up { animation: reelSlideFromBottom 0.26s ease-out; }
+    .reel-anim-down { animation: reelSlideFromTop 0.26s ease-out; }
+
+    /* ۶. دکمه شناور واتساپ و فوتر یکسان با صفحه اصلی */
+    @keyframes softWhatsappPulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 4px 16px rgba(37, 211, 102, 0.32), 0 0 0 0 rgba(37, 211, 102, 0.38);
+      }
+      50% {
+        transform: scale(1.04);
+        box-shadow: 0 6px 22px rgba(37, 211, 102, 0.55), 0 0 0 9px rgba(37, 211, 102, 0);
+      }
+    }
+
+    .floating-whatsapp-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 14px;
+      z-index: 4500;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 14px;
+      border-radius: 30px;
+      background: rgba(37, 211, 102, 0.9);
+      backdrop-filter: blur(10px);
+      border: 1.5px solid rgba(255, 255, 255, 0.7);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-decoration: none;
+      animation: softWhatsappPulse 3.6s infinite ease-in-out;
+    }
+
+    .floating-whatsapp-btn svg {
+      width: 21px;
+      height: 21px;
+      fill: currentColor;
+      flex-shrink: 0;
+    }
+
+    .b2b-footer {
+      background: var(--bg-dark);
+      color: #cbd5e1;
+      padding: 34px 16px 86px;
+      margin-top: 28px;
+      border-top: 2px solid rgba(212, 175, 55, 0.3);
+    }
+
+    .footer-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 22px;
+    }
+
+    @media (min-width: 768px) {
+      .footer-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .footer-social-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 12px;
+    }
+
+    .social-pill-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 13px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: #fff;
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .social-pill-link:hover {
+      background: rgba(212, 175, 55, 0.18);
+      border-color: var(--gold);
+    }
+
+    .social-pill-link svg {
+      width: 17px;
+      height: 17px;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 600px) {
+      .smart-top-header {
+        padding: 0 7px;
+      }
+      .minimal-nav-btn {
+        height: 31px;
+        padding: 0 9px;
+        font-size: 0.72rem;
+      }
+      .lang-trigger-btn {
+        height: 31px;
+        padding: 0 8px;
+        font-size: 0.72rem;
+      }
+      .brand-logo-img {
+        height: 26px;
+        max-width: 34px;
+      }
+      .brand-title-text {
+        font-size: 0.74rem;
+        max-width: 128px;
+      }
+    }
+  </style>
+  <!-- === پایان [SECTION-02: MODULAR CSS STYLES] === -->
+</head>
+<body>
+
+  <!-- ========================================================================
+       === [SECTION-03: SMART TOP HEADER] ===
+       ======================================================================== -->
+  <header class="smart-top-header" id="smart-top-header">
+    <div class="nav-left-group">
+      <a href="index.html" class="minimal-nav-btn" id="btn-back-catalog">
+        <span>←</span>
+        <span data-i18n="catalogBtn">Catalog</span>
+      </a>
+      <a href="index.html" class="brand-link-wrap" id="header-brand-link">
+        <img src="" alt="Paradise Wholesale Logo" class="brand-logo-img" id="header-logo-img" />
+        <span class="brand-title-text">Paradise Wholesale</span>
+      </a>
+    </div>
+
+    <div class="nav-right-group">
+      <div class="lang-dropdown-wrap" id="lang-switcher-group">
+        <button type="button" class="lang-trigger-btn" id="btn-lang-dropdown" aria-label="Change Language">
+          <span id="current-lang-flag">🇬🇧</span>
+          <span id="current-lang-code">EN</span>
+          <span>▾</span>
+        </button>
+        <div class="lang-dropdown-menu" id="lang-dropdown-menu">
+          <button type="button" class="lang-option-btn active" data-lang="en"><span>🇬🇧 English</span><span>EN</span></button>
+          <button type="button" class="lang-option-btn" data-lang="it"><span>🇮🇹 Italiano</span><span>IT</span></button>
+          <button type="button" class="lang-option-btn" data-lang="es"><span>🇪🇸 Español</span><span>ES</span></button>
+        </div>
+      </div>
+    </div>
+  </header>
+  <!-- === پایان [SECTION-03: SMART TOP HEADER] === -->
+
+  <!-- ========================================================================
+       === [SECTION-04: HERO, STICKY 3-TABS, COUNTRY FILTER & 2-COL VIDEO GRID] ===
+       ======================================================================== -->
+  <section class="reviews-hero-strip">
+    <div class="reviews-hero-inner">
+      <h1 class="reviews-hero-title" data-i18n="heroTitle">⭐ Verified Customer Reviews, Cargo & Quality</h1>
+      <p class="reviews-hero-sub" data-i18n="heroSub">
+        Real wholesale boutique clients worldwide, daily express air cargo packing from Istanbul, and close-up stitching & fabric quality checks.
+      </p>
+    </div>
+  </section>
+
+  <div class="sticky-tabs-dock" id="sticky-tabs-dock">
+    <div class="tabs-bar-inner" id="reviews-tabs-bar">
+      <button type="button" class="review-tab-btn active" data-tab="reviews">
+        <span data-i18n="tabReviews">⭐ Customer Reviews</span>
+        <span class="tab-count-pill" id="count-tab-reviews">0</span>
+      </button>
+      <button type="button" class="review-tab-btn" data-tab="packing">
+        <span data-i18n="tabPacking">📦 Packing & Cargo</span>
+        <span class="tab-count-pill" id="count-tab-packing">0</span>
+      </button>
+      <button type="button" class="review-tab-btn" data-tab="quality">
+        <span data-i18n="tabQuality">🧵 Product Quality</span>
+        <span class="tab-count-pill" id="count-tab-quality">0</span>
+      </button>
+    </div>
+
+    <div class="country-filter-wrap" id="country-filter-wrap">
+      <div class="country-filter-track" id="country-filter-track"></div>
+    </div>
+  </div>
+
+  <main class="reviews-main-container">
+    <div class="reviews-grid" id="reviews-videos-grid">
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+    </div>
+
+    <div class="infinite-footer-area">
+      <div id="infinite-scroll-sentinel" style="height:2px; width:100%;"></div>
+      <button type="button" class="load-more-fallback-btn" id="btn-load-more-videos" data-i18n="loadMoreBtn">
+        ⬇️ Load More Videos
+      </button>
+    </div>
+  </main>
+  <!-- === پایان [SECTION-04: HERO, STICKY 3-TABS, COUNTRY FILTER & VIDEO GRID] === -->
+
+  <!-- ========================================================================
+       === [SECTION-05: FULLSCREEN INSTAGRAM-STYLE REELS PLAYER] ===
+       ======================================================================== -->
+  <div class="reels-fullscreen-modal" id="reels-fullscreen-modal" aria-hidden="true">
+    <div class="reels-viewport-shell">
+      <div class="reels-top-bar">
+        <span class="reels-country-pill" id="reels-active-country">⭐ REVIEW</span>
+        <span class="reels-counter-pill" id="reels-active-counter">1 / 1</span>
+        <button type="button" class="reels-close-btn" id="btn-close-reels-modal" aria-label="Close">✕</button>
+      </div>
+
+      <div class="reels-stage-wrap">
+        <div class="reels-media-holder" id="reels-media-holder"></div>
+        <div class="reels-gesture-layer" id="reels-gesture-layer"></div>
+        <div class="reels-tap-feedback" id="reels-tap-feedback">⏸</div>
+
+        <div class="reels-side-actions">
+          <button type="button" class="reels-side-btn" id="btn-reels-prev" aria-label="Previous Video" title="Previous">▲</button>
+          <button type="button" class="reels-side-btn" id="btn-reels-next" aria-label="Next Video" title="Next">▼</button>
+          <button type="button" class="reels-side-btn" id="btn-reels-sound" aria-label="Toggle Sound" title="Sound">🔊</button>
+        </div>
+      </div>
+
+      <div class="reels-bottom-caption">
+        <div class="reels-caption-title" id="reels-active-title">Verified Customer Review</div>
+        <div class="reels-swipe-hint">
+          <span id="reels-swipe-hint-text">⬆ Swipe up / down for next video</span>
+          <span>Paradise Wholesale Istanbul</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- === پایان [SECTION-05: FULLSCREEN INSTAGRAM-STYLE REELS PLAYER] === -->
+
+  <!-- ========================================================================
+       === [SECTION-06: FLOATING WHATSAPP & DYNAMIC B2B FOOTER] ===
+       ======================================================================== -->
+  <a
+    href="https://wa.me/905459099395"
+    target="_blank"
+    rel="noopener"
+    class="floating-whatsapp-btn"
+    id="floating-whatsapp-btn"
+    aria-label="Chat on WhatsApp"
+  >
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M16.004 3.2c-7.07 0-12.8 5.73-12.8 12.8 0 2.257.59 4.46 1.71 6.404L3.2 28.8l6.564-1.693a12.74 12.74 0 0 0 6.24 1.627h.005c7.068 0 12.796-5.73 12.796-12.8 0-3.42-1.332-6.636-3.75-9.054A12.712 12.712 0 0 0 16.004 3.2zm0 23.36h-.004a10.6 10.6 0 0 1-5.403-1.48l-.388-.23-3.895 1.005 1.04-3.797-.253-.402a10.573 10.573 0 0 1-1.625-5.656c0-5.845 4.756-10.6 10.604-10.6 2.83 0 5.492 1.103 7.493 3.105a10.53 10.53 0 0 1 3.103 7.495c0 5.846-4.756 10.56-10.672 10.56zm5.814-7.925c-.318-.16-1.884-.93-2.176-1.036-.292-.106-.504-.16-.716.16-.212.318-.822 1.036-1.008 1.248-.186.212-.372.24-.69.08-.318-.16-1.345-.496-2.562-1.58-.947-.844-1.586-1.887-1.772-2.205-.186-.318-.02-.49.14-.65.143-.142.318-.372.477-.558.16-.186.212-.318.318-.53.106-.213.053-.399-.027-.558-.08-.16-.716-1.726-.982-2.363-.258-.62-.52-.536-.716-.546l-.61-.01c-.212 0-.558.08-.85.398-.292.318-1.114 1.088-1.114 2.654 0 1.566 1.14 3.08 1.3 3.292.16.212 2.245 3.428 5.44 4.807.76.328 1.353.524 1.815.67.763.242 1.457.208 2.006.126.612-.092 1.884-.77 2.15-1.513.265-.743.265-1.38.186-1.513-.08-.133-.292-.212-.61-.372z"/>
+    </svg>
+    <span data-i18n="floatingWa">WhatsApp Direct</span>
+  </a>
+
+  <footer class="b2b-footer">
+    <div class="footer-grid">
+      <div>
+        <strong style="color:var(--gold); font-size:0.95rem; display:block; margin-bottom:8px;">Paradise Wholesale Clothing Istanbul</strong>
+        <p style="font-size:0.78rem; line-height:1.6; color:#94a3b8;" data-i18n="footerAboutDesc"></p>
+        <div class="footer-social-links" id="footer-social-container"></div>
+      </div>
+
+      <div>
+        <strong style="color:#ffffff; font-size:0.88rem; display:block; margin-bottom:8px;" data-i18n="footerLinksTitle"></strong>
+        <div style="display:flex; flex-direction:column; gap:8px; font-size:0.79rem;">
+          <a href="index.html" id="footer-catalog-link" style="color:#cbd5e1; text-decoration:none;" data-i18n="footerLinkCatalog"></a>
+          <a href="reviews.html" id="footer-reviews-link" style="color:var(--gold); text-decoration:none; font-weight:700;" data-i18n="footerLinkReviews"></a>
+          <a href="blog.html" id="footer-blog-link" style="color:#cbd5e1; text-decoration:none;" data-i18n="footerLinkBlog"></a>
+        </div>
+      </div>
+
+      <div>
+        <strong style="color:#ffffff; font-size:0.88rem; display:block; margin-bottom:8px;" data-i18n="footerContactTitle"></strong>
+        <p style="font-size:0.78rem; color:#94a3b8; margin-bottom:6px;" data-i18n="footerAddress"></p>
+        <p style="font-size:0.79rem; margin-bottom:6px;">
+          <span data-i18n="footerWaLabel"></span>
+          <a href="https://wa.me/905459099395" target="_blank" rel="noopener" id="footer-wa-link" style="color:var(--gold); font-weight:800; text-decoration:none;">+90 545 909 93 95</a>
+        </p>
+        <p style="font-size:0.75rem; color:#94a3b8;" data-i18n="footerCargoNote"></p>
+      </div>
+    </div>
+
+    <div style="max-width:1200px; margin:22px auto 0; padding-top:14px; border-top:1px solid rgba(255,255,255,0.08); text-align:center; font-size:0.72rem; color:#64748b;" data-i18n="footerCopyright"></div>
+  </footer>
+  <!-- === پایان [SECTION-06: FLOATING WHATSAPP & DYNAMIC B2B FOOTER] === -->
+
+  <!-- ========================================================================
+       === [SECTION-07: MODULAR JAVASCRIPT ENGINE (6 MODULES)] ===
+       ======================================================================== -->
+  <script type="module">
+    import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+
+    /* ======================================================================
+       === شروع [MODULE-01: FIREBASE CONFIG, STATE & 3-LANG DICTIONARY] ===
+       ====================================================================== */
+    const firebaseConfig = {
+      apiKey: "AIzaSyCQyBszaUZ4FJX2OJw4YrcLMwUbk2BtxL4",
+      authDomain: "paradise-wholesale.firebaseapp.com",
+      projectId: "paradise-wholesale",
+      storageBucket: "paradise-wholesale.firebasestorage.app",
+      messagingSenderId: "516659166400",
+      appId: "1:516659166400:web:9ac24230ebe5676cfe0125"
+    };
+
+    const SITE_DOMAIN = "https://paradisewholesaler.com";
+    const DEFAULT_WHATSAPP = "+905459099395";
+    const DEFAULT_INSTAGRAM_URL = "https://www.instagram.com/paradisewholesaleclothing5401";
+    const DEFAULT_YOUTUBE_URL = "https://www.youtube.com/@paradisewholesaleclothing5401";
+    const LANG_FLAGS = { en: "🇬🇧", it: "🇮🇹", es: "🇪🇸" };
+    const BATCH_SIZE = 8;
+
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const DICT = {
+      en: {
+        seoTitle: "Verified Customer Reviews, Air Cargo & Quality | Paradise Wholesale Istanbul",
+        seoDesc: "Watch verified wholesale client reviews from Europe, UK & USA, live order packing & air cargo dispatches, and fabric quality checks from Istanbul.",
+        catalogBtn: "Catalog",
+        heroTitle: "⭐ Verified Customer Reviews, Cargo & Quality",
+        heroSub: "Real wholesale boutique clients worldwide, daily express air cargo packing from Istanbul, and close-up fabric & stitching quality checks.",
+        tabReviews: "⭐ Customer Reviews",
+        tabPacking: "📦 Packing & Cargo",
+        tabQuality: "🧵 Product Quality",
+        allCountries: "🌍 All Countries",
+        loadMoreBtn: "⬇️ Load More Videos",
+        emptyTabMsg: "No videos published in this section yet. Check back soon!",
+        floatingWa: "WhatsApp Direct",
+        swipeHintMulti: "⬆ Swipe up / down for next video",
+        swipeHintSingle: "Tap video to pause / play",
+        footerAboutDesc: "Direct Turkish luxury & premium quality apparel wholesale supplier based in Istanbul. Supplying boutiques and distributors across Europe, UK, USA & worldwide with factory-direct serie packs and 3–5 day express air cargo.",
+        footerLinksTitle: "Explore Catalog & Trust",
+        footerLinkCatalog: "🛍️ Wholesale Catalog (Men, Women, Kids)",
+        footerLinkReviews: "⭐ Customer Reviews, Packing & Product Quality",
+        footerLinkBlog: "📝 Wholesale Ordering & Cargo Shipping Guides",
+        footerContactTitle: "📍 Istanbul Showroom & Direct Support",
+        footerAddress: "🏢 Merter & Laleli Wholesale Hub, Istanbul, Turkey",
+        footerWaLabel: "WhatsApp B2B Desk:",
+        footerCargoNote: "✈️ Express Air Cargo & Door-to-Door Delivery (3–5 Business Days)",
+        footerCopyright: "© 2026 Paradise Wholesale Clothing Istanbul. All Rights Reserved."
+      },
+      it: {
+        seoTitle: "Recensioni Verificate, Cargo Aereo e Qualità | Paradise Wholesale Istanbul",
+        seoDesc: "Guarda le recensioni reali dei nostri clienti boutique in Italia ed Europa, imballaggio ordini cargo espresso e controllo qualità tessuti da Istanbul.",
+        catalogBtn: "Catalogo",
+        heroTitle: "⭐ Recensioni Clienti, Cargo e Qualità",
+        heroSub: "Clienti boutique verificati in Europa e nel mondo, imballaggio giornaliero cargo aereo da Istanbul e video ravvicinati su tessuti e cuciture.",
+        tabReviews: "⭐ Recensioni Clienti",
+        tabPacking: "📦 Imballaggio e Cargo",
+        tabQuality: "🧵 Qualità Prodotti",
+        allCountries: "🌍 Tutti i Paesi",
+        loadMoreBtn: "⬇️ Carica Altri Video",
+        emptyTabMsg: "Nessun video pubblicato in questa sezione per ora.",
+        floatingWa: "WhatsApp Diretto",
+        swipeHintMulti: "⬆ Scorri su / giù per il prossimo video",
+        swipeHintSingle: "Tocca per pausa / play",
+        footerAboutDesc: "Fornitore diretto all'ingrosso di abbigliamento turco di lusso e qualità premium con sede a Istanbul. Riforniamo boutique e distributori in Italia, Europa, Regno Unito e USA con pacchi serie diretti e cargo aereo espresso in 3–5 giorni.",
+        footerLinksTitle: "Esplora Catalogo e Garanzie",
+        footerLinkCatalog: "🛍️ Catalogo Ingrosso (Uomo, Donna, Bambini)",
+        footerLinkReviews: "⭐ Recensioni Clienti, Imballaggio e Qualità",
+        footerLinkBlog: "📝 Guide Ordini Ingrosso e Spedizioni Cargo",
+        footerContactTitle: "📍 Showroom Istanbul e Assistenza Diretta",
+        footerAddress: "🏢 Polo Ingrosso Merter e Laleli, Istanbul, Turchia",
+        footerWaLabel: "Ufficio B2B WhatsApp:",
+        footerCargoNote: "✈️ Cargo Aereo Espresso e Consegna Porta a Porta (3–5 Giorni Lavorativi)",
+        footerCopyright: "© 2026 Paradise Wholesale Clothing Istanbul. Tutti i diritti riservati."
+      },
+      es: {
+        seoTitle: "Reseñas Verificadas, Carga Aérea y Calidad | Paradise Wholesale Estambul",
+        seoDesc: "Mira reseñas reales de clientes mayoristas en España y Europa, embalaje de pedidos en vivo y control de calidad de tejidos desde Estambul.",
+        catalogBtn: "Catálogo",
+        heroTitle: "⭐ Reseñas de Clientes, Carga y Calidad",
+        heroSub: "Clientes mayoristas verificados en todo el mundo, embalaje diario de carga aérea exprés desde Estambul y detalles de calidad de tela y costura.",
+        tabReviews: "⭐ Reseñas Clientes",
+        tabPacking: "📦 Embalaje y Carga",
+        tabQuality: "🧵 Calidad del Producto",
+        allCountries: "🌍 Todos los Países",
+        loadMoreBtn: "⬇️ Cargar Más Vídeos",
+        emptyTabMsg: "Aún no hay vídeos publicados en esta sección.",
+        floatingWa: "WhatsApp Directo",
+        swipeHintMulti: "⬆ Desliza arriba / abajo para el siguiente vídeo",
+        swipeHintSingle: "Toca para pausar / reproducir",
+        footerAboutDesc: "Proveedor mayorista directo de ropa turca de lujo y calidad premium con sede en Estambul. Abastecemos boutiques y distribuidores en España, Europa, Reino Unido y EE. UU. con paquetes serie directos y carga aérea exprés en 3–5 días.",
+        footerLinksTitle: "Explorar Catálogo y Confianza",
+        footerLinkCatalog: "🛍️ Catálogo Mayorista (Hombre, Mujer, Niños)",
+        footerLinkReviews: "⭐ Reseñas de Clientes, Embalaje y Calidad",
+        footerLinkBlog: "📝 Guías de Pedidos Mayoristas y Carga Aérea",
+        footerContactTitle: "📍 Showroom Estambul y Soporte Directo",
+        footerAddress: "🏢 Centro Mayorista Merter y Laleli, Estambul, Turquía",
+        footerWaLabel: "Atención B2B WhatsApp:",
+        footerCargoNote: "✈️ Carga Aérea Exprés y Entrega Puerta a Puerta (3–5 Días Hábiles)",
+        footerCopyright: "© 2026 Paradise Wholesale Clothing Istanbul. Todos los derechos reservados."
+      }
+    };
+
+    const state = {
+      lang: "en",
+      activeTab: "reviews",
+      activeCountry: "ALL",
+      allVideos: [],
+      activeFilteredList: [],
+      renderedCount: 0,
+      publicConfig: {
+        logoUrl: "",
+        whatsappRaw: DEFAULT_WHATSAPP,
+        whatsappDisplay: "+90 545 909 93 95",
+        ga4MeasurementId: "",
+        googleAdsId: "",
+        instagramUrl: DEFAULT_INSTAGRAM_URL,
+        youtubeUrl: DEFAULT_YOUTUBE_URL,
+        telegramUrl: "https://t.me/paradisewholesaler",
+        tiktokUrl: "https://tiktok.com/@paradisewholesaler",
+        androidAppUrl: ""
+      }
+    };
+
+    function t(key) {
+      return (DICT[state.lang] && DICT[state.lang][key]) || DICT.en[key] || key;
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&" + "amp;")
+        .replace(/</g, "&" + "lt;")
+        .replace(/>/g, "&" + "gt;")
+        .replace(/"/g, "&" + "quot;")
+        .replace(/'/g, "&" + "#039;");
+    }
+
+    function extractYoutubeId(input) {
+      const raw = String(input || "").trim();
+      if (!raw || raw === "dQw4w9WgXcQ") return "";
+      if (/^[a-zA-Z0-9_-]{11}$/.test(raw)) return raw;
+      const m = raw.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|shorts\/|watch\?v=|watch\?.+&v=))([a-zA-Z0-9_-]{11})/);
+      return m ? m[1] : "";
+    }
+
+    function getLocalizedTitle(titleObj, fallback = "Verified Video") {
+      if (!titleObj) return fallback;
+      if (typeof titleObj === "string") return titleObj;
+      return titleObj[state.lang] || titleObj.en || titleObj.it || titleObj.es || fallback;
+    }
+    /* === پایان [MODULE-01: FIREBASE CONFIG, STATE & 3-LANG DICTIONARY] === */
+
+
+    /* ======================================================================
+       === شروع [MODULE-02: GOOGLE ANALYTICS, GOOGLE ADS & SEO VIDEO SCHEMA] ===
+       راهنما: تزریق خودکار تگ GA4 و Google Ads از تنظیمات پنل ادمین + اسکیمای
+       استاندارد VideoObject گوگل برای نمایش بهتر ویدیوها در نتایج جستجو.
+       ====================================================================== */
+    function initGoogleAdsAndAnalyticsTag() {
+      const ga4Id = (state.publicConfig.ga4MeasurementId || "").trim();
+      const gadsId = (state.publicConfig.googleAdsId || "").trim();
+      const primaryTagId = gadsId || ga4Id;
+      if (!primaryTagId || window._paradiseGtagLoaded) return;
+
+      window._paradiseGtagLoaded = true;
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () {
+        window.dataLayer.push(arguments);
+      };
+      window.gtag("js", new Date());
+      if (ga4Id) window.gtag("config", ga4Id);
+      if (gadsId) window.gtag("config", gadsId);
+
+      const script = document.createElement("script");
+      script.async = true;
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(primaryTagId)}`;
+      document.head.appendChild(script);
+    }
+
+    function fireDirectWhatsappClickEvent() {
+      if (typeof window.gtag === "function") {
+        window.gtag("event", "whatsapp_direct_chat_click", {
+          event_category: "engagement",
+          page_location: "reviews",
+          value: 1.0,
+          currency: "USD"
+        });
+      }
+    }
+
+    function injectGoogleVideoSchema() {
+      const schemaEl = document.getElementById("seo-reviews-video-schema");
+      if (!schemaEl) return;
+
+      const topVideos = state.allVideos.slice(0, 30).map((v, idx) => {
+        const title = getLocalizedTitle(v.title, `Paradise Wholesale Video #${idx + 1}`);
+        const ytId = v.ytId;
+        const thumb = v.thumb || (ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : `${SITE_DOMAIN}/og-cover.jpg`);
+        const embedUrl = ytId ? `https://www.youtube.com/embed/${ytId}` : v.url || `${SITE_DOMAIN}/reviews.html`;
+        return {
+          "@type": "VideoObject",
+          position: idx + 1,
+          name: title,
+          description: `${title} — ${v.countryLabel || "Worldwide"} | Paradise Wholesale Clothing Istanbul`,
+          thumbnailUrl: [thumb],
+          uploadDate: "2026-01-01T00:00:00+03:00",
+          embedUrl: embedUrl,
+          publisher: {
+            "@type": "Organization",
+            name: "Paradise Wholesale Clothing Istanbul",
+            url: SITE_DOMAIN
+          }
+        };
+      });
+
+      schemaEl.textContent = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: t("seoTitle"),
+        description: t("seoDesc"),
+        url: `${SITE_DOMAIN}/reviews.html`,
+        mainEntity: {
+          "@type": "ItemList",
+          numberOfItems: state.allVideos.length,
+          itemListElement: topVideos
+        }
+      });
+    }
+    /* === پایان [MODULE-02: GOOGLE ANALYTICS, GOOGLE ADS & SEO VIDEO SCHEMA] === */
+
+
+    /* ======================================================================
+       === شروع [MODULE-03: DATA LOADER, INTERLEAVING & COUNTRY FILTER] ===
+       ====================================================================== */
+    async function loadReviewsConfigAndVideos() {
+      try {
+        const snap = await getDoc(doc(db, "settings", "public_config"));
+        if (snap.exists()) {
+          const data = snap.data();
+          state.publicConfig = { ...state.publicConfig, ...data };
+
+          const cVids = Array.isArray(data.cargoVideos) ? data.cargoVideos : [];
+          const sVids = Array.isArray(data.showroomVideos) ? data.showroomVideos : [];
+
+          state.allVideos = [...cVids, ...sVids]
+            .filter((v) => v && typeof v === "object")
+            .map((v, i) => {
+              const rawLink = v.ytId || v.url || v.videoUrl || v.link || "";
+              const ytId = extractYoutubeId(rawLink);
+              const directUrl = !ytId ? (v.url || v.videoUrl || rawLink) : "";
+              return {
+                id: v.id || `vid_${i}`,
+                category: String(v.category || "reviews").toLowerCase(),
+                country: String(v.country || "INTERNATIONAL").trim().toUpperCase(),
+                countryLabel: v.countryLabel || v.badge || "🌍 INTERNATIONAL",
+                ytId,
+                url: directUrl,
+                thumb: v.thumb || (ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : ""),
+                title: v.title || { en: `Wholesale Video #${i + 1}` }
+              };
+            })
+            .filter((v) => Boolean(v.ytId || v.url));
+        }
+      } catch (err) {
+        console.error("Reviews load error:", err);
+      }
+    }
+
+    /**
+     * چیدمان متوازن یکی‌درمیان کشورها با حفظ ترتیب دستی پنل ادمین در هر کشور
+     */
+    function interleavePreservingAdminOrder(list) {
+      if (!Array.isArray(list) || list.length <= 1) return list || [];
+      const buckets = new Map();
+      list.forEach((item) => {
+        const key = item.country || "INTERNATIONAL";
+        if (!buckets.has(key)) buckets.set(key, []);
+        buckets.get(key).push(item);
+      });
+
+      const keys = Array.from(buckets.keys());
+      const result = [];
+      let round = 0;
+      let added = true;
+
+      while (added) {
+        added = false;
+        for (const k of keys) {
+          const arr = buckets.get(k);
+          if (round < arr.length) {
+            result.push(arr[round]);
+            added = true;
+          }
+        }
+        round++;
+      }
+      return result;
+    }
+
+    function updateTabCounts() {
+      const counts = { reviews: 0, packing: 0, quality: 0 };
+      state.allVideos.forEach((v) => {
+        if (counts[v.category] !== undefined) counts[v.category]++;
+        else counts.reviews++;
+      });
+      const setCount = (id, n) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = String(n);
+      };
+      setCount("count-tab-reviews", counts.reviews);
+      setCount("count-tab-packing", counts.packing);
+      setCount("count-tab-quality", counts.quality);
+    }
+
+    function renderCountryFilterPills(tabVideos) {
+      const wrap = document.getElementById("country-filter-wrap");
+      const track = document.getElementById("country-filter-track");
+      if (!wrap || !track) return;
+
+      const countryMap = new Map();
+      tabVideos.forEach((v) => {
+        if (!countryMap.has(v.country)) {
+          countryMap.set(v.country, { code: v.country, label: v.countryLabel, count: 0 });
+        }
+        countryMap.get(v.country).count++;
+      });
+
+      if (countryMap.size <= 1) {
+        wrap.style.display = "none";
+        state.activeCountry = "ALL";
+        return;
+      }
+
+      if (state.activeCountry !== "ALL" && !countryMap.has(state.activeCountry)) {
+        state.activeCountry = "ALL";
+      }
+
+      wrap.style.display = "block";
+      const pills = [
+        `<button type="button" class="country-chip-btn ${state.activeCountry === "ALL" ? "active" : ""}" data-country="ALL">
+          ${escapeHtml(t("allCountries"))} (${tabVideos.length})
+        </button>`
+      ];
+
+      countryMap.forEach((c) => {
+        pills.push(`
+          <button type="button" class="country-chip-btn ${state.activeCountry === c.code ? "active" : ""}" data-country="${escapeHtml(c.code)}">
+            ${escapeHtml(c.label)} (${c.count})
+          </button>
+        `);
+      });
+
+      track.innerHTML = pills.join("");
+    }
+
+    function applyTabAndCountrySelection() {
+      const tabVideos = state.allVideos.filter((v) => v.category === state.activeTab);
+      renderCountryFilterPills(tabVideos);
+
+      let finalList =
+        state.activeCountry === "ALL"
+          ? tabVideos
+          : tabVideos.filter((v) => v.country === state.activeCountry);
+
+      // در تب رضایت مشتریان (حالت همه کشورها) کشورها را یکی‌درمیان پخش می‌کنیم؛ در بقیه حالت‌ها ترتیب دقیق ادمین حفظ می‌شود
+      if (state.activeTab === "reviews" && state.activeCountry === "ALL") {
+        finalList = interleavePreservingAdminOrder(finalList);
+      }
+
+      state.activeFilteredList = finalList;
+      renderGridFromScratch();
+    }
+    /* === پایان [MODULE-03: DATA LOADER, INTERLEAVING & COUNTRY FILTER] === */
+
+
+    /* ======================================================================
+       === شروع [MODULE-04: 2-COLUMN GRID & EARLY INFINITE SCROLL (8 BY 8)] ===
+       راهنما: رندر اولیه ۸ ویدیو + لود پیش‌ازموعد (۵۵۰ پیکسل قبل از انتها)
+       با افزودن به انتهای DOM تا عکس‌های قبلی دوباره لود یا چشمک نزنند.
+       ====================================================================== */
+    let infiniteObserver = null;
+
+    function buildVideoCardHtml(v, idx) {
+      const thumb =
+        v.thumb ||
+        "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=400&q=75";
+      const title = getLocalizedTitle(v.title, `Paradise Wholesale #${idx + 1}`);
+      const badge = v.countryLabel || "⭐ REVIEW";
+      const loadAttr = idx < 4 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy" decoding="async"';
+
+      return `
+        <article class="video-reel-card" data-reel-idx="${idx}">
+          <img src="${escapeHtml(thumb)}" alt="${escapeHtml(title)}" ${loadAttr} />
+          <div class="video-card-overlay">
+            <span class="video-country-badge">${escapeHtml(badge)}</span>
+            <div class="video-play-center">▶</div>
+            <div class="video-card-title">${escapeHtml(title)}</div>
+          </div>
+        </article>
+      `;
+    }
+
+    function appendNextVideoBatch() {
+      const grid = document.getElementById("reviews-videos-grid");
+      const fallbackBtn = document.getElementById("btn-load-more-videos");
+      if (!grid) return;
+
+      const total = state.activeFilteredList.length;
+      if (state.renderedCount >= total) {
+        if (fallbackBtn) fallbackBtn.style.display = "none";
+        return;
+      }
+
+      const start = state.renderedCount;
+      const end = Math.min(total, start + BATCH_SIZE);
+      const chunkHtml = state.activeFilteredList
+        .slice(start, end)
+        .map((v, offset) => buildVideoCardHtml(v, start + offset))
+        .join("");
+
+      grid.insertAdjacentHTML("beforeend", chunkHtml);
+      state.renderedCount = end;
+
+      if (fallbackBtn) {
+        if (state.renderedCount < total) {
+          fallbackBtn.style.display = "inline-block";
+          fallbackBtn.textContent = `${t("loadMoreBtn")} (${state.renderedCount} / ${total})`;
+        } else {
+          fallbackBtn.style.display = "none";
+        }
+      }
+    }
+
+    function renderGridFromScratch() {
+      const grid = document.getElementById("reviews-videos-grid");
+      const fallbackBtn = document.getElementById("btn-load-more-videos");
+      if (!grid) return;
+
+      grid.innerHTML = "";
+      state.renderedCount = 0;
+
+      if (state.activeFilteredList.length === 0) {
+        grid.innerHTML = `<div class="empty-tab-box">${escapeHtml(t("emptyTabMsg"))}</div>`;
+        if (fallbackBtn) fallbackBtn.style.display = "none";
+        return;
+      }
+
+      appendNextVideoBatch();
+      setupEarlyInfiniteScroll();
+    }
+
+    function setupEarlyInfiniteScroll() {
+      const sentinel = document.getElementById("infinite-scroll-sentinel");
+      if (!sentinel || !("IntersectionObserver" in window)) return;
+
+      if (infiniteObserver) infiniteObserver.disconnect();
+      infiniteObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting && state.renderedCount < state.activeFilteredList.length) {
+              appendNextVideoBatch();
+            }
+          });
+        },
+        { rootMargin: "550px 0px" }
+      );
+      infiniteObserver.observe(sentinel);
+    }
+    /* === پایان [MODULE-04: 2-COLUMN GRID & EARLY INFINITE SCROLL (8 BY 8)] === */
+
+
+    /* ======================================================================
+       === شروع [MODULE-05: FULLSCREEN REELS PLAYER (SWIPE + AUTOPLAY)] ===
+       راهنما: پلیر تمام‌صفحه شبیه ریلز اینستاگرام با اسکرول انگشت بالا/پایین،
+       پخش خودکار، دکمه‌های کناری (▲ ▼ 🔊) و هماهنگ با کل لیست تب فعال.
+       ====================================================================== */
+    const reelsState = {
+      index: 0,
+      muted: false,
+      paused: false,
+      bound: false,
+      wheelLock: false
+    };
+
+    function sendYoutubeCommand(funcName) {
+      const iframe = document.getElementById("active-reel-iframe");
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage(
+          JSON.stringify({ event: "command", func: funcName, args: "" }),
+          "*"
+        );
+      }
+    }
+
+    function flashReelTapIcon(symbol) {
+      const fb = document.getElementById("reels-tap-feedback");
+      if (!fb) return;
+      fb.textContent = symbol;
+      fb.classList.add("show");
+      clearTimeout(fb._t);
+      fb._t = setTimeout(() => fb.classList.remove("show"), 550);
+    }
+
+    function renderActiveReelSlide(index, animDir = "none") {
+      const list = state.activeFilteredList || [];
+      if (list.length === 0) return;
+
+      const clamped = Math.max(0, Math.min(list.length - 1, index));
+      reelsState.index = clamped;
+      reelsState.paused = false;
+
+      const item = list[clamped];
+      const badge = item.countryLabel || "⭐ REVIEW";
+      const title = getLocalizedTitle(item.title, `Paradise Wholesale #${clamped + 1}`);
+
+      const holder = document.getElementById("reels-media-holder");
+      if (!holder) return;
+
+      holder.classList.remove("reel-anim-up", "reel-anim-down");
+      void holder.offsetWidth;
+      if (animDir === "up") holder.classList.add("reel-anim-up");
+      if (animDir === "down") holder.classList.add("reel-anim-down");
+
+      const muteParam = reelsState.muted ? 1 : 0;
+      if (item.ytId) {
+        holder.innerHTML = `
+          <iframe
+            id="active-reel-iframe"
+            src="https://www.youtube.com/embed/${escapeHtml(item.ytId)}?autoplay=1&mute=${muteParam}&playsinline=1&rel=0&modestbranding=1&enablejsapi=1&loop=1&playlist=${escapeHtml(item.ytId)}"
+            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+            allowfullscreen
+          ></iframe>
+        `;
+      } else if (item.url) {
+        holder.innerHTML = `
+          <video id="active-reel-video" src="${escapeHtml(item.url)}" autoplay playsinline loop ${reelsState.muted ? "muted" : ""}></video>
+        `;
+      }
+
+      const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+      setTxt("reels-active-country", badge);
+      setTxt("reels-active-counter", `${clamped + 1} / ${list.length}`);
+      setTxt("reels-active-title", title);
+      setTxt("reels-swipe-hint-text", list.length > 1 ? t("swipeHintMulti") : t("swipeHintSingle"));
+
+      const prevBtn = document.getElementById("btn-reels-prev");
+      const nextBtn = document.getElementById("btn-reels-next");
+      const soundBtn = document.getElementById("btn-reels-sound");
+      if (prevBtn) prevBtn.disabled = clamped === 0;
+      if (nextBtn) nextBtn.disabled = clamped === list.length - 1;
+      if (soundBtn) soundBtn.textContent = reelsState.muted ? "🔇" : "🔊";
+    }
+
+    function closeReelsPlayer() {
+      const modal = document.getElementById("reels-fullscreen-modal");
+      const holder = document.getElementById("reels-media-holder");
+      if (holder) holder.innerHTML = "";
+      modal?.classList.remove("open");
+      document.body.style.overflow = "";
+    }
+
+    function bindReelsPlayerControlsOnce() {
+      if (reelsState.bound) return;
+      reelsState.bound = true;
+
+      const modal = document.getElementById("reels-fullscreen-modal");
+      const gestureLayer = document.getElementById("reels-gesture-layer");
+      const holder = document.getElementById("reels-media-holder");
+
+      const goNext = () => {
+        if (reelsState.index < state.activeFilteredList.length - 1) {
+          renderActiveReelSlide(reelsState.index + 1, "up");
+        }
+      };
+
+      const goPrev = () => {
+        if (reelsState.index > 0) {
+          renderActiveReelSlide(reelsState.index - 1, "down");
+        }
+      };
+
+      document.getElementById("btn-close-reels-modal")?.addEventListener("click", closeReelsPlayer);
+      document.getElementById("btn-reels-prev")?.addEventListener("click", goPrev);
+      document.getElementById("btn-reels-next")?.addEventListener("click", goNext);
+
+      document.getElementById("btn-reels-sound")?.addEventListener("click", () => {
+        reelsState.muted = !reelsState.muted;
+        const btn = document.getElementById("btn-reels-sound");
+        if (btn) btn.textContent = reelsState.muted ? "🔇" : "🔊";
+        const vid = document.getElementById("active-reel-video");
+        if (vid) vid.muted = reelsState.muted;
+        else sendYoutubeCommand(reelsState.muted ? "mute" : "unMute");
+      });
+
+      function togglePlayback() {
+        reelsState.paused = !reelsState.paused;
+        const vid = document.getElementById("active-reel-video");
+        if (vid) {
+          if (reelsState.paused) vid.pause();
+          else vid.play();
+        } else {
+          sendYoutubeCommand(reelsState.paused ? "pauseVideo" : "playVideo");
+        }
+        flashReelTapIcon(reelsState.paused ? "⏸" : "▶");
+      }
+
+      let startY = 0;
+      let startX = 0;
+      let startTime = 0;
+
+      gestureLayer?.addEventListener(
+        "touchstart",
+        (e) => {
+          startY = e.touches[0].clientY;
+          startX = e.touches[0].clientX;
+          startTime = Date.now();
+          if (holder) holder.style.transition = "none";
+        },
+        { passive: true }
+      );
+
+      gestureLayer?.addEventListener(
+        "touchmove",
+        (e) => {
+          const dy = e.touches[0].clientY - startY;
+          if (Math.abs(dy) > 8) {
+            e.preventDefault();
+            if (holder) holder.style.transform = `translateY(${dy * 0.32}px)`;
+          }
+        },
+        { passive: false }
+      );
+
+      gestureLayer?.addEventListener("touchend", (e) => {
+        const dy = e.changedTouches[0].clientY - startY;
+        const dx = e.changedTouches[0].clientX - startX;
+        const dt = Date.now() - startTime;
+
+        if (holder) {
+          holder.style.transition = "transform 0.2s ease";
+          holder.style.transform = "translateY(0)";
+        }
+
+        if (dy < -50 && Math.abs(dy) > Math.abs(dx)) goNext();
+        else if (dy > 50 && Math.abs(dy) > Math.abs(dx)) goPrev();
+        else if (Math.abs(dy) < 12 && Math.abs(dx) < 12 && dt < 350) togglePlayback();
+      });
+
+      gestureLayer?.addEventListener("click", (e) => {
+        if (e.pointerType === "touch") return;
+        togglePlayback();
+      });
+
+      modal?.addEventListener(
+        "wheel",
+        (e) => {
+          if (!modal.classList.contains("open")) return;
+          e.preventDefault();
+          if (reelsState.wheelLock) return;
+          if (e.deltaY > 25) {
+            reelsState.wheelLock = true;
+            goNext();
+            setTimeout(() => (reelsState.wheelLock = false), 450);
+          } else if (e.deltaY < -25) {
+            reelsState.wheelLock = true;
+            goPrev();
+            setTimeout(() => (reelsState.wheelLock = false), 450);
+          }
+        },
+        { passive: false }
+      );
+
+      window.addEventListener("keydown", (e) => {
+        if (!modal?.classList.contains("open")) return;
+        if (e.key === "ArrowDown") { e.preventDefault(); goNext(); }
+        else if (e.key === "ArrowUp") { e.preventDefault(); goPrev(); }
+        else if (e.key === "Escape") closeReelsPlayer();
+      });
+    }
+
+    function openReelsPlayerAt(idx) {
+      const modal = document.getElementById("reels-fullscreen-modal");
+      if (!modal || !state.activeFilteredList.length) return;
+      bindReelsPlayerControlsOnce();
+      document.body.style.overflow = "hidden";
+      modal.classList.add("open");
+      renderActiveReelSlide(idx, "none");
+    }
+    /* === پایان [MODULE-05: FULLSCREEN REELS PLAYER (SWIPE + AUTOPLAY)] === */
+
+
+    /* ======================================================================
+       === شروع [MODULE-06: BRANDING, 3-LANG SYNC, EVENTS & INITIALIZATION] ===
+       ====================================================================== */
+    const OFFICIAL_SOCIAL_SVGS = {
+      instagram: `<svg viewBox="0 0 24 24" fill="none"><rect width="20" height="20" x="2" y="2" rx="5" stroke="#E1306C" stroke-width="2"/><circle cx="12" cy="12" r="4.5" stroke="#F77737" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.2" fill="#E1306C"/></svg>`,
+      telegram: `<svg viewBox="0 0 24 24" fill="#2AABEE"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.37-.49 1.02-.74 3.99-1.74 6.65-2.89 7.99-3.45 3.8-1.58 4.59-1.86 5.1-1.87.11 0 .37.03.54.17.14.12.18.28.2.45-.01.06.01.24 0 .33z"/></svg>`,
+      tiktok: `<svg viewBox="0 0 24 24" fill="#ffffff"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>`,
+      youtube: `<svg viewBox="0 0 24 24" fill="#FF0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`,
+      android: `<svg viewBox="0 0 24 24" fill="#3DDC84"><path d="M17.523 15.341a.96.96 0 0 1-.959-.959c0-.53.43-.96.959-.96s.96.43.96.96-.43.959-.96.959m-11.046 0a.96.96 0 0 1-.96-.959c0-.53.43-.96.96-.96s.959.43.959.96-.43.959-.959.959m11.4-6.022l1.996-3.458a.416.416 0 0 0-.152-.567.416.416 0 0 0-.568.152L17.11 8.95a11.96 11.96 0 0 0-10.22 0L4.847 5.446a.416.416 0 0 0-.568-.152.416.416 0 0 0-.152.567l1.996 3.458C2.688 11.186.343 14.658 0 18.761h24c-.343-4.103-2.688-7.575-6.123-9.442"/></svg>`
+    };
+
+    function applyLocalizedTextsAndLinks() {
+      document.documentElement.lang = state.lang;
+      document.title = t("seoTitle");
+      const metaDesc = document.getElementById("seo-meta-desc");
+      if (metaDesc) metaDesc.setAttribute("content", t("seoDesc"));
+
+      document.querySelectorAll("[data-i18n]").forEach((el) => {
+        const key = el.getAttribute("data-i18n");
+        if (key) el.textContent = t(key);
+      });
+
+      const flagEl = document.getElementById("current-lang-flag");
+      const codeEl = document.getElementById("current-lang-code");
+      if (flagEl) flagEl.textContent = LANG_FLAGS[state.lang] || "🇬🇧";
+      if (codeEl) codeEl.textContent = state.lang.toUpperCase();
+
+      document.querySelectorAll("#lang-dropdown-menu .lang-option-btn").forEach((btn) => {
+        btn.classList.toggle("active", btn.getAttribute("data-lang") === state.lang);
+      });
+
+      const suffix = state.lang !== "en" ? `?lang=${state.lang}` : "";
+      ["btn-back-catalog", "header-brand-link", "footer-catalog-link"].forEach((id) => {
+        const a = document.getElementById(id);
+        if (a) a.href = `index.html${suffix}`;
+      });
+      const blogA = document.getElementById("footer-blog-link");
+      if (blogA) blogA.href = `blog.html${suffix}`;
+    }
+
+    function applyDynamicBrandingAndFooter() {
+      const pub = state.publicConfig;
+      const logoImg = document.getElementById("header-logo-img");
+      if (logoImg && pub.logoUrl) {
+        logoImg.src = pub.logoUrl;
+        logoImg.style.display = "block";
+      }
+
+      const cleanDigits = String(pub.whatsappRaw || DEFAULT_WHATSAPP).replace(/[^0-9]/g, "");
+      const formattedDisplay =
+        pub.whatsappDisplay ||
+        `+${cleanDigits.replace(/^(\d{2})(\d{3})(\d{3})(\d{2})(\d{2})$/, "$1 $2 $3 $4 $5")}`;
+
+      const waBtn = document.getElementById("floating-whatsapp-btn");
+      if (waBtn && cleanDigits) {
+        const msg = "Hello Paradise Wholesale Istanbul! I watched your client reviews and would like wholesale details.";
+        waBtn.href = `https://wa.me/${cleanDigits}?text=${encodeURIComponent(msg)}`;
+      }
+
+      const footerWa = document.getElementById("footer-wa-link");
+      if (footerWa && cleanDigits) {
+        footerWa.href = `https://wa.me/${cleanDigits}`;
+        footerWa.textContent = formattedDisplay;
+      }
+
+      const socialBox = document.getElementById("footer-social-container");
+      if (socialBox) {
+        const igUrl = pub.instagramUrl && !pub.instagramUrl.endsWith("/paradisewholesaler") ? pub.instagramUrl : DEFAULT_INSTAGRAM_URL;
+        const ytUrl = pub.youtubeUrl || DEFAULT_YOUTUBE_URL;
+        const tgUrl = pub.telegramUrl || "https://t.me/paradisewholesaler";
+        const tkUrl = pub.tiktokUrl || "https://tiktok.com/@paradisewholesaler";
+        const appUrl = pub.androidAppUrl || "https://play.google.com/store/search?q=PARADISE+WHOLESALE+CLOTHING&c=apps";
+
+        socialBox.innerHTML = [
+          `<a href="${escapeHtml(igUrl)}" target="_blank" rel="noopener" class="social-pill-link">${OFFICIAL_SOCIAL_SVGS.instagram}<span>Instagram</span></a>`,
+          `<a href="${escapeHtml(ytUrl)}" target="_blank" rel="noopener" class="social-pill-link" style="border-color:rgba(255,0,0,0.4);">${OFFICIAL_SOCIAL_SVGS.youtube}<span>YouTube</span></a>`,
+          `<a href="${escapeHtml(tgUrl)}" target="_blank" rel="noopener" class="social-pill-link">${OFFICIAL_SOCIAL_SVGS.telegram}<span>Telegram</span></a>`,
+          `<a href="${escapeHtml(tkUrl)}" target="_blank" rel="noopener" class="social-pill-link">${OFFICIAL_SOCIAL_SVGS.tiktok}<span>TikTok</span></a>`,
+          `<a href="${escapeHtml(appUrl)}" target="_blank" rel="noopener" class="social-pill-link" style="border-color:rgba(61,220,132,0.5);">${OFFICIAL_SOCIAL_SVGS.android}<span>Android App</span></a>`
+        ].join("");
+      }
+    }
+
+    function bindPageEvents() {
+      const langMenu = document.getElementById("lang-dropdown-menu");
+
+      document.getElementById("btn-lang-dropdown")?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        langMenu?.classList.toggle("open");
+      });
+
+      document.getElementById("lang-dropdown-menu")?.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-lang]");
+        if (!btn) return;
+        state.lang = btn.getAttribute("data-lang") || "en";
+        localStorage.setItem("paradise_lang", state.lang);
+        langMenu?.classList.remove("open");
+        applyLocalizedTextsAndLinks();
+        applyTabAndCountrySelection();
+        injectGoogleVideoSchema();
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest("#lang-switcher-group")) langMenu?.classList.remove("open");
+      });
+
+      // تغییر بین ۳ تب اصلی
+      document.getElementById("reviews-tabs-bar")?.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-tab]");
+        if (!btn) return;
+        const newTab = btn.getAttribute("data-tab") || "reviews";
+        if (newTab === state.activeTab) return;
+
+        state.activeTab = newTab;
+        state.activeCountry = "ALL";
+        document.querySelectorAll("#reviews-tabs-bar .review-tab-btn").forEach((b) => {
+          b.classList.toggle("active", b.getAttribute("data-tab") === state.activeTab);
+        });
+        applyTabAndCountrySelection();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+
+      // فیلتر کشورها
+      document.getElementById("country-filter-track")?.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-country]");
+        if (!btn) return;
+        state.activeCountry = btn.getAttribute("data-country") || "ALL";
+        applyTabAndCountrySelection();
+      });
+
+      // کلیک روی کارت ویدیو ← باز کردن پلیر تمام‌صفحه ریلز
+      document.getElementById("reviews-videos-grid")?.addEventListener("click", (e) => {
+        const card = e.target.closest("[data-reel-idx]");
+        if (!card) return;
+        const idx = parseInt(card.getAttribute("data-reel-idx"), 10) || 0;
+        openReelsPlayerAt(idx);
+      });
+
+      document.getElementById("btn-load-more-videos")?.addEventListener("click", appendNextVideoBatch);
+      document.getElementById("floating-whatsapp-btn")?.addEventListener("click", fireDirectWhatsappClickEvent);
+    }
+
+    async function initReviewsPage() {
+      const params = new URLSearchParams(window.location.search);
+      const urlLang = (params.get("lang") || "").toLowerCase();
+      if (["en", "it", "es"].includes(urlLang)) {
+        state.lang = urlLang;
+        localStorage.setItem("paradise_lang", urlLang);
+      } else {
+        const saved = localStorage.getItem("paradise_lang");
+        state.lang = ["en", "it", "es"].includes(saved) ? saved : "en";
+      }
+
+      const urlTab = (params.get("tab") || "").toLowerCase();
+      if (["reviews", "packing", "quality"].includes(urlTab)) {
+        state.activeTab = urlTab;
+        document.querySelectorAll("#reviews-tabs-bar .review-tab-btn").forEach((b) => {
+          b.classList.toggle("active", b.getAttribute("data-tab") === state.activeTab);
+        });
+      }
+
+      applyLocalizedTextsAndLinks();
+      bindPageEvents();
+
+      await loadReviewsConfigAndVideos();
+      initGoogleAdsAndAnalyticsTag();
+      applyDynamicBrandingAndFooter();
+      updateTabCounts();
+      applyTabAndCountrySelection();
+      injectGoogleVideoSchema();
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initReviewsPage);
+    } else {
+      initReviewsPage();
+    }
+    /* === پایان [MODULE-06: BRANDING, 3-LANG SYNC, EVENTS & INITIALIZATION] === */
+  </script>
+  <!-- === پایان [SECTION-07: MODULAR JAVASCRIPT ENGINE] === -->
+</body>
+</html>
