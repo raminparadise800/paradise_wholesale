@@ -1705,10 +1705,10 @@
   </div>
   <!-- === پایان [SECTION-05: HD LIGHTBOX & VIDEO PLAYER] === -->
 
-  <!-- ========================================================================
+ <!-- ========================================================================
        === [SECTION-06: SLIDE-OUT STEPPED CART & FLOATING WHATSAPP] (شروع بخش ۶: سبد خرید و واتساپ) ===
-       راهنما: شامل نوار زنده پایین صفحه، کشوی سبد خرید با فرمول پله‌ای (+1$ تا +5$)،
-       توضیح هزینه کارگو در واتساپ، دکمه همیشه‌باز سفارش و دکمه شناور واتساپ.
+       راهنما: شامل نوار زنده پایین صفحه، کشوی سبد خرید با فرمول پله‌ای و ارز پویا،
+       بخش اختصاصی حسابدار برای انتقال به فاکتورساز (برای مشتری نامرئی) و دکمه شناور واتساپ.
        ======================================================================== -->
   <!-- ۱. نوار زنده پایین صفحه (به محض افزودن اولین محصول ظاهر می‌شود) -->
   <div class="live-bottom-cart-bar" id="live-bottom-cart-bar">
@@ -1751,7 +1751,7 @@
       <!-- لیست آیتم‌های داخل سبد -->
       <div id="cart-items-list" style="flex:1; overflow-y:auto; padding:12px 14px; display:flex; flex-direction:column; gap:10px;"></div>
 
-      <!-- خلاصه محاسبات پله‌ای، فرم کوتاه مشتری و دکمه همیشه‌فعال واتساپ -->
+      <!-- خلاصه محاسبات پله‌ای، فرم کوتاه مشتری، دکمه واتساپ و بخش اختصاصی حسابدار -->
       <div style="padding:12px 14px 16px; background:#f8fafc; border-top:1.5px solid var(--border);">
         <div style="font-size:0.78rem; margin-bottom:10px; display:flex; flex-direction:column; gap:4px;">
           <div style="display:flex; justify-content:space-between; color:var(--text-muted);">
@@ -1788,6 +1788,12 @@
           <span>💬</span>
           <span id="txt-send-whatsapp-order">Send Order on WhatsApp (Instant Invoice)</span>
         </button>
+
+        <!-- بخش اختصاصی ادمین/حسابدار (فقط در صورت لاگین بودن ادمین در Firebase Auth نمایش داده می‌شود) -->
+        <div
+          id="admin-invoice-export-box"
+          style="display:none; margin-top:10px; padding-top:10px; border-top:1.5px dashed #cbd5e1; direction:rtl; text-align:right;"
+        ></div>
       </div>
     </div>
   </div>
