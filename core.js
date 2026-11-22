@@ -2,14 +2,15 @@
  * ============================================================================
  * PARADISE WHOLESALE CLOTHING ISTANBUL
  * Domain: https://paradisewholesaler.com
- * File: core.js (MODULE-01 — AUTH, ONLINE EUR/USD ENGINE & 3-LANG DICTIONARY)
+ * File: core.js (MODULE-01 — AUTH, ONLINE EUR/USD ENGINE, RESPONSIVE HEADER & 3-LANG DICT)
  * ============================================================================
  */
 
 /* ==========================================================================
    === شروع [MODULE-01: CONFIG, AUTH, ONLINE CURRENCY ENGINE & 3-LANG DICT] (ماژول ۱) ===
-   راهنما: اتصال به Firebase Auth (برای تشخیص ادمین/حسابدار)، موتور آنلاین تبدیل
-   دلار به یورو برای اروپا (+۵٪ حاشیه امن و رند رو به بالا تا ۰.۵ یورو) و دیکشنری ۳ زبانه.
+   راهنما: اتصال به Firebase Auth (تشخیص ادمین/حسابدار)، موتور آنلاین تبدیل دلار
+   به یورو (+۵٪ حاشیه امن و رند رو به بالا تا ۰.۵ یورو)، استایل ریسپانسیو هدر موبایل
+   و کنترلر حرفه‌ای تعداد روی کارت محصول، و دیکشنری ۳ زبانه.
    ========================================================================== */
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
@@ -92,6 +93,7 @@ export const UI_DICT = {
     shareLink: "Share Link",
     copiedToast: "🔗 Direct link copied to clipboard!",
     addedToast: "✓ Pack added to wholesale order!",
+    removedToast: "🗑 Removed from order",
     loadMore: "⬇️ Load More Products",
     modelsCount: "models",
     categoriesCount: "categories",
@@ -164,6 +166,7 @@ export const UI_DICT = {
     shareLink: "Condividi Link",
     copiedToast: "🔗 Link diretto copiato!",
     addedToast: "✓ Pacco serie aggiunto all'ordine!",
+    removedToast: "🗑 Rimosso dall'ordine",
     loadMore: "⬇️ Carica Altri Prodotti",
     modelsCount: "modelli",
     categoriesCount: "categorie",
@@ -236,6 +239,7 @@ export const UI_DICT = {
     shareLink: "Compartir Enlace",
     copiedToast: "🔗 ¡Enlace directo copiado!",
     addedToast: "✓ ¡Paquete serie añadido al pedido!",
+    removedToast: "🗑 Eliminado del pedido",
     loadMore: "⬇️ Cargar Más Productos",
     modelsCount: "modelos",
     categoriesCount: "categorías",
@@ -346,10 +350,187 @@ export function formatMoney(amount, forceDecimals = false) {
 }
 
 /**
+ * تزریق استایل ریسپانسیو هدر موبایل (جلوگیری از بیرون‌زدگی دکمه زبان) + استایل کنترلر تعداد روی کارت محصول
+ */
+export function injectResponsiveHeaderAndStepperStyles() {
+  if (document.getElementById("paradise-ux-enhancements-css")) return;
+  const style = document.createElement("style");
+  style.id = "paradise-ux-enhancements-css";
+  style.textContent = `
+    /* کنترلر حرفه‌ای تعداد سری (+ / - / سطل آشغال) روی کارت محصول و پنجره لایت‌باکس */
+    .prod-card-cart-slot {
+      margin-top: 4px;
+      width: 100%;
+    }
+    .prod-card-cart-slot .btn-add-pack-card {
+      margin-top: 0;
+    }
+    .card-qty-stepper {
+      width: 100%;
+      height: 34px;
+      border-radius: 8px;
+      background: #ecfdf5;
+      border: 1.5px solid #10b981;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.14);
+    }
+    .card-qty-stepper.lightbox-stepper {
+      height: 44px;
+      border-radius: 12px;
+      border-width: 2px;
+    }
+    .stepper-btn {
+      width: 34px;
+      height: 100%;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 1rem;
+      flex-shrink: 0;
+      transition: background 0.15s, transform 0.1s;
+      user-select: none;
+    }
+    .card-qty-stepper.lightbox-stepper .stepper-btn {
+      width: 48px;
+      font-size: 1.15rem;
+    }
+    .stepper-btn:active {
+      transform: scale(0.92);
+    }
+    .stepper-btn.trash-mode {
+      background: #fef2f2;
+      color: #dc2626;
+      border-right: 1px solid #fecaca;
+      font-size: 0.88rem;
+    }
+    .stepper-btn.minus-mode {
+      background: #d1fae5;
+      color: #065f46;
+      border-right: 1px solid #a7f3d0;
+    }
+    .stepper-btn.plus-mode {
+      background: #10b981;
+      color: #ffffff;
+    }
+    .stepper-count-label {
+      flex: 1;
+      min-width: 0;
+      text-align: center;
+      font-size: 0.74rem;
+      font-weight: 800;
+      color: #065f46;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 0 3px;
+    }
+    .card-qty-stepper.lightbox-stepper .stepper-count-label {
+      font-size: 0.88rem;
+    }
+    .stepper-count-label small {
+      font-weight: 700;
+      opacity: 0.82;
+      font-size: 0.67rem;
+    }
+
+    /* بهینه‌سازی هدر بالا در موبایل تا انتخاب زبان و سبد خرید هرگز از صفحه بیرون نزنند */
+    @media (max-width: 600px) {
+      .smart-top-header {
+        padding: 0 6px !important;
+        gap: 4px !important;
+      }
+      .nav-left-group {
+        gap: 4px !important;
+        min-width: 0;
+        flex: 1 1 auto;
+        overflow: hidden;
+      }
+      .nav-right-group {
+        gap: 4px !important;
+        flex-shrink: 0;
+      }
+      #header-brand-link {
+        min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
+        gap: 5px !important;
+      }
+      .brand-logo-img {
+        height: 26px !important;
+        max-width: 34px !important;
+        flex-shrink: 0;
+      }
+      #home-brand-badge {
+        min-width: 0;
+        overflow: hidden;
+      }
+      #home-brand-badge strong,
+      #home-brand-badge span {
+        font-size: 0.72rem !important;
+        line-height: 1.15;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        max-width: 108px;
+      }
+      #home-brand-badge small {
+        display: none !important;
+      }
+      #txt-search-btn {
+        display: none !important;
+      }
+      #btn-toggle-search {
+        width: 31px !important;
+        padding: 0 !important;
+      }
+      .minimal-nav-btn {
+        height: 31px !important;
+        padding: 0 7px !important;
+        font-size: 0.71rem !important;
+        gap: 3px !important;
+      }
+      .lang-trigger-btn {
+        height: 31px !important;
+        padding: 0 7px !important;
+        font-size: 0.71rem !important;
+        gap: 3px !important;
+      }
+      #btn-currency-toggle {
+        min-width: 30px !important;
+        padding: 0 7px !important;
+      }
+      .cur-code-txt {
+        display: none !important;
+      }
+      #btn-header-cart {
+        padding: 0 7px !important;
+      }
+    }
+
+    @media (max-width: 380px) {
+      #home-brand-badge strong,
+      #home-brand-badge span {
+        max-width: 78px;
+        font-size: 0.67rem !important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+/**
  * دریافت نرخ رسمی یورو از بانک مرکزی اروپا (Frankfurter API با پشتیبان خودکار) + تشخیص اروپا
  */
 export async function initLiveCurrencyAndRegion(hasIncomingOrder = false) {
-  // ۱. دریافت و کش کردن نرخ روزانه USD -> EUR تا ۱۲ ساعت
+  injectResponsiveHeaderAndStepperStyles();
+
   try {
     const cached = JSON.parse(localStorage.getItem("paradise_fx_cache") || "null");
     const twelveHours = 12 * 60 * 60 * 1000;
@@ -379,7 +560,6 @@ export async function initLiveCurrencyAndRegion(hasIncomingOrder = false) {
     }
   } catch (e) {}
 
-  // ۲. تشخیص خودکار مشتری اروپایی (اگر کاربر دستی انتخاب نکرده و لینک سفارش ارز را قفل نکرده باشد)
   const manualChoice = localStorage.getItem("paradise_currency_manual");
   if (!manualChoice && !hasIncomingOrder && !coreState.currencyLockedByOrder) {
     let isEurope = false;
@@ -411,9 +591,11 @@ export async function initLiveCurrencyAndRegion(hasIncomingOrder = false) {
 }
 
 /**
- * تزریق دکمه ظریف انتخاب دستی ارز (€ / $) کنار انتخاب زبان در هدر (بدون تغییر دستی در هدر index.html)
+ * تزریق دکمه ظریف انتخاب دستی ارز (€ / $) کنار انتخاب زبان در هدر
  */
 export function injectAndSyncHeaderCurrencyToggle() {
+  injectResponsiveHeaderAndStepperStyles();
+
   let btn = document.getElementById("btn-currency-toggle");
   if (!btn) {
     const langGroup = document.getElementById("lang-switcher-group");
@@ -441,7 +623,10 @@ export function injectAndSyncHeaderCurrencyToggle() {
     }
   }
   if (btn) {
-    btn.textContent = coreState.currency === "EUR" ? "€ EUR" : "$ USD";
+    btn.innerHTML =
+      coreState.currency === "EUR"
+        ? `<span>€</span><span class="cur-code-txt"> EUR</span>`
+        : `<span>$</span><span class="cur-code-txt"> USD</span>`;
   }
 }
 
@@ -477,7 +662,6 @@ export function showCatalogToast(msg, duration = 2800) {
   }, duration);
 }
 /* === پایان [MODULE-01: CONFIG, AUTH, ONLINE CURRENCY ENGINE & 3-LANG DICT] === */
-
 
 /* ==========================================================================
    === شروع [MODULE-02: FIREBASE DATA LOADER, SSG ROUTER & EMPTY FILTER] (ماژول ۲) ===
@@ -2042,9 +2226,9 @@ export function bindPriceFilterEvents() {
 
 
 /* ==========================================================================
-   === شروع [MODULE-05: PRODUCT CARD MINI-SLIDER & HD LIGHTBOX] (ماژول ۵) ===
-   راهنما: نمایش دکمه‌های Prev/Next فقط برای محصولاتی که بیش از ۱ عکس دارند،
-   لود پله‌ای ۱۲تایی عکس‌ها در موبایل و نمایش قیمت به ارز فعال (€ یا $).
+   === شروع [MODULE-05: PRODUCT CARD MINI-SLIDER, INLINE QTY STEPPER & LIGHTBOX] (ماژول ۵) ===
+   راهنما: نمایش دکمه‌های Prev/Next، کنترلر زنده تعداد (+ / - / سطل آشغال) روی
+   کارت محصول و پنجره بزرگ‌نمایی (Lightbox) با همگام‌سازی فوری بدون لود مجدد عکس‌ها.
    ========================================================================== */
 
 export function getFinalFilteredProducts() {
@@ -2068,6 +2252,106 @@ export function getLocalizedProductDesc(prod) {
     descObj.en ||
     `Direct Istanbul factory wholesale serie pack (${prod.pcsPerPack || 6} pcs/pack).`
   );
+}
+
+function getCartPacksForSku(sku) {
+  const target = String(sku || "").trim().toUpperCase();
+  if (!target) return 0;
+  const found = coreState.cart.find((c) => String(c.sku || "").trim().toUpperCase() === target);
+  return found ? Math.max(0, parseInt(found.packs, 10) || 0) : 0;
+}
+
+/**
+ * ساخت دکمه افزودن یا کنترلر حرفه‌ای تعداد (+ / - / 🗑) برای کارت محصول
+ */
+function buildCardCartActionHtml(rawSku, pcs, packs) {
+  const escSku = escapeHtml(rawSku);
+  if (packs <= 0) {
+    return `
+      <button type="button" class="btn-add-pack-card" data-add-pack="${escSku}">
+        <span>${t("addPackBtn")} (${pcs} ${t("pcsUnit")})</span>
+      </button>
+    `;
+  }
+
+  const totalPcs = packs * pcs;
+  const isSingle = packs === 1;
+  const leftBtnClass = isSingle ? "trash-mode" : "minus-mode";
+  const leftIcon = isSingle ? "🗑" : "−";
+
+  return `
+    <div class="card-qty-stepper">
+      <button type="button" class="stepper-btn ${leftBtnClass}" data-card-qty-step="${escSku}:-1" aria-label="Decrease or Remove">${leftIcon}</button>
+      <span class="stepper-count-label"><strong>${packs}</strong> <small>(${totalPcs} ${t("pcsUnit")})</small></span>
+      <button type="button" class="stepper-btn plus-mode" data-card-qty-step="${escSku}:1" aria-label="Add 1 Pack">+</button>
+    </div>
+  `;
+}
+
+/**
+ * همگام‌سازی فوری دکمه‌های تعداد در لایت‌باکس بازشده
+ */
+export function syncLightboxCartControl() {
+  const prod = coreState.lightboxProduct;
+  const addBtn = document.getElementById("btn-lightbox-add-pack");
+  if (!addBtn) return;
+
+  let stepperEl = document.getElementById("lightbox-qty-stepper");
+  if (!stepperEl) {
+    stepperEl = document.createElement("div");
+    stepperEl.id = "lightbox-qty-stepper";
+    stepperEl.className = "card-qty-stepper lightbox-stepper";
+    stepperEl.style.display = "none";
+    addBtn.insertAdjacentElement("afterend", stepperEl);
+
+    stepperEl.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-lightbox-qty-step]");
+      if (!btn || !coreState.lightboxProduct) return;
+      const delta = parseInt(btn.getAttribute("data-lightbox-qty-step"), 10) || 0;
+      const sku = coreState.lightboxProduct.sku || coreState.lightboxProduct.id;
+      if (delta !== 0) updateCartPackQtyBySku(sku, delta);
+    });
+  }
+
+  if (!prod) {
+    stepperEl.style.display = "none";
+    addBtn.style.display = "flex";
+    return;
+  }
+
+  const sku = prod.sku || prod.id;
+  const pcs = Math.max(1, parseInt(prod.pcsPerPack, 10) || 6);
+  const packs = getCartPacksForSku(sku);
+
+  if (packs > 0) {
+    const totalPcs = packs * pcs;
+    const isSingle = packs === 1;
+    addBtn.style.display = "none";
+    stepperEl.style.display = "flex";
+    stepperEl.innerHTML = `
+      <button type="button" class="stepper-btn ${isSingle ? "trash-mode" : "minus-mode"}" data-lightbox-qty-step="-1" aria-label="Decrease or Remove">${isSingle ? "🗑" : "−"}</button>
+      <span class="stepper-count-label"><strong>${packs} ${t("packsUnit")}</strong> <small>(${totalPcs} ${t("pcsUnit")})</small></span>
+      <button type="button" class="stepper-btn plus-mode" data-lightbox-qty-step="1" aria-label="Add 1 Pack">+</button>
+    `;
+  } else {
+    stepperEl.style.display = "none";
+    addBtn.style.display = "flex";
+    addBtn.textContent = `${t("addPackModalBtn")} (${pcs} ${t("pcsUnit")})`;
+  }
+}
+
+/**
+ * آپدیت همزمان تمام کارت‌های محصول قابل مشاهده و لایت‌باکس (بدون رندر مجدد عکس‌ها)
+ */
+export function syncAllProductCardCartControls() {
+  document.querySelectorAll("[data-cart-slot]").forEach((slotEl) => {
+    const sku = slotEl.getAttribute("data-cart-slot") || "";
+    const pcs = Math.max(1, parseInt(slotEl.getAttribute("data-cart-pcs"), 10) || 6);
+    const packs = getCartPacksForSku(sku);
+    slotEl.innerHTML = buildCardCartActionHtml(sku, pcs, packs);
+  });
+
+  syncLightboxCartControl();
 }
 
 export function renderProductsCatalogGrid() {
@@ -2109,13 +2393,15 @@ export function renderProductsCatalogGrid() {
 
   grid.innerHTML = visibleItems
     .map((p, idx) => {
-      const sku = escapeHtml(p.sku || p.id);
+      const rawSku = p.sku || p.id;
+      const sku = escapeHtml(rawSku);
       const displayUnit = convertUsdToDisplay(Number(p.unitPrice) || 0);
       const pcs = Math.max(1, parseInt(p.pcsPerPack, 10) || 6);
       const packTotal = displayUnit * pcs;
       const title = escapeHtml(getLocalizedProductTitle(p));
       const sizes = escapeHtml(p.sizeRange || "S - M - L - XL");
       const hasVideo = Boolean(p.videoUrl || p.youtubeId);
+      const inCartPacks = getCartPacksForSku(rawSku);
 
       const imagesList = Array.isArray(p.images) && p.images.length > 0 ? p.images.filter(Boolean) : [p.imageUrl];
       const currentSlideIdx = coreState.cardSlideIndexMap.get(p.id || p.sku) || 0;
@@ -2162,9 +2448,9 @@ export function renderProductsCatalogGrid() {
               <div class="prod-size-line">${t("sizesLabel")} ${sizes} • <strong>${sku}</strong></div>
             </div>
 
-            <button type="button" class="btn-add-pack-card" data-add-pack="${sku}">
-              <span>${t("addPackBtn")} (${pcs} ${t("pcsUnit")})</span>
-            </button>
+            <div class="prod-card-cart-slot" data-cart-slot="${sku}" data-cart-pcs="${pcs}">
+              ${buildCardCartActionHtml(rawSku, pcs, inCartPacks)}
+            </div>
           </div>
         </article>
       `;
@@ -2217,6 +2503,7 @@ export function closeProductLightbox() {
   modal?.classList.remove("open");
   coreState.lightboxProduct = null;
   coreState.activeProductSku = "";
+  syncLightboxCartControl();
   syncBrowserHistoryState();
 }
 
@@ -2288,7 +2575,8 @@ export function renderLightboxStageContent() {
   setTxt("lightbox-prod-desc", getLocalizedProductDesc(prod));
   setTxt("txt-lightbox-pack-info", `${t("packOf")} ${pcs} ${t("pcsUnit")} (${formatMoney(packTotal, false)})`);
   setTxt("txt-lightbox-size-info", `${t("sizesLabel")} ${prod.sizeRange || "S-XXL"}`);
-  setTxt("btn-lightbox-add-pack", `${t("addPackModalBtn")} (${pcs} ${t("pcsUnit")})`);
+
+  syncLightboxCartControl();
 }
 
 export function bindProductGridAndLightboxEvents() {
@@ -2323,6 +2611,19 @@ export function bindProductGridAndLightboxEvents() {
   );
 
   grid?.addEventListener("click", async (e) => {
+    const qtyStepBtn = e.target.closest("[data-card-qty-step]");
+    if (qtyStepBtn) {
+      e.stopPropagation();
+      const rawAttr = qtyStepBtn.getAttribute("data-card-qty-step") || "";
+      const sepIdx = rawAttr.lastIndexOf(":");
+      if (sepIdx > -1) {
+        const sku = rawAttr.slice(0, sepIdx);
+        const delta = parseInt(rawAttr.slice(sepIdx + 1), 10) || 0;
+        if (delta !== 0) updateCartPackQtyBySku(sku, delta);
+      }
+      return;
+    }
+
     const slideBtn = e.target.closest("[data-card-slide]");
     if (slideBtn) {
       e.stopPropagation();
@@ -2433,13 +2734,13 @@ export function bindProductGridAndLightboxEvents() {
     }
   });
 }
-/* === پایان [MODULE-05: PRODUCT CARD MINI-SLIDER & HD LIGHTBOX] === */
+/* === پایان [MODULE-05: PRODUCT CARD MINI-SLIDER, INLINE QTY STEPPER & LIGHTBOX] === */
 
 
 /* ==========================================================================
    === شروع [MODULE-06: STEPPED CART ENGINE (EUR/USD), LIVE SYNC & GOOGLE ADS] (ماژول ۶) ===
-   راهنما: ذخیره شاخه اصلی محصول در آیتم سبد خرید، همگام‌سازی خودکار و زنده (Live Sync)
-   تغییرات مشتری روی همان لینک سفارش در فایربیس، و محاسبه پله‌ای با ارز فعال.
+   راهنما: مدیریت سبد خرید پله‌ای، همگام‌سازی فوری دکمه‌های تعداد روی کارت‌های محصول
+   و لایت‌باکس، و ارسال زنده تغییرات روی لینک سفارش فایربیس.
    ========================================================================== */
 
 export function saveCartToStorage(syncToCloud = true) {
@@ -2448,7 +2749,6 @@ export function saveCartToStorage(syncToCloud = true) {
   } catch (e) {}
 
   if (coreState.cart.length === 0) {
-    // اگر مشتری کل سبد خریدش را خالی کرد، برای خرید بعدی کد سفارش تازه ساخته شود (سفارش قبلی در دیتابیس دست نمی‌خورد)
     coreState.activeOrderCode = "";
     coreState.lastExportedFingerprint = "";
     coreState.lastExportedAt = "";
@@ -2516,7 +2816,7 @@ export function calculateSteppedCartTotals() {
 export function addPackToCart(prod, packsToAdd = 1) {
   if (!prod) return;
   const sku = prod.sku || prod.id;
-  const existing = coreState.cart.find((c) => c.sku === sku);
+  const existing = coreState.cart.find((c) => String(c.sku || "").trim().toUpperCase() === String(sku).trim().toUpperCase());
 
   if (existing) {
     existing.packs = (Number(existing.packs) || 1) + packsToAdd;
@@ -2541,6 +2841,33 @@ export function addPackToCart(prod, packsToAdd = 1) {
   saveCartToStorage(true);
   renderSteppedCartUI();
   showCatalogToast(`${t("addedToast")} (${sku})`);
+}
+
+/**
+ * کم/زیاد کردن یا حذف مستقیم یک محصول از روی کارت محصول یا پنجره لایت‌باکس
+ */
+export function updateCartPackQtyBySku(sku, delta) {
+  const target = String(sku || "").trim().toUpperCase();
+  if (!target) return;
+
+  const idx = coreState.cart.findIndex((c) => String(c.sku || "").trim().toUpperCase() === target);
+  if (idx === -1) {
+    if (delta > 0) {
+      const prod = coreState.allProducts.find((p) => String(p.sku || p.id || "").trim().toUpperCase() === target);
+      if (prod) addPackToCart(prod, delta);
+    }
+    return;
+  }
+
+  coreState.cart[idx].packs = (Number(coreState.cart[idx].packs) || 1) + delta;
+  if (coreState.cart[idx].packs <= 0) {
+    const removedSku = coreState.cart[idx].sku;
+    coreState.cart.splice(idx, 1);
+    showCatalogToast(`${t("removedToast")} (${removedSku})`);
+  }
+
+  saveCartToStorage(true);
+  renderSteppedCartUI();
 }
 
 export function renderSteppedCartUI() {
@@ -2656,6 +2983,10 @@ export function renderSteppedCartUI() {
 
   if (typeof renderAdminInvoiceExportBox === "function") {
     renderAdminInvoiceExportBox();
+  }
+
+  if (typeof syncAllProductCardCartControls === "function") {
+    syncAllProductCardCartControls();
   }
 }
 
