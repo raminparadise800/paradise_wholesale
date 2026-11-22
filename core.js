@@ -2,15 +2,15 @@
  * ============================================================================
  * PARADISE WHOLESALE CLOTHING ISTANBUL
  * Domain: https://paradisewholesaler.com
- * File: core.js (MODULE-01 — AUTH, ONLINE EUR/USD ENGINE, RESPONSIVE HEADER & 3-LANG DICT)
+ * File: core.js (MODULE-01 — AUTH, ONLINE EUR/USD ENGINE, BIG LOGO HEADER & 3-LANG DICT)
  * ============================================================================
  */
 
 /* ==========================================================================
    === شروع [MODULE-01: CONFIG, AUTH, ONLINE CURRENCY ENGINE & 3-LANG DICT] (ماژول ۱) ===
-   راهنما: اتصال به Firebase Auth (تشخیص ادمین/حسابدار)، موتور آنلاین تبدیل دلار
-   به یورو (+۵٪ حاشیه امن و رند رو به بالا تا ۰.۵ یورو)، استایل ریسپانسیو هدر موبایل
-   و کنترلر حرفه‌ای تعداد روی کارت محصول، و دیکشنری ۳ زبانه.
+   راهنما: اتصال به Firebase Auth، موتور آنلاین تبدیل دلار به یورو (+۵٪ حاشیه امن
+   و رند رو به بالا تا ۰.۵ یورو)، استایل لوگوی بزرگ تمام‌ارتفاع در هدر + نام تمیز
+   بدون بریدگی، اسکلتون لودینگ فوری منوها، کنترلر تعداد کارت محصول و دیکشنری ۳ زبانه.
    ========================================================================== */
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
@@ -326,11 +326,6 @@ export function getCurrencySymbol() {
   return coreState.currency === "EUR" ? "€" : "$";
 }
 
-/**
- * تبدیل قیمت پایه دلاری به ارز فعال:
- * - برای دلار: همان عدد دقیق پایه
- * - برای یورو (اروپا): نرخ رسمی آنلاین × 1.05 (۵٪ حاشیه امن) و رند رو به بالا تا ۰.۵ یورو
- */
 export function convertUsdToDisplay(usdVal) {
   const num = Number(usdVal) || 0;
   if (num <= 0) return 0;
@@ -350,13 +345,72 @@ export function formatMoney(amount, forceDecimals = false) {
 }
 
 /**
- * تزریق استایل ریسپانسیو هدر موبایل (جلوگیری از بیرون‌زدگی دکمه زبان) + استایل کنترلر تعداد روی کارت محصول
+ * استایل‌های بهینه هدر (لوگوی بزرگ تقریباً تمام‌ارتفاع نوار + نام برند تمیز بدون ...)،
+ * اسکلتون لودینگ آنی منوها و کنترلر تعداد سری (+ / - / 🗑) روی کارت محصول
  */
 export function injectResponsiveHeaderAndStepperStyles() {
   if (document.getElementById("paradise-ux-enhancements-css")) return;
   const style = document.createElement("style");
   style.id = "paradise-ux-enhancements-css";
   style.textContent = `
+    /* اسکلتون لودینگ فوری برای دسته‌بندی‌ها در اولین بازدید (جلوگیری از صفحه خالی) */
+    .cat-skeleton-card {
+      aspect-ratio: 3 / 3.8;
+      border-radius: 16px;
+      background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+      background-size: 200% 100%;
+      animation: paradiseCatShimmer 1.15s infinite linear;
+      border: 1.5px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+    }
+    @keyframes paradiseCatShimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* چیدمان حرفه‌ای لوگو (حداکثر ارتفاع داخل نوار هدر) و نام تمیز برند بدون بریدگی */
+    #header-brand-link {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      text-decoration: none;
+      min-width: 0;
+      height: 100%;
+    }
+    .brand-logo-img {
+      height: 46px !important;
+      max-height: 46px !important;
+      width: auto !important;
+      max-width: 120px !important;
+      border-radius: 6px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+    #home-brand-badge {
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      line-height: 1.12;
+      gap: 1px;
+    }
+    .brand-line-main {
+      color: var(--gold, #d4af37);
+      font-size: 0.9rem;
+      font-weight: 800;
+      letter-spacing: 0.45px;
+      white-space: nowrap;
+    }
+    .brand-line-sub {
+      color: #e2e8f0;
+      font-size: 0.64rem;
+      font-weight: 700;
+      letter-spacing: 0.9px;
+      white-space: nowrap;
+      opacity: 0.92;
+    }
+    .brand-mobile-only { display: none; }
+    .brand-desktop-only { display: inline; }
+
     /* کنترلر حرفه‌ای تعداد سری (+ / - / سطل آشغال) روی کارت محصول و پنجره لایت‌باکس */
     .prod-card-cart-slot {
       margin-top: 4px;
@@ -439,71 +493,62 @@ export function injectResponsiveHeaderAndStepperStyles() {
       font-size: 0.67rem;
     }
 
-    /* بهینه‌سازی هدر بالا در موبایل تا انتخاب زبان و سبد خرید هرگز از صفحه بیرون نزنند */
+    /* بهینه‌سازی دقیق هدر موبایل: لوگوی بزرگ تمام‌ارتفاع + نام تمیز بدون ... + بدون بیرون‌زدگی */
     @media (max-width: 600px) {
       .smart-top-header {
         padding: 0 6px !important;
         gap: 4px !important;
       }
       .nav-left-group {
-        gap: 4px !important;
+        gap: 5px !important;
         min-width: 0;
         flex: 1 1 auto;
-        overflow: hidden;
       }
       .nav-right-group {
         gap: 4px !important;
         flex-shrink: 0;
       }
       #header-brand-link {
-        min-width: 0;
-        max-width: 100%;
-        overflow: hidden;
-        gap: 5px !important;
+        gap: 6px !important;
       }
       .brand-logo-img {
-        height: 26px !important;
-        max-width: 34px !important;
+        height: 46px !important;
+        max-height: 46px !important;
+        width: auto !important;
+        max-width: 68px !important;
         flex-shrink: 0;
       }
-      #home-brand-badge {
-        min-width: 0;
-        overflow: hidden;
+      .brand-desktop-only { display: none !important; }
+      .brand-mobile-only { display: inline !important; }
+      .brand-line-main {
+        font-size: 0.82rem !important;
+        letter-spacing: 0.3px !important;
       }
-      #home-brand-badge strong,
-      #home-brand-badge span {
-        font-size: 0.72rem !important;
-        line-height: 1.15;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: block;
-        max-width: 108px;
-      }
-      #home-brand-badge small {
-        display: none !important;
+      .brand-line-sub {
+        font-size: 0.58rem !important;
+        letter-spacing: 0.8px !important;
       }
       #txt-search-btn {
         display: none !important;
       }
       #btn-toggle-search {
-        width: 31px !important;
+        width: 30px !important;
         padding: 0 !important;
       }
       .minimal-nav-btn {
         height: 31px !important;
         padding: 0 7px !important;
-        font-size: 0.71rem !important;
+        font-size: 0.7rem !important;
         gap: 3px !important;
       }
       .lang-trigger-btn {
         height: 31px !important;
         padding: 0 7px !important;
-        font-size: 0.71rem !important;
+        font-size: 0.7rem !important;
         gap: 3px !important;
       }
       #btn-currency-toggle {
-        min-width: 30px !important;
+        min-width: 28px !important;
         padding: 0 7px !important;
       }
       .cur-code-txt {
@@ -514,11 +559,17 @@ export function injectResponsiveHeaderAndStepperStyles() {
       }
     }
 
-    @media (max-width: 380px) {
-      #home-brand-badge strong,
-      #home-brand-badge span {
-        max-width: 78px;
-        font-size: 0.67rem !important;
+    @media (max-width: 370px) {
+      .brand-logo-img {
+        height: 42px !important;
+        max-height: 42px !important;
+        max-width: 56px !important;
+      }
+      .brand-line-main {
+        font-size: 0.74rem !important;
+      }
+      .brand-line-sub {
+        font-size: 0.53rem !important;
       }
     }
   `;
@@ -535,7 +586,7 @@ export async function initLiveCurrencyAndRegion(hasIncomingOrder = false) {
     const cached = JSON.parse(localStorage.getItem("paradise_fx_cache") || "null");
     const twelveHours = 12 * 60 * 60 * 1000;
     if (cached && cached.rate > 0.5 && cached.rate < 1.8 && Date.now() - cached.ts < twelveHours) {
-      coreState.eurRate = Number(cached.rate);
+      if (!coreState.currencyLockedByOrder) coreState.eurRate = Number(cached.rate);
     } else {
       let freshRate = null;
       try {
@@ -553,7 +604,7 @@ export async function initLiveCurrencyAndRegion(hasIncomingOrder = false) {
       }
 
       if (freshRate && freshRate > 0.5 && freshRate < 1.8) {
-        coreState.eurRate = freshRate;
+        if (!coreState.currencyLockedByOrder) coreState.eurRate = freshRate;
         localStorage.setItem("paradise_eur_rate_cached", String(freshRate));
         localStorage.setItem("paradise_fx_cache", JSON.stringify({ rate: freshRate, ts: Date.now() }));
       }
@@ -584,15 +635,14 @@ export async function initLiveCurrencyAndRegion(hasIncomingOrder = false) {
       } catch (tzErr) {}
     }
 
-    coreState.currency = isEurope ? "EUR" : "USD";
+    if (!coreState.currencyLockedByOrder) {
+      coreState.currency = isEurope ? "EUR" : "USD";
+    }
   }
 
   injectAndSyncHeaderCurrencyToggle();
 }
 
-/**
- * تزریق دکمه ظریف انتخاب دستی ارز (€ / $) کنار انتخاب زبان در هدر
- */
 export function injectAndSyncHeaderCurrencyToggle() {
   injectResponsiveHeaderAndStepperStyles();
 
@@ -3044,11 +3094,10 @@ export function fireDirectWhatsappClickEvent() {
 }
 /* === پایان [MODULE-06: STEPPED CART ENGINE (EUR/USD), LIVE SYNC & GOOGLE ADS] === */
 
- /*==========================================================================
-   === شروع [MODULE-07: LIVE ORDER SYNC, AUTO-DOMAIN SHORT LINK & ACCOUNTING EXPORT] (ماژول ۷) ===
-   راهنما: همگام‌سازی زنده سفارش روی لینک کوتاه خودکار (سازگار با تست روی گیت‌هاب و
-   تبدیل اتوماتیک به دامنه اصلی هنگام لانچ)، نام کوتاه Category-Code برای سیستم
-   فاکتورساز و اثر انگشت ۳ حالته (Fingerprint).
+/* ==========================================================================
+   === شروع [MODULE-07: INSTANT BOOT, LIVE ORDER SYNC & ACCOUNTING EXPORT] (ماژول ۷) ===
+   راهنما: نمایش آنی منوها و لوگو بدون صفحه خالی (Instant Boot Cache + Skeleton)،
+   اجرای غیرمسدودکننده نرخ ارز، همگام‌سازی زنده سفارش و انتقال هوشمند به فاکتورساز.
    ========================================================================== */
 
 const OFFICIAL_SOCIAL_SVGS = {
@@ -3062,6 +3111,7 @@ const OFFICIAL_SOCIAL_SVGS = {
 export const DEFAULT_INSTAGRAM_URL = "https://www.instagram.com/paradisewholesaleclothing5401";
 export const DEFAULT_YOUTUBE_URL = "https://www.youtube.com/@paradisewholesaleclothing5401";
 const INVOICE_PANEL_BASE_URL = "https://raminparadise800.github.io/Paradise_panel/retail.html";
+const INSTANT_BOOT_CACHE_KEY = "paradise_instant_boot_v1";
 
 let liveSyncTimer = null;
 
@@ -3089,7 +3139,9 @@ export function applyDynamicBrandingAndFooter() {
 
   if (logoImg) {
     if (pub.logoUrl && onHome) {
-      logoImg.src = pub.logoUrl;
+      if (logoImg.getAttribute("src") !== pub.logoUrl) {
+        logoImg.src = pub.logoUrl;
+      }
       logoImg.style.display = "block";
     } else {
       logoImg.style.display = "none";
@@ -3097,6 +3149,13 @@ export function applyDynamicBrandingAndFooter() {
   }
 
   if (brandBadge) {
+    if (!brandBadge.dataset.cleanedBrand) {
+      brandBadge.dataset.cleanedBrand = "1";
+      brandBadge.innerHTML = `
+        <span class="brand-line-main">PARADISE<span class="brand-desktop-only"> WHOLESALE</span></span>
+        <span class="brand-line-sub"><span class="brand-mobile-only">WHOLESALE</span><span class="brand-desktop-only">CLOTHING ISTANBUL</span></span>
+      `;
+    }
     brandBadge.style.display = onHome ? "flex" : "none";
   }
 
@@ -3152,6 +3211,86 @@ export function applyDynamicBrandingAndFooter() {
 }
 
 /* ==========================================================================
+   === سیستم بارگذاری آنی (Instant Boot Cache + Skeleton Placeholders) ===
+   ========================================================================== */
+
+function renderInitialCategorySkeletons() {
+  const section = document.getElementById("visual-categories-section");
+  const grid = document.getElementById("visual-categories-grid");
+  if (!section || !grid || grid.children.length > 0) return;
+  section.style.display = "block";
+  grid.innerHTML = `
+    <div class="cat-skeleton-card"></div>
+    <div class="cat-skeleton-card"></div>
+    <div class="cat-skeleton-card"></div>
+    <div class="cat-skeleton-card"></div>
+  `;
+}
+
+function hydrateInstantBootCache(canRenderHomeCards) {
+  try {
+    const raw = localStorage.getItem(INSTANT_BOOT_CACHE_KEY);
+    if (!raw) return false;
+    const snap = JSON.parse(raw);
+    if (!snap || typeof snap !== "object") return false;
+
+    if (snap.publicConfig && typeof snap.publicConfig === "object") {
+      coreState.publicConfig = { ...coreState.publicConfig, ...snap.publicConfig };
+    }
+    if (Array.isArray(snap.taxonomy) && snap.taxonomy.length > 0) {
+      coreState.taxonomy = snap.taxonomy;
+    }
+    if (Array.isArray(snap.blogs) && snap.blogs.length > 0) {
+      coreState.blogs = snap.blogs;
+    }
+
+    applyDynamicBrandingAndFooter();
+
+    if (
+      canRenderHomeCards &&
+      Array.isArray(snap.taxonomy) &&
+      snap.taxonomy.length > 0 &&
+      Array.isArray(snap.lightProducts) &&
+      snap.lightProducts.length > 0
+    ) {
+      coreState.allProducts = snap.lightProducts;
+      renderVisualCategoryCards();
+      renderHomeExclusiveShowcase();
+      // پاک کردن آرایه موقت قبل از خواندن دیتابیس زنده تا هیچ تداخلی با loadCoreCatalogData پیش نیاید
+      coreState.allProducts = [];
+      return true;
+    }
+    return false;
+  } catch (e) {
+    return false;
+  }
+}
+
+function saveInstantBootCache() {
+  try {
+    const lightProducts = (coreState.allProducts || []).map((p) => ({
+      id: p.id || "",
+      sku: p.sku || "",
+      department: p.department || "",
+      subcategory: p.subcategory || "",
+      leafSub: p.leafSub || "",
+      unitPrice: p.unitPrice,
+      status: p.status,
+      active: p.active,
+      inStock: p.inStock
+    }));
+    const snap = {
+      ts: Date.now(),
+      publicConfig: coreState.publicConfig,
+      taxonomy: coreState.taxonomy,
+      blogs: (coreState.blogs || []).slice(0, 3),
+      lightProducts
+    };
+    localStorage.setItem(INSTANT_BOOT_CACHE_KEY, JSON.stringify(snap));
+  } catch (e) {}
+}
+
+/* ==========================================================================
    === مدیریت کد سفارش ثابت + همگام‌سازی زنده در فایربیس (Live Sync) ===
    ========================================================================== */
 
@@ -3184,10 +3323,6 @@ function getOrCreateStableOrderCode() {
   return setStableActiveOrderCode(`ORD-${Math.floor(10000 + Math.random() * 90000)}`);
 }
 
-/**
- * ذخیره خودکار و زنده تغییرات سبد خرید مشتری روی همان سند سفارش در Firestore
- * تا لینک قبلی ارسال‌شده در واتساپ همیشه جدیدترین تغییرات را نمایش دهد.
- */
 function pushActiveOrderSnapshotToFirestore() {
   const orderCode = coreState.activeOrderCode;
   if (!orderCode || !/^ORD-\d+$/i.test(orderCode) || coreState.cart.length === 0) return;
@@ -3402,7 +3537,6 @@ export function handleAdminExportToAccounting() {
   const currentFingerprint = computeOrderFingerprint(orderPayload);
   const targetUrl = buildAccountingTargetUrl(orderPayload);
 
-  // باز کردن همزمان تب جدید (بدون بلاک شدن در موبایل)
   window.open(targetUrl, "_blank");
 
   const exportedAtIso = new Date().toISOString();
@@ -3437,9 +3571,6 @@ export function handleAdminExportToAccounting() {
   });
 }
 
-/**
- * ساخت لینک کوتاه و تمیز (روی گیت‌هاب برای تست فعلی، و خودکار روی paradisewholesaler.com پس از اتصال دامنه)
- */
 export function buildVisualOrderCartUrl(orderCode) {
   const url = new URL(getBaseRootUrl());
   url.searchParams.set("order", orderCode);
@@ -3747,6 +3878,10 @@ export async function initParadiseCatalogCore() {
   const initialItemsParam = (initialParams.get("items") || "").trim();
   const initialCurParam = (initialParams.get("cur") || "").trim().toUpperCase();
 
+  // ۱. اجرای آنی استایل هدر بزرگ، نام تمیز برند و دکمه ارز در میلی‌ثانیه اول
+  injectResponsiveHeaderAndStepperStyles();
+  injectAndSyncHeaderCurrencyToggle();
+
   if (!initialOrderCode) {
     try {
       const savedOrder = (localStorage.getItem("paradise_active_order_code") || "").trim().toUpperCase();
@@ -3770,15 +3905,37 @@ export async function initParadiseCatalogCore() {
   });
 
   applyLocalizedStaticTexts();
+  applyDynamicBrandingAndFooter();
   bindSmartHeaderAndGlassEvents();
   bindPriceFilterEvents();
   bindProductGridAndLightboxEvents();
   bindCartAndWhatsappEvents();
 
-  await Promise.all([
-    loadCoreCatalogData(),
-    initLiveCurrencyAndRegion(Boolean(initialOrderCode || initialItemsParam))
-  ]);
+  // ۲. نمایش آنی منوها از کش محلی (۰ میلی‌ثانیه) یا اسکلتون شیشه‌ای در اولین بازدید (هرگز صفحه خالی نمی‌ماند)
+  const isPlainHomeLanding =
+    !initialOrderCode &&
+    !initialItemsParam &&
+    !initialParams.get("dept") &&
+    !initialParams.get("cat") &&
+    !initialParams.get("product") &&
+    !initialParams.get("search");
+
+  const hydratedInstant = hydrateInstantBootCache(isPlainHomeLanding);
+  if (!hydratedInstant && !initialParams.get("product")) {
+    renderInitialCategorySkeletons();
+  }
+  renderSteppedCartUI();
+
+  // ۳. دریافت غیرمسدودکننده نرخ ارز و موقعیت مکانی در پس‌زمینه (بدون معطل کردن نمایش کاتالوگ)
+  initLiveCurrencyAndRegion(Boolean(initialOrderCode || initialItemsParam)).then(() => {
+    if (typeof window._paradiseRefreshCurrencyUI === "function") {
+      window._paradiseRefreshCurrencyUI();
+    }
+  });
+
+  // ۴. دریافت داده‌های زنده فایربیس و ذخیره در کش آنی برای بازدیدهای بعدی
+  await loadCoreCatalogData();
+  saveInstantBootCache();
 
   resolveCurrentRouteFromUrl();
   applyLocalizedStaticTexts();
