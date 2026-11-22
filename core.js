@@ -2,16 +2,17 @@
  * ============================================================================
  * PARADISE WHOLESALE CLOTHING ISTANBUL
  * Domain: https://paradisewholesaler.com
- * File: core.js (MODULES 01, 02 & 03 — 100% 3-LANG, COUNTRY REVIEWS & FAQ SCHEMA)
+ * File: core.js (MODULE-01 — AUTH, ONLINE EUR/USD ENGINE & 3-LANG DICTIONARY)
  * ============================================================================
  */
 
 /* ==========================================================================
-   === شروع [MODULE-01: CONFIG, STATE & FULL 3-LANG DICTIONARY] (ماژول ۱) ===
-   راهنما: تنظیمات اتصال به فایربیس، وضعیت مرکزی سایت و دیکشنری کامل ۳ زبانه
-   برای تمام اجزای صفحه اصلی، کاتالوگ، سبد خرید و فوتر.
+   === شروع [MODULE-01: CONFIG, AUTH, ONLINE CURRENCY ENGINE & 3-LANG DICT] (ماژول ۱) ===
+   راهنما: اتصال به Firebase Auth (برای تشخیص ادمین/حسابدار)، موتور آنلاین تبدیل
+   دلار به یورو برای اروپا (+۵٪ حاشیه امن و رند رو به بالا تا ۰.۵ یورو) و دیکشنری ۳ زبانه.
    ========================================================================== */
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 import {
   getFirestore,
   doc,
@@ -36,8 +37,17 @@ export const firebaseConfig = {
 
 export const SITE_DOMAIN = "https://paradisewholesaler.com";
 export const DEFAULT_WHATSAPP = "+905459099395";
+export const CURRENCY_SAFETY_BUFFER = 1.05; // ۵٪ حاشیه امن تبدیل ارز
+
+const EUROPEAN_COUNTRY_CODES = new Set([
+  "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR",
+  "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK",
+  "SI", "ES", "SE", "GB", "UK", "CH", "NO", "IS", "LI", "MC", "SM", "VA",
+  "AD", "AL", "BA", "ME", "MK", "RS", "UA", "MD", "BY"
+]);
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+export const auth = getAuth(app);
 export const db = getFirestore(app);
 
 /* دیکشنری کامل ۱۰۰٪ رابط کاربری، صفحه اصلی، ریویو، FAQ و فوتر به ۳ زبان (EN / IT / ES) */
@@ -106,7 +116,7 @@ export const UI_DICT = {
     sendWhatsappBtn: "Send Order on WhatsApp (Instant Link)",
     floatingWa: "WhatsApp Direct",
     emptyCartMsg: "Your wholesale order list is currently empty. Tap '+ Add 1 Pack' on any product.",
-    tierUnlockedMsg: "🎉 Best Factory Wholesale Rate Unlocked! ($0 small-order adjustment).",
+    tierUnlockedMsg: "🎉 Best Factory Wholesale Rate Unlocked! (0 small-order adjustment).",
     tierHintPrefix: "🔥 Add",
     tierHintMiddle: "more pcs to remove the",
     tierHintSuffix: "small-order adjustment & unlock the lowest factory price!",
@@ -178,7 +188,7 @@ export const UI_DICT = {
     sendWhatsappBtn: "Invia Ordine su WhatsApp (Link Diretto)",
     floatingWa: "WhatsApp Diretto",
     emptyCartMsg: "Il tuo carrello ingrosso è vuoto. Tocca '+1 Pacco Serie' sui prodotti.",
-    tierUnlockedMsg: "🎉 Miglior Prezzo di Fabbrica Sbloccato! ($0 supplemento).",
+    tierUnlockedMsg: "🎉 Miglior Prezzo di Fabbrica Sbloccato! (0 supplemento).",
     tierHintPrefix: "🔥 Aggiungi altri",
     tierHintMiddle: "pz per azzerare il supplemento di",
     tierHintSuffix: "e ottenere il prezzo di fabbrica più basso!",
@@ -250,7 +260,7 @@ export const UI_DICT = {
     sendWhatsappBtn: "Enviar Pedido por WhatsApp (Enlace Directo)",
     floatingWa: "WhatsApp Directo",
     emptyCartMsg: "Su pedido mayorista está vacío. Toque '+1 Paquete Serie' en cualquier producto.",
-    tierUnlockedMsg: "🎉 ¡Mejor Precio de Fábrica Desbloqueado! ($0 ajuste).",
+    tierUnlockedMsg: "🎉 ¡Mejor Precio de Fábrica Desbloqueado! (0 ajuste).",
     tierHintPrefix: "🔥 ¡Añada",
     tierHintMiddle: "uds más para eliminar el ajuste de",
     tierHintSuffix: "y activar el precio más bajo de fábrica!",
@@ -262,6 +272,14 @@ export const UI_DICT = {
 
 export const coreState = {
   lang: localStorage.getItem("paradise_lang") || "en",
+  currency: localStorage.getItem("paradise_currency_manual") || "USD",
+  eurRate: Number(localStorage.getItem("paradise_eur_rate_cached")) || 0.92,
+  currencyLockedByOrder: false,
+  isAdminLoggedIn: false,
+  activeOrderCode: "",
+  lastExportedFingerprint: "",
+  lastExportedAt: "",
+  activeReelsList: [],
   dept: "",
   cat: "",
   sub: "",
@@ -300,6 +318,133 @@ export function t(key) {
   return dict[key] || UI_DICT.en[key] || key;
 }
 
+export function getCurrencySymbol() {
+  return coreState.currency === "EUR" ? "€" : "$";
+}
+
+/**
+ * تبدیل قیمت پایه دلاری به ارز فعال:
+ * - برای دلار: همان عدد دقیق پایه
+ * - برای یورو (اروپا): نرخ رسمی آنلاین × 1.05 (۵٪ حاشیه امن) و رند رو به بالا تا ۰.۵ یورو
+ */
+export function convertUsdToDisplay(usdVal) {
+  const num = Number(usdVal) || 0;
+  if (num <= 0) return 0;
+  if (coreState.currency !== "EUR") {
+    return Math.round(num * 100) / 100;
+  }
+  const rate = Number(coreState.eurRate) || 0.92;
+  const buffered = num * rate * CURRENCY_SAFETY_BUFFER;
+  return Math.ceil(buffered * 2 - 1e-9) / 2;
+}
+
+export function formatMoney(amount, forceDecimals = false) {
+  const num = Number(amount) || 0;
+  const sym = getCurrencySymbol();
+  const str = forceDecimals || !Number.isInteger(num) ? num.toFixed(2) : String(num);
+  return `${sym}${str}`;
+}
+
+/**
+ * دریافت نرخ رسمی یورو از بانک مرکزی اروپا (Frankfurter API با پشتیبان خودکار) + تشخیص اروپا
+ */
+export async function initLiveCurrencyAndRegion(hasIncomingOrder = false) {
+  // ۱. دریافت و کش کردن نرخ روزانه USD -> EUR تا ۱۲ ساعت
+  try {
+    const cached = JSON.parse(localStorage.getItem("paradise_fx_cache") || "null");
+    const twelveHours = 12 * 60 * 60 * 1000;
+    if (cached && cached.rate > 0.5 && cached.rate < 1.8 && Date.now() - cached.ts < twelveHours) {
+      coreState.eurRate = Number(cached.rate);
+    } else {
+      let freshRate = null;
+      try {
+        const res = await fetch("https://api.frankfurter.app/latest?from=USD&to=EUR");
+        const data = await res.json();
+        if (data?.rates?.EUR) freshRate = Number(data.rates.EUR);
+      } catch (e) {}
+
+      if (!freshRate) {
+        try {
+          const res2 = await fetch("https://open.er-api.com/v6/latest/USD");
+          const data2 = await res2.json();
+          if (data2?.rates?.EUR) freshRate = Number(data2.rates.EUR);
+        } catch (e) {}
+      }
+
+      if (freshRate && freshRate > 0.5 && freshRate < 1.8) {
+        coreState.eurRate = freshRate;
+        localStorage.setItem("paradise_eur_rate_cached", String(freshRate));
+        localStorage.setItem("paradise_fx_cache", JSON.stringify({ rate: freshRate, ts: Date.now() }));
+      }
+    }
+  } catch (e) {}
+
+  // ۲. تشخیص خودکار مشتری اروپایی (اگر کاربر دستی انتخاب نکرده و لینک سفارش ارز را قفل نکرده باشد)
+  const manualChoice = localStorage.getItem("paradise_currency_manual");
+  if (!manualChoice && !hasIncomingOrder && !coreState.currencyLockedByOrder) {
+    let isEurope = false;
+    try {
+      const cachedRegion = JSON.parse(localStorage.getItem("paradise_region_cache") || "null");
+      if (cachedRegion && Date.now() - cachedRegion.ts < 24 * 60 * 60 * 1000) {
+        isEurope = Boolean(cachedRegion.isEurope);
+      } else {
+        const geoRes = await Promise.race([
+          fetch("https://get.geojs.io/v1/ip/country.json"),
+          new Promise((_, rej) => setTimeout(() => rej(new Error("geo timeout")), 2500))
+        ]);
+        const geoData = await geoRes.json();
+        const cc = String(geoData?.country || "").toUpperCase();
+        isEurope = EUROPEAN_COUNTRY_CODES.has(cc);
+        localStorage.setItem("paradise_region_cache", JSON.stringify({ isEurope, cc, ts: Date.now() }));
+      }
+    } catch (e) {
+      try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+        isEurope = tz.startsWith("Europe/") && tz !== "Europe/Istanbul";
+      } catch (tzErr) {}
+    }
+
+    coreState.currency = isEurope ? "EUR" : "USD";
+  }
+
+  injectAndSyncHeaderCurrencyToggle();
+}
+
+/**
+ * تزریق دکمه ظریف انتخاب دستی ارز (€ / $) کنار انتخاب زبان در هدر (بدون تغییر دستی در هدر index.html)
+ */
+export function injectAndSyncHeaderCurrencyToggle() {
+  let btn = document.getElementById("btn-currency-toggle");
+  if (!btn) {
+    const langGroup = document.getElementById("lang-switcher-group");
+    const parent = langGroup?.parentElement || document.querySelector(".nav-right-group");
+    if (parent) {
+      btn = document.createElement("button");
+      btn.type = "button";
+      btn.id = "btn-currency-toggle";
+      btn.className = "lang-trigger-btn";
+      btn.style.cssText = "padding:0 9px; font-size:0.74rem; min-width:48px; justify-content:center;";
+      btn.title = "Switch Currency (EUR / USD)";
+      if (langGroup) parent.insertBefore(btn, langGroup);
+      else parent.appendChild(btn);
+
+      btn.addEventListener("click", () => {
+        coreState.currencyLockedByOrder = false;
+        coreState.currency = coreState.currency === "EUR" ? "USD" : "EUR";
+        localStorage.setItem("paradise_currency_manual", coreState.currency);
+        coreState.price = null;
+        injectAndSyncHeaderCurrencyToggle();
+        if (typeof window._paradiseRefreshCurrencyUI === "function") {
+          window._paradiseRefreshCurrencyUI();
+        }
+      });
+    }
+  }
+  if (btn) {
+    btn.textContent = coreState.currency === "EUR" ? "€ EUR" : "$ USD";
+  }
+}
+
 export function escapeHtml(str) {
   return String(str || "")
     .replace(/&/g, "&" + "amp;")
@@ -331,7 +476,7 @@ export function showCatalogToast(msg, duration = 2800) {
     el.style.transform = "translateX(-50%) translateY(20px)";
   }, duration);
 }
-/* === پایان [MODULE-01: CONFIG, STATE & FULL 3-LANG DICTIONARY] === */
+/* === پایان [MODULE-01: CONFIG, AUTH, ONLINE CURRENCY ENGINE & 3-LANG DICT] === */
 
 
 /* ==========================================================================
@@ -1793,8 +1938,8 @@ export function bindSmartHeaderAndGlassEvents() {
 }
 /* === پایان [MODULE-03: 100% 3-LANG UI, REELS PLAYER, COUNTRY REVIEWS & FAQ] === */
 /* ==========================================================================
-   === شروع [MODULE-04: DYNAMIC PRICE-TIER DETECTOR ($5 | $9 | $12)] (ماژول ۴) ===
-   راهنما: تشخیص هوشمند قیمت‌های موجود در شاخه یا زیربخش فعلی از دیتابیس.
+   === شروع [MODULE-04: DYNAMIC PRICE-TIER DETECTOR (EUR / USD)] (ماژول ۴) ===
+   راهنما: تشخیص هوشمند قیمت‌های موجود در شاخه فعلی بر اساس ارز فعال (€ یا $).
    فقط در مرحله ۳ (زمانی که محصولات نمایش داده می‌شوند) روشن می‌شود.
    ========================================================================== */
 
@@ -1831,7 +1976,6 @@ export function renderDynamicPriceFilterBar() {
   const container = document.getElementById("price-chips-container");
   if (!priceRow || !container) return;
 
-  // اگر هنوز وارد شاخه‌ای نشده‌ایم (مراحل ۱ و ۲)، ریل قیمت را کاملاً مخفی نگه دار!
   if (!isProductStageActive()) {
     priceRow.style.display = "none";
     return;
@@ -1841,9 +1985,10 @@ export function renderDynamicPriceFilterBar() {
 
   const priceCountMap = new Map();
   scopedProducts.forEach((p) => {
-    const pr = Number(p.unitPrice);
-    if (pr > 0) {
-      priceCountMap.set(pr, (priceCountMap.get(pr) || 0) + 1);
+    const baseUsd = Number(p.unitPrice);
+    if (baseUsd > 0) {
+      const displayPr = convertUsdToDisplay(baseUsd);
+      priceCountMap.set(displayPr, (priceCountMap.get(displayPr) || 0) + 1);
     }
   });
 
@@ -1869,7 +2014,7 @@ export function renderDynamicPriceFilterBar() {
   sortedPrices.forEach((priceVal) => {
     const cnt = priceCountMap.get(priceVal) || 0;
     const isAct = coreState.price === priceVal;
-    const formattedPrice = Number.isInteger(priceVal) ? `$${priceVal}` : `$${priceVal.toFixed(2)}`;
+    const formattedPrice = formatMoney(priceVal, false);
     chipsHtml.push(`
       <button type="button" class="price-chip-btn ${isAct ? "active" : ""}" data-select-price="${priceVal}">
         ${formattedPrice} <span style="opacity:0.75; font-weight:600;">(${cnt})</span>
@@ -1893,19 +2038,20 @@ export function bindPriceFilterEvents() {
     renderProductsCatalogGrid();
   });
 }
-/* === پایان [MODULE-04: DYNAMIC PRICE-TIER DETECTOR ($5 | $9 | $12)] === */
+/* === پایان [MODULE-04: DYNAMIC PRICE-TIER DETECTOR (EUR / USD)] === */
+
 
 /* ==========================================================================
    === شروع [MODULE-05: PRODUCT CARD MINI-SLIDER & HD LIGHTBOX] (ماژول ۵) ===
-   راهنما: نمایش دکمه‌های Prev/Next فقط برای محصولاتی که بیش از ۱ عکس دارند
-   و لود پله‌ای ۱۲تایی عکس‌ها در موبایل.
+   راهنما: نمایش دکمه‌های Prev/Next فقط برای محصولاتی که بیش از ۱ عکس دارند،
+   لود پله‌ای ۱۲تایی عکس‌ها در موبایل و نمایش قیمت به ارز فعال (€ یا $).
    ========================================================================== */
 
 export function getFinalFilteredProducts() {
   if (!isProductStageActive()) return [];
   const scoped = getProductsInCurrentScopeWithoutPrice();
   if (coreState.price === null || isNaN(coreState.price)) return scoped;
-  return scoped.filter((p) => Number(p.unitPrice) === Number(coreState.price));
+  return scoped.filter((p) => convertUsdToDisplay(Number(p.unitPrice)) === Number(coreState.price));
 }
 
 export function getLocalizedProductTitle(prod) {
@@ -1964,9 +2110,9 @@ export function renderProductsCatalogGrid() {
   grid.innerHTML = visibleItems
     .map((p, idx) => {
       const sku = escapeHtml(p.sku || p.id);
-      const unitPrice = Number(p.unitPrice) || 0;
+      const displayUnit = convertUsdToDisplay(Number(p.unitPrice) || 0);
       const pcs = Math.max(1, parseInt(p.pcsPerPack, 10) || 6);
-      const packTotal = (unitPrice * pcs).toFixed(0);
+      const packTotal = displayUnit * pcs;
       const title = escapeHtml(getLocalizedProductTitle(p));
       const sizes = escapeHtml(p.sizeRange || "S - M - L - XL");
       const hasVideo = Boolean(p.videoUrl || p.youtubeId);
@@ -2009,8 +2155,8 @@ export function renderProductsCatalogGrid() {
           <div class="prod-info-body">
             <div>
               <div class="prod-price-pack-row">
-                <span class="prod-unit-price">$${unitPrice} <small>${t("perPc")}</small></span>
-                <span class="prod-pack-badge">${pcs} ${t("pcsUnit")} ($${packTotal})</span>
+                <span class="prod-unit-price">${formatMoney(displayUnit, false)} <small>${t("perPc")}</small></span>
+                <span class="prod-pack-badge">${pcs} ${t("pcsUnit")} (${formatMoney(packTotal, false)})</span>
               </div>
               <div class="prod-title-line" title="${title}">${title}</div>
               <div class="prod-size-line">${t("sizesLabel")} ${sizes} • <strong>${sku}</strong></div>
@@ -2087,7 +2233,6 @@ export function renderLightboxStageContent() {
   const imagesList = Array.isArray(prod.images) && prod.images.length > 0 ? prod.images.filter(Boolean) : [prod.imageUrl];
   const hasVideo = Boolean(prod.videoUrl || prod.youtubeId);
 
-  // دکمه‌های Prev و Next فقط زمانی نمایش داده شوند که محصول بیش از ۱ عکس داشته باشد
   if (multiNavGroup) {
     if (!coreState.lightboxVideoMode && imagesList.length > 1) {
       multiNavGroup.style.display = "flex";
@@ -2127,21 +2272,21 @@ export function renderLightboxStageContent() {
     }
   }
 
-  const unitPrice = Number(prod.unitPrice) || 0;
+  const displayUnit = convertUsdToDisplay(Number(prod.unitPrice) || 0);
   const pcs = Math.max(1, parseInt(prod.pcsPerPack, 10) || 6);
-  const packTotal = (unitPrice * pcs).toFixed(2);
+  const packTotal = displayUnit * pcs;
 
   const setTxt = (id, val) => {
     const el = document.getElementById(id);
     if (el) el.textContent = val;
   };
 
-  setTxt("lightbox-unit-price", `$${unitPrice}`);
+  setTxt("lightbox-unit-price", formatMoney(displayUnit, false));
   setTxt("txt-lightbox-per-pc", t("perPc"));
   setTxt("lightbox-sku-badge", prod.sku || prod.id);
   setTxt("lightbox-prod-title", getLocalizedProductTitle(prod));
   setTxt("lightbox-prod-desc", getLocalizedProductDesc(prod));
-  setTxt("txt-lightbox-pack-info", `${t("packOf")} ${pcs} ${t("pcsUnit")} ($${packTotal})`);
+  setTxt("txt-lightbox-pack-info", `${t("packOf")} ${pcs} ${t("pcsUnit")} (${formatMoney(packTotal, false)})`);
   setTxt("txt-lightbox-size-info", `${t("sizesLabel")} ${prod.sizeRange || "S-XXL"}`);
   setTxt("btn-lightbox-add-pack", `${t("addPackModalBtn")} (${pcs} ${t("pcsUnit")})`);
 }
@@ -2289,19 +2434,13 @@ export function bindProductGridAndLightboxEvents() {
   });
 }
 /* === پایان [MODULE-05: PRODUCT CARD MINI-SLIDER & HD LIGHTBOX] === */
-/* ==========================================================================
-   === پایان بلوک ۲ از ۳ فایل core.js ===
-   راهنما: بلوک ۳ (ماژول‌های ۰۶ و ۰۷ — پایان فایل) را دقیقاً زیر این خط پیست کنید
-   ========================================================================== */
-/* ==========================================================================
-   === شروع بلوک ۳ از ۳ فایل core.js (ماژول‌های ۰۶ و ۰۷ — پایان فایل) ===
-   راهنما: این بلوک را دقیقاً زیر خط پایان بلوک ۲ پیست کنید
-   ========================================================================== */
+
 
 /* ==========================================================================
-   === شروع [MODULE-06: STEPPED CART ENGINE & GOOGLE ADS CONVERSION] (ماژول ۶) ===
-   راهنما: محاسبه هوشمند قیمت پله‌ای بر اساس حد نصاب پنل ادمین (۲۵ عدد)،
-   مدیریت کشوی سبد خرید و ارسال کانورژن واقعی به گوگل ادز.
+   === شروع [MODULE-06: STEPPED CART ENGINE (EUR/USD) & GOOGLE ADS CONVERSION] (ماژول ۶) ===
+   راهنما: محاسبه هوشمند قیمت پله‌ای با ارز فعال (€ برای اروپا با ۵٪ حاشیه امن و
+   رند رو به بالا تا ۰.۵ یورو، و $ برای سایر کشورها)، بروزرسانی کشوی سبد خرید و
+   همگام‌سازی خودکار وضعیت دکمه فاکتورساز ادمین.
    ========================================================================== */
 
 export function saveCartToStorage() {
@@ -2311,12 +2450,9 @@ export function saveCartToStorage() {
 }
 
 /**
- * محاسبه پله‌ای قیمت بر اساس حد نصاب تعیین شده در پنل ادمین (پیش‌فرض ۲۵ عدد):
- * - ۱۰۰٪ حد نصاب به بالا (مثلاً ۲۵+ عدد): +$0 (بهترین قیمت پایه کارخانه)
- * - ۸۰٪ تا ۹۹٪ حد نصاب (مثلاً ۲۰ تا ۲۴ عدد): +$1 روی هر عدد
- * - ۶۰٪ تا ۷۹٪ حد نصاب (مثلاً ۱۵ تا ۱۹ عدد): +$2 روی هر عدد
- * - ۴۰٪ تا ۵۹٪ حد نصاب (مثلاً ۱۰ تا ۱۴ عدد): +$3 روی هر عدد
- * - زیر ۴۰٪ حد نصاب (مثلاً ۱ تا ۹ عدد): +$5 روی هر عدد
+ * محاسبه پله‌ای قیمت بر اساس حد نصاب پنل ادمین (پیش‌فرض ۲۵ عدد) و ارز فعال:
+ * مابه‌التفاوت هر عدد نیز به ارز فعال تبدیل و تا ۰.۵ یورو رند رو به بالا می‌شود تا
+ * مجموع (قیمت واحد موثر × تعداد کل عدد) در سیستم فاکتورساز دقیقاً برابر جمع نهایی باشد.
  */
 export function calculateSteppedCartTotals() {
   const threshold = Math.max(1, parseInt(coreState.publicConfig.bestRateThreshold, 10) || 25);
@@ -2328,30 +2464,32 @@ export function calculateSteppedCartTotals() {
   coreState.cart.forEach((item) => {
     const packs = Math.max(1, parseInt(item.packs, 10) || 1);
     const pcsPerPack = Math.max(1, parseInt(item.pcsPerPack, 10) || 6);
-    const unitPrice = Number(item.unitPrice) || 0;
+    const displayUnit = convertUsdToDisplay(Number(item.unitPrice) || 0);
     const itemPieces = packs * pcsPerPack;
 
     totalPacks += packs;
     totalPieces += itemPieces;
-    baseSubtotal += itemPieces * unitPrice;
+    baseSubtotal += itemPieces * displayUnit;
   });
 
-  let surchargePerPc = 0;
+  let surchargeUsdPerPc = 0;
   if (totalPieces > 0 && totalPieces < threshold) {
     const ratio = totalPieces / threshold;
     if (ratio >= 0.8) {
-      surchargePerPc = 1;
+      surchargeUsdPerPc = 1;
     } else if (ratio >= 0.6) {
-      surchargePerPc = 2;
+      surchargeUsdPerPc = 2;
     } else if (ratio >= 0.4) {
-      surchargePerPc = 3;
+      surchargeUsdPerPc = 3;
     } else {
-      surchargePerPc = 5;
+      surchargeUsdPerPc = 5;
     }
   }
 
-  const smallOrderFee = totalPieces * surchargePerPc;
-  const finalTotal = baseSubtotal + smallOrderFee;
+  const surchargePerPc = surchargeUsdPerPc > 0 ? convertUsdToDisplay(surchargeUsdPerPc) : 0;
+  const smallOrderFee = Math.round(totalPieces * surchargePerPc * 100) / 100;
+  baseSubtotal = Math.round(baseSubtotal * 100) / 100;
+  const finalTotal = Math.round((baseSubtotal + smallOrderFee) * 100) / 100;
   const remainingForBestRate = Math.max(0, threshold - totalPieces);
 
   return {
@@ -2366,9 +2504,6 @@ export function calculateSteppedCartTotals() {
   };
 }
 
-/**
- * افزودن پک به سبد خرید و بروزرسانی زنده نوار پایین صفحه
- */
 export function addPackToCart(prod, packsToAdd = 1) {
   if (!prod) return;
   const sku = prod.sku || prod.id;
@@ -2395,17 +2530,12 @@ export function addPackToCart(prod, packsToAdd = 1) {
   showCatalogToast(`${t("addedToast")} (${sku})`);
 }
 
-/**
- * رندر کامل نوار زنده پایین صفحه، بجِ هدر و کشوی سبد خرید پله‌ای
- */
 export function renderSteppedCartUI() {
   const stats = calculateSteppedCartTotals();
 
-  // ۱. بروزرسانی بج تعداد قطعات در هدر بالا
   const headerBadge = document.getElementById("header-cart-pcs-badge");
   if (headerBadge) headerBadge.textContent = `${stats.totalPieces} ${t("pcsUnit")}`;
 
-  // ۲. بروزرسانی نوار زنده پایین صفحه
   const bottomBar = document.getElementById("live-bottom-cart-bar");
   const bottomPcs = document.getElementById("bottom-bar-pcs-count");
   const bottomTotal = document.getElementById("bottom-bar-total-amount");
@@ -2418,7 +2548,7 @@ export function renderSteppedCartUI() {
     bottomPcs.textContent = `${stats.totalPacks} ${t("packsUnit")} (${stats.totalPieces} ${t("pcsUnit")})`;
   }
   if (bottomTotal) {
-    bottomTotal.textContent = `$${stats.finalTotal.toFixed(2)}`;
+    bottomTotal.textContent = formatMoney(stats.finalTotal, true);
   }
   if (bottomHint) {
     if (stats.remainingForBestRate === 0) {
@@ -2430,10 +2560,9 @@ export function renderSteppedCartUI() {
     }
   }
 
-  // ۳. بروزرسانی هدر و بنر تشویقی داخل کشوی سبد خرید
   const headerSummary = document.getElementById("cart-header-summary");
   if (headerSummary) {
-    headerSummary.textContent = `${stats.totalPacks} ${t("packsUnit")} • ${stats.totalPieces} ${t("piecesUnit")}`;
+    headerSummary.textContent = `${stats.totalPacks} ${t("packsUnit")} • ${stats.totalPieces} ${t("piecesUnit")} (${coreState.currency})`;
   }
 
   const bannerEl = document.getElementById("cart-tier-unlock-banner");
@@ -2451,11 +2580,10 @@ export function renderSteppedCartUI() {
       bannerEl.style.background = "#fffbeb";
       bannerEl.style.borderColor = "#fde68a";
       bannerEl.style.color = "#92400e";
-      bannerEl.innerHTML = `${t("tierHintPrefix")} <strong>${stats.remainingForBestRate} ${t("pcsUnit")}</strong> ${t("tierHintMiddle")} <strong>+$${stats.smallOrderFee.toFixed(0)} (+$${stats.surchargePerPc}/${t("pcsUnit")})</strong> ${t("tierHintSuffix")}`;
+      bannerEl.innerHTML = `${t("tierHintPrefix")} <strong>${stats.remainingForBestRate} ${t("pcsUnit")}</strong> ${t("tierHintMiddle")} <strong>+${formatMoney(stats.smallOrderFee, false)} (+${formatMoney(stats.surchargePerPc, false)}/${t("pcsUnit")})</strong> ${t("tierHintSuffix")}`;
     }
   }
 
-  // ۴. رندر لیست آیتم‌های داخل سبد
   const listEl = document.getElementById("cart-items-list");
   if (listEl) {
     if (coreState.cart.length === 0) {
@@ -2468,8 +2596,9 @@ export function renderSteppedCartUI() {
       listEl.innerHTML = coreState.cart
         .map((item, idx) => {
           const itemPcs = item.packs * item.pcsPerPack;
-          const effectiveUnit = item.unitPrice + stats.surchargePerPc;
-          const itemTotal = (itemPcs * effectiveUnit).toFixed(0);
+          const displayBaseUnit = convertUsdToDisplay(Number(item.unitPrice) || 0);
+          const effectiveUnit = Math.round((displayBaseUnit + stats.surchargePerPc) * 100) / 100;
+          const itemTotal = itemPcs * effectiveUnit;
 
           return `
             <div style="display:flex; gap:10px; align-items:center; background:#f8fafc; padding:8px 10px; border-radius:12px; border:1px solid var(--border);">
@@ -2477,10 +2606,10 @@ export function renderSteppedCartUI() {
               <div style="flex:1; min-width:0;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                   <strong style="font-size:0.84rem; color:var(--text-main);">${escapeHtml(item.sku)}</strong>
-                  <strong style="font-size:0.88rem; color:var(--emerald-dark);">$${itemTotal}</strong>
+                  <strong style="font-size:0.88rem; color:var(--emerald-dark);">${formatMoney(itemTotal, false)}</strong>
                 </div>
                 <div style="font-size:0.72rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                  Base: $${item.unitPrice}/${t("pcsUnit")} • ${item.pcsPerPack} ${t("pcsUnit")}/pack (${escapeHtml(item.sizeRange)})
+                  Unit: ${formatMoney(effectiveUnit, false)}/${t("pcsUnit")} • ${item.pcsPerPack} ${t("pcsUnit")}/pack (${escapeHtml(item.sizeRange)})
                 </div>
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-top:6px;">
                   <div style="display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid #cbd5e1; border-radius:8px; padding:2px 6px;">
@@ -2498,25 +2627,26 @@ export function renderSteppedCartUI() {
     }
   }
 
-  // ۵. بروزرسانی جمع پایه، مابه‌التفاوت پله‌ای و جمع نهایی
   const setTxt = (id, val) => {
     const el = document.getElementById(id);
     if (el) el.textContent = val;
   };
 
-  setTxt("cart-base-subtotal", `$${stats.baseSubtotal.toFixed(2)}`);
-  setTxt("cart-small-order-fee", `+$${stats.smallOrderFee.toFixed(2)} (+$${stats.surchargePerPc}/${t("pcsUnit")})`);
-  setTxt("cart-final-total", `$${stats.finalTotal.toFixed(2)}`);
+  setTxt("cart-base-subtotal", formatMoney(stats.baseSubtotal, true));
+  setTxt("cart-small-order-fee", `+${formatMoney(stats.smallOrderFee, true)} (+${formatMoney(stats.surchargePerPc, false)}/${t("pcsUnit")})`);
+  setTxt("cart-final-total", formatMoney(stats.finalTotal, true));
 
   const feeRow = document.getElementById("cart-small-order-fee-row");
   if (feeRow) {
     feeRow.style.display = stats.smallOrderFee > 0 ? "flex" : "none";
   }
+
+  // بروزرسانی همزمان وضعیت دکمه انتقال به فاکتورساز (فقط برای ادمین/حسابدار لاگین‌شده)
+  if (typeof renderAdminInvoiceExportBox === "function") {
+    renderAdminInvoiceExportBox();
+  }
 }
 
-/**
- * راه‌اندازی خودکار تگ گوگل ادز و آنالیتیکس (GA4 + Google Ads Conversion) از روی تنظیمات پنل ادمین
- */
 export function initGoogleAdsAndAnalyticsTag() {
   const ga4Id = (coreState.publicConfig.ga4MeasurementId || "").trim();
   const gadsId = (coreState.publicConfig.googleAdsId || "").trim();
@@ -2538,49 +2668,44 @@ export function initGoogleAdsAndAnalyticsTag() {
   document.head.appendChild(script);
 }
 
-/**
- * شلیک کانورژن اصلی گوگل ادز (هنگام ارسال سفارش سبد خرید به واتساپ با مبلغ دلاری واقعی)
- */
-export function fireGoogleAdsOrderConversion(orderTotalUsd, orderCode) {
+export function fireGoogleAdsOrderConversion(orderTotalAmount, orderCode) {
   if (typeof window.gtag !== "function") return;
   const gadsId = (coreState.publicConfig.googleAdsId || "").trim();
   const gadsLabel = (coreState.publicConfig.googleAdsConversionLabel || "").trim();
+  const activeCurrency = coreState.currency === "EUR" ? "EUR" : "USD";
 
   if (gadsId && gadsLabel) {
     window.gtag("event", "conversion", {
       send_to: `${gadsId}/${gadsLabel}`,
-      value: Number(orderTotalUsd) || 1.0,
-      currency: "USD",
+      value: Number(orderTotalAmount) || 1.0,
+      currency: activeCurrency,
       transaction_id: orderCode
     });
   }
 
   window.gtag("event", "purchase_whatsapp_invoice", {
-    value: Number(orderTotalUsd) || 1.0,
-    currency: "USD",
+    value: Number(orderTotalAmount) || 1.0,
+    currency: activeCurrency,
     transaction_id: orderCode
   });
 }
 
-/**
- * رویداد جداگانه برای کلیک روی دکمه شناور واتساپ (بدون خراب کردن ارزش کانورژن سبد خرید)
- */
 export function fireDirectWhatsappClickEvent() {
   if (typeof window.gtag === "function") {
     window.gtag("event", "whatsapp_direct_chat_click", {
       event_category: "engagement",
       value: 1.0,
-      currency: "USD"
+      currency: coreState.currency === "EUR" ? "EUR" : "USD"
     });
   }
 }
-/* === پایان [MODULE-06: STEPPED CART ENGINE & GOOGLE ADS CONVERSION] === */
+/* === پایان [MODULE-06: STEPPED CART ENGINE (EUR/USD) & GOOGLE ADS CONVERSION] === */
 
 
 /* ==========================================================================
-   === شروع [MODULE-07: VISUAL ORDER LINK, OFFICIAL SVG FOOTER & INITIALIZER] (ماژول ۷) ===
-   راهنما: رفع کامل باگ باز شدن لینک سبد خرید واتساپ، ارسال لینک تصویری و قابل ویرایش،
-   نمایش همزمان لوگو + نام شرکت در صفحه اول، و لوگوهای رسمی SVG در فوتر.
+   === شروع [MODULE-07: SMART ACCOUNTING EXPORT, VISUAL ORDER LINK & INIT] (ماژول ۷) ===
+   راهنما: سیستم انتقال هوشمند سبد خرید به پنل فاکتورساز (با اثر انگشت Fingerprint
+   و دسترسی فقط برای ادمین/حسابدار)، قفل ارز روی لینک سفارش واتساپ، و فوتر SVG.
    ========================================================================== */
 
 const OFFICIAL_SOCIAL_SVGS = {
@@ -2593,6 +2718,7 @@ const OFFICIAL_SOCIAL_SVGS = {
 
 export const DEFAULT_INSTAGRAM_URL = "https://www.instagram.com/paradisewholesaleclothing5401";
 export const DEFAULT_YOUTUBE_URL = "https://www.youtube.com/@paradisewholesaleclothing5401";
+const INVOICE_PANEL_BASE_URL = "https://raminparadise800.github.io/Paradise_panel/retail.html";
 
 export function getUnifiedWhatsAppInfo() {
   const pub = coreState.publicConfig;
@@ -2608,9 +2734,6 @@ export function getUnifiedWhatsAppInfo() {
   return { cleanDigits, formattedDisplay };
 }
 
-/**
- * اعمال لوگو + نام شرکت در هدر صفحه اصلی، شماره واتساپ یکپارچه و لوگوهای رسمی SVG در فوتر
- */
 export function applyDynamicBrandingAndFooter() {
   const pub = coreState.publicConfig;
   const { cleanDigits, formattedDisplay } = getUnifiedWhatsAppInfo();
@@ -2683,12 +2806,219 @@ export function applyDynamicBrandingAndFooter() {
   }
 }
 
+/* ==========================================================================
+   === سیستم انتقال هوشمند به فاکتورساز آنلاین (فقط ادمین/حسابدار + Fingerprint) ===
+   ========================================================================== */
+
+function getOrCreateStableOrderCode() {
+  if (coreState.activeOrderCode && /^ORD-\d+$/i.test(coreState.activeOrderCode)) {
+    return coreState.activeOrderCode.toUpperCase();
+  }
+  const params = new URLSearchParams(window.location.search);
+  const urlCode = (params.get("order") || "").trim().toUpperCase();
+  if (urlCode && /^ORD-\d+$/i.test(urlCode)) {
+    coreState.activeOrderCode = urlCode;
+    return urlCode;
+  }
+  const newCode = `ORD-${Math.floor(10000 + Math.random() * 90000)}`;
+  coreState.activeOrderCode = newCode;
+  return newCode;
+}
+
 /**
- * ساخت لینک اختصاصی سبد خرید تصویری و قابل ویرایش (سازگار با واتساپ موبایل)
+ * ساخت آبجکت دقیق JSON طبق قرارداد سیستم فاکتورساز آنلاین:
+ * - qty = تعداد کل عدد (تعداد پک × تعداد در پک) از نوع Number
+ * - price = قیمت واحد موثر با اعمال افزایش سفارش کوچک از نوع Number
+ * - currency = نماد دقیق ("€" یا "$")
  */
+export function buildAccountingExportPayload() {
+  const stats = calculateSteppedCartTotals();
+  const websiteOrderId = getOrCreateStableOrderCode();
+  const currencySymbol = getCurrencySymbol(); // "€" یا "$"
+
+  const rawName = (document.getElementById("cart-buyer-name")?.value || "").trim();
+  const rawCountry = (document.getElementById("cart-buyer-country")?.value || "").trim();
+
+  const items = coreState.cart.map((item) => {
+    const packs = Math.max(1, parseInt(item.packs, 10) || 1);
+    const pcsPerPack = Math.max(1, parseInt(item.pcsPerPack, 10) || 6);
+    const totalQty = Number(packs * pcsPerPack);
+    const displayBaseUnit = convertUsdToDisplay(Number(item.unitPrice) || 0);
+    const effectiveUnitPrice = Number((displayBaseUnit + stats.surchargePerPc).toFixed(2));
+    const sizeInfo = item.sizeRange ? ` | ${item.sizeRange}` : "";
+    const titlePart = item.title ? ` - ${item.title}` : "";
+    const itemName = `${item.sku}${titlePart} (${packs} Packs × ${pcsPerPack} pcs${sizeInfo})`;
+
+    return {
+      name: itemName,
+      price: effectiveUnitPrice,
+      qty: totalQty,
+      weight: 0
+    };
+  });
+
+  return {
+    websiteOrderId,
+    invoiceType: "wholesale",
+    fromWebsite: true,
+    currency: currencySymbol,
+    customerName: rawName === "Wholesale Buyer" ? "" : rawName,
+    customerPhone: "",
+    customerCountry: rawCountry === "International" ? "" : rawCountry,
+    customerAddress: "",
+    shippingCost: 0,
+    items
+  };
+}
+
+/**
+ * ساخت اثر انگشت ثابت (Fingerprint) از اقلام، ارز و مشخصات مشتری برای تشخیص هرگونه تغییر سبد
+ */
+export function computeOrderFingerprint(payload) {
+  const normalized = {
+    currency: payload.currency,
+    customerName: payload.customerName,
+    customerPhone: payload.customerPhone,
+    customerCountry: payload.customerCountry,
+    customerAddress: payload.customerAddress,
+    shippingCost: Number(payload.shippingCost) || 0,
+    items: (payload.items || []).map((it) => ({
+      name: it.name,
+      price: Number(it.price) || 0,
+      qty: Number(it.qty) || 0,
+      weight: Number(it.weight) || 0
+    }))
+  };
+  return JSON.stringify(normalized);
+}
+
+/**
+ * انکد UTF-8 URL-Safe Base64 و ساخت لینک انتقال به سیستم فاکتورساز
+ */
+function buildAccountingTargetUrl(orderPayload) {
+  const jsonStr = JSON.stringify(orderPayload);
+  const bytes = new TextEncoder().encode(jsonStr);
+  let binary = "";
+  bytes.forEach((b) => (binary += String.fromCharCode(b)));
+  const encoded = btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return `${INVOICE_PANEL_BASE_URL}#import=${encoded}`;
+}
+
+/**
+ * رندر باکس اختصاصی ادمین/حسابدار (۳ حالته بر اساس Fingerprint) — برای مشتری عادی کاملاً مخفی
+ */
+export function renderAdminInvoiceExportBox() {
+  const box = document.getElementById("admin-invoice-export-box");
+  if (!box) return;
+
+  if (!coreState.isAdminLoggedIn || coreState.cart.length === 0) {
+    box.style.display = "none";
+    box.innerHTML = "";
+    return;
+  }
+
+  box.style.display = "block";
+  const payload = buildAccountingExportPayload();
+  const currentFingerprint = computeOrderFingerprint(payload);
+  const lastFp = String(coreState.lastExportedFingerprint || "");
+
+  if (!lastFp) {
+    // حالت ۱: هنوز ارسال نشده
+    box.innerHTML = `
+      <button
+        type="button"
+        data-export-invoice="send"
+        style="width:100%; padding:11px 12px; border-radius:11px; border:none; background:linear-gradient(135deg, #059669 0%, #047857 100%); color:#ffffff; font-size:0.84rem; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 12px rgba(5,150,105,0.28);"
+      >
+        <span>📤 ارسال به سیستم فاکتورساز</span>
+      </button>
+    `;
+  } else if (lastFp === currentFingerprint) {
+    // حالت ۲: ارسال شده و بدون تغییر
+    box.innerHTML = `
+      <div style="background:#ecfdf5; border:1px solid #6ee7b7; border-radius:10px; padding:9px 11px; display:flex; flex-direction:column; gap:7px;">
+        <div style="font-size:0.78rem; font-weight:800; color:#065f46;">
+          ✅ ارسال شده به فاکتورساز (بدون تغییر)
+        </div>
+        <button
+          type="button"
+          data-export-invoice="reopen"
+          style="width:100%; padding:7px 10px; border-radius:8px; border:1px solid #34d399; background:#ffffff; color:#047857; font-size:0.75rem; font-weight:800; cursor:pointer;"
+        >
+          باز کردن مجدد در فاکتورساز
+        </button>
+      </div>
+    `;
+  } else {
+    // حالت ۳: سفارش پس از آخرین ارسال تغییر کرده و نیاز به آپدیت دارد
+    box.innerHTML = `
+      <div style="background:#fff7ed; border:1px solid #fdba74; border-radius:10px; padding:9px 11px; display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:0.77rem; font-weight:800; color:#c2410c;">
+          ⚠️ سفارش توسط مشتری تغییر کرده و نیاز به آپدیت دارد
+        </div>
+        <button
+          type="button"
+          data-export-invoice="update"
+          style="width:100%; padding:10px 12px; border-radius:9px; border:none; background:linear-gradient(135deg, #f97316 0%, #ea580c 100%); color:#ffffff; font-size:0.82rem; font-weight:800; cursor:pointer; box-shadow:0 4px 12px rgba(234,88,12,0.28);"
+        >
+          🔄 آپدیت فاکتور در سیستم حسابداری
+        </button>
+      </div>
+    `;
+  }
+}
+
+/**
+ * اجرای همزمان باز کردن تب فاکتورساز (بدون بلاک شدن در موبایل) + ذخیره پس‌زمینه Fingerprint در Firestore
+ */
+export function handleAdminExportToAccounting() {
+  if (!coreState.isAdminLoggedIn || coreState.cart.length === 0) return;
+
+  const orderPayload = buildAccountingExportPayload();
+  const currentFingerprint = computeOrderFingerprint(orderPayload);
+  const targetUrl = buildAccountingTargetUrl(orderPayload);
+
+  // ۱. باز کردن همزمان تب جدید داخل رویداد کلیک (برای جلوگیری از بلاک پاپ‌آپ در مرورگرهای موبایل)
+  window.open(targetUrl, "_blank");
+
+  // ۲. بروزرسانی فوری ظاهر دکمه به حالت «ارسال شده (بدون تغییر)»
+  const exportedAtIso = new Date().toISOString();
+  coreState.lastExportedFingerprint = currentFingerprint;
+  coreState.lastExportedAt = exportedAtIso;
+  renderAdminInvoiceExportBox();
+
+  // ۳. ذخیره غیرمسدودکننده (پس‌زمینه) اثر انگشت و زمان ارسال در Firestore سایت عمده
+  const stats = calculateSteppedCartTotals();
+  const orderCode = orderPayload.websiteOrderId;
+  setDoc(
+    doc(db, "orders", orderCode),
+    {
+      orderCode,
+      buyerName: orderPayload.customerName || "Wholesale Buyer",
+      buyerCountry: orderPayload.customerCountry || "International",
+      currency: coreState.currency,
+      currencySymbol: orderPayload.currency,
+      eurRate: coreState.eurRate,
+      totalPacks: stats.totalPacks,
+      totalPieces: stats.totalPieces,
+      baseSubtotal: stats.baseSubtotal,
+      smallOrderFee: stats.smallOrderFee,
+      totalAmount: stats.finalTotal,
+      items: coreState.cart,
+      lastExportedFingerprint: currentFingerprint,
+      lastExportedAt: exportedAtIso,
+      updatedAtIso: exportedAtIso
+    },
+    { merge: true }
+  ).catch((err) => {
+    console.warn("Background fingerprint save warning:", err.message);
+  });
+}
+
 export function buildVisualOrderCartUrl(orderCode) {
   const url = new URL(getBaseRootUrl());
   url.searchParams.set("order", orderCode);
+  url.searchParams.set("cur", coreState.currency);
   if (coreState.lang && coreState.lang !== "en") {
     url.searchParams.set("lang", coreState.lang);
   }
@@ -2705,9 +3035,6 @@ export function buildVisualOrderCartUrl(orderCode) {
   return url.toString();
 }
 
-/**
- * ارسال سفارش به واتساپ (فقط یک لینک واحد سبد خرید تصویری قابل ویرایش + درخواست محاسبه هزینه ارسال)
- */
 export async function submitCartOrderToWhatsApp() {
   if (coreState.cart.length === 0) {
     showCatalogToast(t("emptyCartMsg"));
@@ -2719,13 +3046,7 @@ export async function submitCartOrderToWhatsApp() {
   const buyerName = (document.getElementById("cart-buyer-name")?.value || "").trim() || "Wholesale Buyer";
   const buyerCountry = (document.getElementById("cart-buyer-country")?.value || "").trim() || "International";
 
-  const params = new URLSearchParams(window.location.search);
-  const existingOrderCode = params.get("order");
-  const orderCode =
-    existingOrderCode && /^ORD-\d+$/i.test(existingOrderCode)
-      ? existingOrderCode.toUpperCase()
-      : `ORD-${Math.floor(10000 + Math.random() * 90000)}`;
-
+  const orderCode = getOrCreateStableOrderCode();
   const nowIso = new Date().toISOString();
 
   fireGoogleAdsOrderConversion(stats.finalTotal, orderCode);
@@ -2735,6 +3056,9 @@ export async function submitCartOrderToWhatsApp() {
     buyerName,
     buyerCountry,
     buyerPhone: "",
+    currency: coreState.currency,
+    currencySymbol: getCurrencySymbol(),
+    eurRate: coreState.eurRate,
     totalPacks: stats.totalPacks,
     totalPieces: stats.totalPieces,
     baseSubtotal: stats.baseSubtotal,
@@ -2799,21 +3123,28 @@ export async function submitCartOrderToWhatsApp() {
   window.location.href = waUrl;
 }
 
-/**
- * بازخوانی تضمینی سبد خرید تصویری وقتی فروشنده یا مشتری روی لینک واتساپ (?order=ORD-XXXXX) کلیک می‌کند
- */
-export async function loadSharedOrderFromUrlIfPresent(capturedOrderCode = "", capturedItemsParam = "") {
+export async function loadSharedOrderFromUrlIfPresent(
+  capturedOrderCode = "",
+  capturedItemsParam = "",
+  capturedCurParam = ""
+) {
   const params = new URLSearchParams(window.location.search);
   const orderCode = (capturedOrderCode || params.get("order") || "").trim().toUpperCase();
   const compactItemsParam = (capturedItemsParam || params.get("items") || "").trim();
+  const urlCur = (capturedCurParam || params.get("cur") || "").trim().toUpperCase();
 
   if (!orderCode && !compactItemsParam) return;
+
+  if (orderCode) {
+    coreState.activeOrderCode = orderCode;
+  }
 
   let loadedItems = [];
   let loadedBuyerName = "";
   let loadedBuyerCountry = "";
+  let orderCurrency = urlCur === "EUR" || urlCur === "USD" ? urlCur : "";
+  let orderEurRate = 0;
 
-  // ۱. خواندن نسخه کامل سفارش از دیتابیس فایربیس
   if (orderCode) {
     try {
       const snap = await getDoc(doc(db, "orders", orderCode));
@@ -2824,13 +3155,32 @@ export async function loadSharedOrderFromUrlIfPresent(capturedOrderCode = "", ca
         }
         loadedBuyerName = data.buyerName || "";
         loadedBuyerCountry = data.buyerCountry || "";
+        coreState.lastExportedFingerprint = data.lastExportedFingerprint || "";
+        coreState.lastExportedAt = data.lastExportedAt || "";
+
+        if (data.currency === "EUR" || data.currency === "USD") {
+          orderCurrency = data.currency;
+        } else if (data.currencySymbol === "€") {
+          orderCurrency = "EUR";
+        } else if (data.currencySymbol === "$") {
+          orderCurrency = "USD";
+        }
+        if (Number(data.eurRate) > 0.5 && Number(data.eurRate) < 1.8) {
+          orderEurRate = Number(data.eurRate);
+        }
       }
     } catch (e) {
       console.warn("Firestore order lookup fallback:", e.message);
     }
   }
 
-  // ۲. پشتیبان تضمینی: بازسازی دقیق سبد خرید از روی پارامتر items موجود در خود لینک
+  if (orderCurrency) {
+    coreState.currency = orderCurrency;
+    coreState.currencyLockedByOrder = true;
+    if (orderEurRate > 0) coreState.eurRate = orderEurRate;
+    injectAndSyncHeaderCurrencyToggle();
+  }
+
   if (loadedItems.length === 0 && compactItemsParam) {
     const pairs = compactItemsParam.split(",").map((s) => s.trim()).filter(Boolean);
     pairs.forEach((pair) => {
@@ -2873,6 +3223,7 @@ export async function loadSharedOrderFromUrlIfPresent(capturedOrderCode = "", ca
       countryInp.value = loadedBuyerCountry;
     }
 
+    renderEntireCatalogView(false);
     renderSteppedCartUI();
     document.getElementById("cart-drawer-backdrop")?.classList.add("open");
     showCatalogToast(`🛒 ${orderCode || "Order"} (${loadedItems.length} items)`);
@@ -2898,7 +3249,6 @@ export function bindCartAndWhatsappEvents() {
     if (e.target.id === "cart-drawer-backdrop") closeDrawer();
   });
 
-  // بازگردانی خودکار دکمه خرید پنجره لایت‌باکس بعد از بستن ویدیوهای رضایت مشتری
   const restoreAddBtn = () => {
     const addBtn = document.getElementById("btn-lightbox-add-pack");
     if (addBtn) addBtn.style.display = "flex";
@@ -2941,6 +3291,17 @@ export function bindCartAndWhatsappEvents() {
     }
   });
 
+  // بروزرسانی زنده وضعیت Fingerprint هنگام تغییر نام یا کشور مشتری
+  document.getElementById("cart-buyer-name")?.addEventListener("input", renderAdminInvoiceExportBox);
+  document.getElementById("cart-buyer-country")?.addEventListener("input", renderAdminInvoiceExportBox);
+
+  // کلیک روی دکمه‌های انتقال / آپدیت / باز کردن مجدد در سیستم فاکتورساز (فقط ادمین)
+  document.getElementById("admin-invoice-export-box")?.addEventListener("click", (e) => {
+    const exportBtn = e.target.closest("[data-export-invoice]");
+    if (!exportBtn) return;
+    handleAdminExportToAccounting();
+  });
+
   document.getElementById("btn-submit-whatsapp-order")?.addEventListener("click", submitCartOrderToWhatsApp);
   document.getElementById("floating-whatsapp-btn")?.addEventListener("click", fireDirectWhatsappClickEvent);
 }
@@ -2956,10 +3317,24 @@ export function renderEntireCatalogView(triggerNudge = false) {
 }
 
 export async function initParadiseCatalogCore() {
-  // ذخیره فوری پارامترهای سفارش در اولین لحظه قبل از هر تغییر در آدرس مرورگر
   const initialParams = new URLSearchParams(window.location.search);
   const initialOrderCode = (initialParams.get("order") || "").trim();
   const initialItemsParam = (initialParams.get("items") || "").trim();
+  const initialCurParam = (initialParams.get("cur") || "").trim().toUpperCase();
+
+  // اتصال رفرش ارز برای دکمه تغییر دستی € / $ در هدر
+  window._paradiseRefreshCurrencyUI = () => {
+    renderDynamicPriceFilterBar();
+    renderProductsCatalogGrid();
+    if (coreState.lightboxProduct) renderLightboxStageContent();
+    renderSteppedCartUI();
+  };
+
+  // تشخیص زنده نشست لاگین ادمین/حسابدار (برای مشتری عادی false می‌ماند)
+  onAuthStateChanged(auth, (user) => {
+    coreState.isAdminLoggedIn = Boolean(user);
+    renderAdminInvoiceExportBox();
+  });
 
   applyLocalizedStaticTexts();
   bindSmartHeaderAndGlassEvents();
@@ -2967,7 +3342,10 @@ export async function initParadiseCatalogCore() {
   bindProductGridAndLightboxEvents();
   bindCartAndWhatsappEvents();
 
-  await loadCoreCatalogData();
+  await Promise.all([
+    loadCoreCatalogData(),
+    initLiveCurrencyAndRegion(Boolean(initialOrderCode || initialItemsParam))
+  ]);
 
   resolveCurrentRouteFromUrl();
   applyLocalizedStaticTexts();
@@ -2976,8 +3354,7 @@ export async function initParadiseCatalogCore() {
   renderEntireCatalogView(true);
   renderSteppedCartUI();
 
-  // باز کردن تضمینی سبد خرید تصویری وقتی روی لینک سفارش واتساپ کلیک شده باشد
-  await loadSharedOrderFromUrlIfPresent(initialOrderCode, initialItemsParam);
+  await loadSharedOrderFromUrlIfPresent(initialOrderCode, initialItemsParam, initialCurParam);
 
   if (coreState.activeProductSku) {
     openProductLightbox(coreState.activeProductSku, false);
